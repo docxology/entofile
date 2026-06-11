@@ -14,7 +14,7 @@ authors:
 
 publication:
   doi: "10.5281/zenodo.20396329"
-  github_repository: "planned public home: docxology/entofile"
+  github_repository: "docxology/entofile"
   transmission_bookends:
     enabled: true
     max_prior_releases: 5

@@ -47,7 +47,7 @@ def test_template_transmission_bookends_are_release_configured() -> None:
     bookends = publication["transmission_bookends"]
     assert bookends["enabled"] is True
     assert bookends["show_steganography"] is False
-    assert publication["github_repository"] == "planned public home: docxology/entofile"
+    assert publication["github_repository"] == "docxology/entofile"
 
     rendering_pipeline = _read("docs/rendering_pipeline.md")
     assert "BEGINNING OF TRANSMISSION" in rendering_pipeline
