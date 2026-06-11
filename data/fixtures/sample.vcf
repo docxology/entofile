@@ -1,0 +1,3 @@
+##fileformat=VCFv4.2
+#CHROM	POS	ID	REF	ALT
+chr1	100	rs1	A	G

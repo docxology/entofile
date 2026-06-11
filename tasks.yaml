@@ -1,0 +1,200 @@
+# tasks.yaml — task + Gantt source of truth for this project.
+# Managed by the projects/taskboard server (live read-write) and seed_tasks.py.
+# status: todo | in_progress | blocked | done. dates: YYYY-MM-DD. progress: 0-100.
+project:
+  name: entofile
+  title: ENTO — Encrypted Typed Omnitrack format 0.4
+  status: active
+  color: '#4C72B0'
+  lead: DAF
+tasks:
+- id: ef-1
+  title: Promote default wire format 0.4.0 (GCM nonce + PADMÉ)
+  status: done
+  start: '2026-05-28'
+  end: '2026-06-02'
+  progress: 100
+  milestone: false
+  deps: []
+  tags:
+  - format
+  notes: ''
+- id: ef-2
+  title: Deterministic conformance fixtures 0.2.0–0.4.0 + tamper/path-escape
+  status: done
+  start: '2026-06-02'
+  end: '2026-06-03'
+  progress: 100
+  milestone: false
+  deps:
+  - ef-1
+  tags:
+  - conformance
+  notes: ''
+- id: ef-3
+  title: JSON sidecars + telemetry-jsonl per CLI subcommand
+  status: done
+  start: '2026-06-03'
+  end: '2026-06-03'
+  progress: 100
+  milestone: false
+  deps: []
+  tags:
+  - cli
+  notes: ''
+- id: ef-4
+  title: Release manifest/checksum builder for output/release/
+  status: done
+  start: '2026-06-03'
+  end: '2026-06-03'
+  progress: 100
+  milestone: false
+  deps:
+  - ef-2
+  tags:
+  - release
+  notes: ''
+- id: ef-5
+  title: Public-cutover scaffolding (LICENSE, CITATION, SECURITY)
+  status: done
+  start: '2026-06-03'
+  end: '2026-06-03'
+  progress: 100
+  milestone: false
+  deps: []
+  tags:
+  - release
+  notes: ''
+- id: ef-6
+  title: Land/close codex/ento-0.4-rc-hardening branch
+  status: done
+  start: '2026-06-06'
+  end: '2026-06-08'
+  progress: 100
+  milestone: false
+  deps:
+  - ef-4
+  - ef-5
+  tags:
+  - release
+  notes: 'PR #2 is merged; reconciled the remaining entofile subtree delta from branch head d01a686e (template manuscript-semantics signpost). Remote branch still exists and was not deleted because its remaining unique commits are repo-wide/docs/lifecycle drift, not entofile release content.'
+- id: ef-7
+  title: KMS/HSM custody + post-quantum signing (design→impl)
+  status: todo
+  start: '2026-06-20'
+  end: '2026-07-10'
+  progress: 0
+  milestone: false
+  deps: []
+  tags:
+  - future
+  notes: ''
+- id: ef-8
+  title: Public repo cutover validation (license/citation/security/settings)
+  status: in_progress
+  start: '2026-06-13'
+  end: '2026-06-16'
+  progress: 85
+  milestone: false
+  deps:
+  - ef-6
+  tags:
+  - release
+  notes: 'Local cutover validation is current but external cutover remains open. Evidence on 2026-06-09: uv run python scripts/ento_analysis.py returned ok=true with tamper_detection_rate=1.0; conformance fixture generation/verification passed 7/7 cases; figure layout passed 21/21 figures; manuscript variables and release bundle regenerated; uv run python scripts/check_public_promotion_metadata.py --check returned ok=true; template render generated output/pdf/entofile_combined.pdf (3.29 MB) and output/web/index.html; template Stage 04 validation passed all checks and refreshed validation_report.json; uv run python scripts/audit_publication_readiness.py --check returned ok=true with live tests_source and no blockers; uv run pytest --cov=src --cov-report=term-missing -q passed with 375 passed and 92.25% coverage. Boundary: uv run python scripts/check_public_promotion_metadata.py --live-public-endpoints reports release_ready=false because planned GitHub/DOI/Zenodo endpoints return 404 and the local source tree is dirty, so public endpoint cutover is not complete.'
+- id: ef-9
+  title: Publish package (PyPI)
+  status: todo
+  start: '2026-06-16'
+  end: '2026-06-18'
+  progress: 0
+  milestone: false
+  deps:
+  - ef-8
+  tags:
+  - release
+  notes: ''
+- id: ef-10
+  title: 'Extend conformance suite: language bindings + schema-version negotiation + malformed-JSON edges'
+  status: todo
+  start: '2026-07-10'
+  end: '2026-07-24'
+  progress: 0
+  milestone: false
+  deps:
+  - ef-2
+  tags:
+  - conformance
+  - future
+  notes: 'TODO Large Initiatives: independent-implementation conformance.'
+- id: ef-11
+  title: Evaluate streaming pack/unpack for large multimodal tracks (keep verify-before-release)
+  status: todo
+  start: '2026-07-24'
+  end: '2026-08-07'
+  progress: 0
+  milestone: false
+  deps:
+  - ef-1
+  tags:
+  - future
+  notes: TODO Large Initiatives, streaming bullet.
+- id: ef-12
+  title: 'Public CI dry-run doc: map local release scripts → GitHub Actions (no publish)'
+  status: done
+  start: '2026-06-09'
+  end: '2026-06-09'
+  progress: 100
+  milestone: false
+  deps:
+  - ef-6
+  tags:
+  - release
+  - docs
+  notes: 'Added docs/public_ci_dry_run.md, indexed it in docs/README.md, included it in src/release_bundle.py, and guarded it with documentation/release-bundle tests. Evidence: uv run pytest tests/test_documentation_consistency.py tests/test_release_bundle.py tests/test_public_promotion.py -q passed; py_compile public_promotion/release_bundle/check/build scripts passed; metadata checker still reports ok=true.'
+- id: ef-13
+  title: 'Cutover checklist: license-ownership + CITATION.cff metadata audit'
+  status: done
+  start: '2026-06-09'
+  end: '2026-06-09'
+  progress: 100
+  milestone: false
+  deps:
+  - ef-6
+  tags:
+  - release
+  notes: 'Verified local cutover metadata: LICENSE is MIT / Daniel Ari Friedman, CITATION.cff matches manuscript title/version/DOI/repository-code, pyproject author/license matches manuscript config, and uv run python scripts/check_public_promotion_metadata.py --check passes.'
+- id: ef-14
+  title: 'Cutover checklist: SECURITY.md disclosure + repository-settings review'
+  status: done
+  start: '2026-06-09'
+  end: '2026-06-09'
+  progress: 100
+  milestone: false
+  deps:
+  - ef-6
+  tags:
+  - release
+  notes: 'Verified SECURITY.md current-default disclosure and public repo scaffolding. Added CODEOWNERS, refreshed bug-report format options for 0.4.0, corrected CONTRIBUTING.md stale default-format wording, and extended public-promotion/docs tests to catch this drift. Evidence: uv run pytest tests/test_public_promotion.py tests/test_documentation_consistency.py -q passed; py_compile public_promotion/check script passed.'
+- id: ef-15
+  title: 'Cutover checklist: release-artifact signing + external checksum verification'
+  status: todo
+  start: '2026-06-14'
+  end: '2026-06-16'
+  progress: 0
+  milestone: false
+  deps:
+  - ef-4
+  tags:
+  - release
+  notes: Sign output/release/ manifest (PDF, HTML, SBOM, conformance report) + verify checksums.
+- id: ef-m1
+  title: ENTO 0.4 paper release
+  status: todo
+  start: '2026-06-16'
+  end: '2026-06-16'
+  progress: 0
+  milestone: true
+  deps:
+  - ef-6
+  tags: []
+  notes: ''

@@ -1,0 +1,111 @@
+claims:
+  - claim_id: format-version
+    kind: text
+    value: "0.4.0"
+    source: projects/working/entofile/src/crypto.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: data/ento_manifest_schema.json
+  - claim_id: format-version-latest
+    kind: text
+    value: "0.4.0"
+    source: projects/working/entofile/src/crypto.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: src/crypto.py
+  - claim_id: tamper-detection-rate
+    kind: number
+    value: 1.0
+    source: projects/working/entofile/src/benchmarks.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: output/reports/benchmark_validation.json
+  - claim_id: container-verify-gate
+    kind: text
+    value: verify_container
+    source: projects/working/entofile/src/container.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: output/data/_bench_tmp/
+  - claim_id: figure-export-dpi
+    kind: number
+    value: 300
+    source: projects/working/entofile/src/figures.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: output/figures/
+  - claim_id: master-key-bytes
+    kind: number
+    value: 32
+    source: projects/working/entofile/src/crypto.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: src/crypto.py
+  - claim_id: track-header-bytes
+    kind: number
+    value: 28
+    source: projects/working/entofile/src/crypto.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: src/crypto.py
+  - claim_id: test-coverage-min
+    kind: number
+    value: 90
+    source: projects/working/entofile/pyproject.toml
+    source_tier: project_source
+    freshness: active
+    artifact_path: pyproject.toml
+  - claim_id: figure-display-width
+    kind: number
+    value: 90
+    source: projects/working/entofile/manuscript/config.yaml
+    source_tier: project_source
+    freshness: active
+    artifact_path: manuscript/config.yaml
+  - claim_id: crypto-backend-gcm
+    kind: text
+    value: aes-256-gcm
+    source: projects/working/entofile/src/crypto.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: src/crypto.py
+  - claim_id: container-verification-report
+    kind: text
+    value: container_verification.json
+    source: projects/working/entofile/src/verification_report.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: output/reports/container_verification.json
+  - claim_id: figure-count
+    kind: number
+    value: 21
+    source: projects/working/entofile/src/figure_registry.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: output/figures/
+  - claim_id: figure-caption-registry
+    kind: text
+    value: FIG_CAPTION_
+    source: projects/working/entofile/src/figure_registry.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: src/figure_registry.py
+  # Methodological constants used in the formal-model and statistics prose. These are
+  # mathematical/statistical conventions, not measured metrics, but the evidence-grounding
+  # gate (infrastructure/validation/evidence_registry.py) flags any bare number it cannot
+  # tie to a registered fact. Registering them here grounds them honestly with provenance
+  # to the code that defines them, rather than weakening the shared infrastructure matcher.
+  - claim_id: bits-per-byte
+    kind: number
+    value: 8
+    source: projects/working/entofile/src/crypto.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: src/crypto.py
+  - claim_id: confidence-interval-level-percent
+    kind: number
+    value: 95
+    source: projects/working/entofile/src/benchmark_stats.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: src/benchmark_stats.py

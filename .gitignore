@@ -1,0 +1,11 @@
+output/
+.coverage
+.coverage.*
+.pytest_cache/
+__pycache__/
+*.pyc
+.benchmarks/
+**/*.egg-info/
+.venv/
+coverage_project.json
+htmlcov/

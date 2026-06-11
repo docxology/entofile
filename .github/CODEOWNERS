@@ -1,0 +1,21 @@
+# Public-promotion scaffold for docxology/entofile.
+#
+# Keep cryptography, container parsing, release, and publication gates owned
+# explicitly once the private RC moves to the public repository.
+
+* @docxology
+
+/src/crypto.py @docxology
+/src/crypto_gcm.py @docxology
+/src/container.py @docxology
+/src/manifest.py @docxology
+/src/security.py @docxology
+/src/release_bundle.py @docxology
+/src/public_promotion.py @docxology
+/scripts/build_release_bundle.py @docxology
+/scripts/check_public_promotion_metadata.py @docxology
+/SECURITY.md @docxology
+/CITATION.cff @docxology
+/LICENSE @docxology
+/docs/public_release_checklist.md @docxology
+/docs/provenance_signing.md @docxology

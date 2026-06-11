@@ -1,0 +1,18 @@
+# Non-default reviewer stress profile.
+#
+# This file is intentionally not used by the 0.4 release render. The release
+# benchmark remains manuscript/config.yaml: 150 repetitions x 16 rows = 2400
+# rows. This profile enables both optional benchmark dimensions so reviewers can
+# exercise a larger synthetic track and a mixed multi-track container separately.
+
+experiment:
+  benchmark_repetitions: 30
+  observability_levels: [0, 1, 2, 3]
+  medium_track_bytes: 65536
+  large_track_bytes: 1048576
+  include_mixed_container: true
+  creator: entofile-expanded-profile
+  viz:
+    dpi: 300
+    figsize: [8, 5]
+    figure_width_percent: 90

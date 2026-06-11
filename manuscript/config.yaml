@@ -1,0 +1,74 @@
+paper:
+  title: "ENTO: an ENcrypted, Typed, Omnitrack container format for multimodal research data"
+  subtitle: "Authenticated ZIP containers for observability-graded research data"
+  version: "0.4"
+
+authors:
+  - name: "Daniel Ari Friedman"
+    orcid: "0000-0001-6232-9096"
+    email: "daniel@activeinference.institute"
+    affiliations:
+      - "Active Inference Institute"
+      - "FractAI"
+    corresponding: true
+
+publication:
+  doi: "10.5281/zenodo.20396329"
+  github_repository: "planned public home: docxology/entofile"
+  transmission_bookends:
+    enabled: true
+    max_prior_releases: 5
+    show_steganography: false
+  journal: ""
+  year: "2026"
+
+keywords:
+  - "research data formats"
+  - "authenticated encryption"
+  - "AES-256-GCM"
+  - "reproducible research"
+  - "multimodal containers"
+  - "metadata leakage"
+  - "observability levels"
+  - "FAIR data packaging"
+
+metadata:
+  license: "MIT"
+  language: "en"
+  # Project-local PDF density override. The template renderer forwards this to
+  # pandoc as `-V geometry:`; keep geometry out of preamble.md to avoid conflicts.
+  geometry: "margin=0.5in"
+
+render:
+  formats:
+    pdf: true
+    html: true
+    slides: false
+    docx: false
+    epub: false
+
+llm:
+  reviews:
+    enabled: false
+  translations:
+    enabled: false
+
+testing:
+  max_test_failures: 0
+
+analysis:
+  scripts:
+    - ento_analysis.py
+    - build_dashboard.py
+    - generate_api_docs.py
+    - z_generate_manuscript_variables.py
+
+experiment:
+  benchmark_repetitions: 150
+  observability_levels: [0, 1, 2, 3]
+  medium_track_bytes: 65536
+  creator: entofile
+  viz:
+    dpi: 300
+    figsize: [8, 5]
+    figure_width_percent: 90

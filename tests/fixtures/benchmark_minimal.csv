@@ -1,0 +1,6 @@
+condition,track_id,track_type,plaintext_bytes,ciphertext_bytes,expansion_ratio,pack_seconds,unpack_seconds,pack_throughput_mib_s,tamper_detected,observability_level,manifest_bytes
+small_tracks_r0,eeg,ento:timeseries.eeg,42,74,1.76,0.01,0.001,0.5,True,0,312
+small_tracks_r0,eeg,ento:timeseries.eeg,42,74,1.76,0.01,0.001,0.5,True,3,512
+small_tracks_r0,vcf,ento:genomics.vcf,100,140,1.40,0.02,0.002,0.4,True,3,600
+medium_tracks_r0,medium,ento:spectrogram,65536,65600,1.00,0.5,0.01,120.0,True,3,800
+medium_tracks_r0,medium,ento:spectrogram,65536,65600,1.00,0.6,0.02,110.0,False,3,800

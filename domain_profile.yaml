@@ -1,0 +1,49 @@
+domain: format_research
+display_name: ENTO Container Format Research
+required_packages:
+  - numpy
+  - matplotlib
+  - pytest
+  - jsonschema
+preferred_outputs:
+  - pdf
+  - html
+validation_gates:
+  - experiment_method_design
+  - artifact_manifest
+  - evidence_grounding
+  - render_validation
+  - publication_readiness
+figure_types:
+  - throughput_benchmark
+  - expansion_ratio
+  - observability_manifest_size
+  - tamper_detection
+citation_policy: official_or_scholarly
+source_policy: "Prefer ENTO reference implementation outputs, JSON Schema, and format-comparison literature."
+review_gates:
+  - experiment_method_design
+  - render_validation
+  - publication_readiness
+artifact_expectations:
+  - output/data/manuscript_variables.json
+  - output/data/ento_benchmark_results.csv
+  - output/figures/throughput_benchmark.png
+  - output/reports/benchmark_validation.json
+  - output/pdf/entofile_combined.pdf
+benchmark_rubric:
+  name: format-research-readiness
+  dimensions:
+    - name: output_validity
+      weight: 1.0
+    - name: reproducibility_bundle
+      weight: 1.0
+    - name: artifact_manifest
+      weight: 1.0
+    - name: evidence_grounding
+      weight: 2.0
+    - name: render_success
+      weight: 1.0
+    - name: publication_readiness
+      weight: 1.0
+llm_prompt_guidance: "Use generated ENTO benchmark artifacts and manuscript variables; do not invent numeric results."

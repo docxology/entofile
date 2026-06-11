@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://entofile.dev/schema/ento_manifest_schema.json",
+  "title": "ENTO Manifest",
+  "type": "object",
+  "required": ["format_version", "created", "creator", "observability_level", "tracks"],
+  "properties": {
+    "format_version": { "type": "string", "enum": ["0.2.0", "0.3.0", "0.3.1", "0.4.0"] },
+    "created": { "type": "string" },
+    "creator": { "type": "string" },
+    "observability_level": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "tracks": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/track" }
+    }
+  },
+  "definitions": {
+    "sha256_hex": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{64}|)$"
+    },
+    "ento_uri": {
+      "type": "string",
+      "pattern": "^ento:"
+    },
+    "track": {
+      "type": "object",
+      "required": ["id", "type", "sha256_plaintext", "sha256_ciphertext", "byte_length"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9._-]+$"
+        },
+        "type": { "$ref": "#/definitions/ento_uri" },
+        "sha256_plaintext": { "$ref": "#/definitions/sha256_hex" },
+        "sha256_ciphertext": { "$ref": "#/definitions/sha256_hex" },
+        "byte_length": { "type": "integer", "minimum": 0 },
+        "observability": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "resolution": {
+          "type": "object",
+          "properties": {
+            "hz": { "type": "number" },
+            "n_fft": { "type": "integer" },
+            "build": { "type": "string" },
+            "chr": { "type": "string" },
+            "loci": { "type": "array", "items": { "type": "string" } },
+            "shape": { "type": "array", "items": { "type": "integer" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible ENTO behavior bug.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include production keys, plaintext research data, or vulnerability details.
+        Use the security process for sensitive reports.
+  - type: input
+    id: version
+    attributes:
+      label: ENTO version or commit
+      placeholder: "0.4 RC / commit hash"
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Format version
+      options:
+        - "0.4.0"
+        - "0.2.0"
+        - "0.3.0"
+        - "0.3.1"
+        - "not format-specific"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Include commands and non-sensitive fixture paths.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true

@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use ENTO, please cite the manuscript and software release."
+title: "ENTO: an ENcrypted, Typed, Omnitrack container format for multimodal research data"
+version: "0.4"
+doi: "10.5281/zenodo.20396329"
+date-released: 2026-05-31
+repository-code: "https://github.com/docxology/entofile"
+license: MIT
+authors:
+  - family-names: Friedman
+    given-names: Daniel Ari
+    orcid: "https://orcid.org/0000-0001-6232-9096"
+keywords:
+  - research data formats
+  - authenticated encryption
+  - AES-256-GCM
+  - reproducible research
+  - multimodal containers

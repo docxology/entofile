@@ -1,0 +1,26 @@
+conditions:
+  - name: small_tracks
+    role: reference
+    description: "Fixture tracks under 4 KiB plaintext."
+  - name: medium_tracks
+    role: proposed
+    description: "Synthetic tracks near 64 KiB for throughput measurement."
+  - name: observability_sweep
+    role: variant
+    description: "Export manifest at observability levels 0–3."
+metrics:
+  primary:
+    name: pack_throughput_mib_s
+    direction: maximize
+protocol: "Pack and unpack fixture tracks with fixed master key and three repetitions per size class."
+expected_figures:
+  - fig:throughput_benchmark
+  - fig:expansion_ratio
+  - fig:observability_manifest_size
+  - fig:tamper_detection
+expected_tables:
+  - tbl:ento_benchmark_results
+baselines:
+  - small_tracks
+ablations:
+  - observability_sweep

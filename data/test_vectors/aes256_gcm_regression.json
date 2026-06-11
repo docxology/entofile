@@ -1,0 +1,8 @@
+{
+  "source": "Pinned regression vector for src.crypto_gcm (AES-256-GCM via cryptography)",
+  "key_hex": "603deb1015ca71be2b73aef0857d77811f352c073b6108d71d59185466726408",
+  "nonce_hex": "608da9ad171776a3979174047250492a",
+  "plaintext_hex": "604e6ebc7aab88251c5c90e465ef234283e86a58c0b386f9d0da029adc95c608",
+  "ciphertext_hex": "321e9b58f0ef32ed768bcccdfe1a9c579cba39364ccee21be61dafd7f685f82d",
+  "tag_hex": "7ec9f7864e0e2f45994140b227a79120"
+}
