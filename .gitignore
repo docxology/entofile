@@ -11,3 +11,4 @@ coverage_project.json
 htmlcov/
 .ruff_cache/
 .mypy_cache/
+build/

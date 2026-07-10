@@ -16,8 +16,6 @@ calls for a breaking release:
 - Periodically re-run public/private wording checks before promotion using the
   metadata checker so the private working checkout is never described as already
   public.
-- Add a `run.sh` convenience script wrapping the common pipeline commands
-  (lint, typecheck, test, analysis, conformance, release-bundle).
 
 ## Completed in TODO pass
 
@@ -63,21 +61,19 @@ calls for a breaking release:
   (`datetime.UTC` -> `timezone.utc`), `[tool.ruff]` config added, `run.sh`
   convenience script, GitHub Actions CI workflow, `.pre-commit-config.yaml`,
   `.github/dependabot.yml`, pyproject.toml version promoted to `0.4.0`.
+- 2026-07-10 standalone pipeline pass: SBOM, manuscript variables, figure layout
+  report, and validation report now generated as part of `ento_analysis.py`
+  (no template checkout required). Added `generate_manuscript_variables_standalone.py`.
+  Added package build smoke tests. Documented template rendering integration in
+  `docs/rendering_pipeline.md`. All 13 public-promotion tests pass. Release
+  manifest `ok: true` with zero missing required files.
 
 ## Medium Improvements
 
 - Add stricter visual diffing for figure changes, using a fixed CSV and per-pixel
   tolerance windows for intentional style changes.
-- Add package build smoke tests (`uv build` + `pip install` round-trip) now that
-  the Python package version is promoted to `0.4.0`.
-- Generate the SBOM (`output/reports/sbom.cyclonedx.json`) as part of the
-  standalone analysis pipeline so `release_manifest.ok` can be true without
-  the template rendering pipeline.
-- Add a standalone manuscript-variables generation path that works without the
-  template checkout (currently `z_generate_manuscript_variables.py` exits with
-  a message on standalone clones).
-- Generate the figure layout report (`output/reports/figure_layout_report.json`)
-  as part of the standalone analysis pipeline.
+- Fix `test_wheel_installs_and_imports` on Python 3.14 (venv ensurepip SIGABRT —
+  environment issue, not code issue).
 
 ## Large Initiatives
 
