@@ -102,7 +102,7 @@ def _links_match_manifest(proof: ProofExport, manifest: Manifest) -> bool:
     rebuilt = export_proof(manifest)
     if len(proof.links) != len(rebuilt.links):
         return False
-    for got, want in zip(proof.links, rebuilt.links):
+    for got, want in zip(proof.links, rebuilt.links, strict=False):
         if (
             got.index,
             got.track_id,

@@ -6,9 +6,9 @@ import zipfile
 
 from src.container import pack_container
 from src.crypto import generate_master_key
+from src.models import Manifest, ObservabilityLevel, TrackDescriptor
 from src.observability import filter_manifest, include_proof_chain
 from src.ontology import default_resolution
-from src.models import Manifest, ObservabilityLevel, TrackDescriptor
 from tests.fixtures import load_fixture_tracks
 
 

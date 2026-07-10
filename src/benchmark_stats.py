@@ -313,4 +313,4 @@ def avg_manifest_bytes(rows: list[dict[str, str]], track_id: str, level: int) ->
     if not matching:
         return "N/A"
     avg = sum(int(row["manifest_bytes"]) for row in matching) / len(matching)
-    return str(int(round(avg)))
+    return str(round(avg))

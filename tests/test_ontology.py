@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from src.ontology import default_resolution, get_type_spec, registered_types, validate_track_resolution
 from src.models import PlainTrack
+from src.ontology import (
+    default_resolution,
+    get_type_spec,
+    registered_types,
+    validate_track_resolution,
+)
 
 
 def test_registered_types_non_empty() -> None:

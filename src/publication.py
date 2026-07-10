@@ -290,9 +290,7 @@ def _na_valued_tokens(variables_json_text: str) -> set[str]:
     for key, value in data.items():
         if key.startswith(_PROSE_TOKEN_PREFIXES) or not isinstance(value, str):
             continue
-        if value.strip().casefold() in _UNBOUND_SENTINELS:
-            flagged.add(key)
-        elif (
+        if value.strip().casefold() in _UNBOUND_SENTINELS or (
             key in _BOOLEAN_BLOCKER_TOKENS
             and value.strip().casefold() in _BOOLEAN_BLOCKER_TOKENS[key]
         ):

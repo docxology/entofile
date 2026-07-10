@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 from src.cli import build_parser, cmd_genkey, cmd_inspect, main
 
 
@@ -38,7 +37,7 @@ def test_cmd_inspect_after_pack(tmp_path: Path) -> None:
             str(root / "data" / "fixtures"),
         ]
     )
-    from src.cli import cmd_pack, cmd_proof, cmd_unpack, _cmd_types
+    from src.cli import _cmd_types, cmd_pack, cmd_proof, cmd_unpack
 
     assert cmd_pack(pack_args) == 0
     inspect_args = build_parser().parse_args(["inspect", "-i", str(container)])

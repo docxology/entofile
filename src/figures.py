@@ -7,8 +7,8 @@ from pathlib import Path
 from .benchmark_io import load_benchmark_csv
 from .experiment_config import VizConfig
 from .figure_plotters import (
-    plot_crypto_overhead,
     plot_conformance_outcomes,
+    plot_crypto_overhead,
     plot_determinism_cv,
     plot_expansion,
     plot_expansion_heatmap,
@@ -17,7 +17,6 @@ from .figure_plotters import (
     plot_format_ladder,
     plot_length_leakage_profile,
     plot_manifest_multitrack,
-    plot_throughput_dispersion,
     plot_observability,
     plot_observability_redaction_matrix,
     plot_observability_tradeoff,
@@ -26,6 +25,7 @@ from .figure_plotters import (
     plot_tamper,
     plot_throughput,
     plot_throughput_by_observability,
+    plot_throughput_dispersion,
     plot_unpack_latency,
     render_to_path,
 )

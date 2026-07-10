@@ -14,7 +14,7 @@ MAX_ZIP_BYTES = 256 * 1024 * 1024
 MAX_ZIP_ENTRIES = 256
 MAX_MEMBER_UNCOMPRESSED = 64 * 1024 * 1024
 # Aggregate decompressed budget across all members — bounds the
-# entries × per-member worst case so a many-member archive cannot fan out.
+# entries x per-member worst case so a many-member archive cannot fan out.
 MAX_TOTAL_UNCOMPRESSED = 512 * 1024 * 1024
 # manifest.json is parsed eagerly; keep it small regardless of the member cap.
 MAX_MANIFEST_BYTES = 4 * 1024 * 1024

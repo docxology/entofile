@@ -16,7 +16,6 @@ import pytest
 from src import container, crypto
 from src.models import ObservabilityLevel, PlainTrack
 
-
 _TRACK = PlainTrack(
     track_id="alpha",
     track_type="ento:blockchain.proof",

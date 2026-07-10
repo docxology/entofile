@@ -11,11 +11,11 @@ from zipfile import ZipFile
 
 from .container import pack_container_bytes, unpack_container
 from .crypto import FORMAT_VERSION, generate_master_key, sha256_hex
-from .manifest import manifest_to_json
-from .observability import filter_manifest
 from .fixtures import load_fixture_tracks
-from .ontology import default_resolution
+from .manifest import manifest_to_json
 from .models import Manifest, ObservabilityLevel, PlainTrack
+from .observability import filter_manifest
+from .ontology import default_resolution
 
 
 @dataclass(frozen=True)

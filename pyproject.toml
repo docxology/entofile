@@ -37,6 +37,21 @@ python_files = ["test_*.py"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short --strict-markers"
 
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = [
+    "E501",
+    "UP017",  # timezone.utc is correct for Python 3.10 compat
+    "UP036",  # version block for tomllib compat is intentional
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B", "SIM"]
+
 [tool.mypy]
 # The reproducible "mypy clean" gate: `uv run --extra dev mypy src/`.
 # Stub packages (types-PyYAML, types-jsonschema) ship in the dev extra so a
@@ -49,7 +64,7 @@ no_implicit_optional = true
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["qrcode", "qrcode.*", "barcode", "barcode.*", "infrastructure.*", "tomli"]
+module = ["qrcode", "qrcode.*", "barcode", "barcode.*", "infrastructure.*", "tomli", "tomllib"]
 ignore_missing_imports = true
 
 [tool.coverage.run]

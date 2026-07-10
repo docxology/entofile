@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+
 from src.analysis import run_benchmark_pipeline
 from src.figure_registry import FIGURE_SPECS
 

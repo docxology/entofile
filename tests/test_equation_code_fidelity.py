@@ -12,13 +12,12 @@ from pathlib import Path
 
 import pytest
 
-from src import crypto
-from src import padding
+from src import crypto, padding
 from src.benchmark_stats import TRACK_HEADER_BYTES, expansion_ratio_model
 from src.container import pack_container, verify_container
 from src.crypto import (
-    MASTER_KEY_SIZE,
     FORMAT_VERSION,
+    MASTER_KEY_SIZE,
     TAG_SIZE,
     derive_track_key,
     generate_master_key,
@@ -28,7 +27,6 @@ from src.manifest import manifest_to_json
 from src.models import ObservabilityLevel, PlainTrack
 from src.observability import filter_manifest
 from src.track import encrypt_track, parse_track_bytes
-
 
 # ---- eq:track_key — k_i = HKDF-SHA256(K, "ento:track:" || i) ----------------------
 
@@ -161,7 +159,7 @@ def test_eq_observability_monotone_holds_on_fixtures() -> None:
         len(manifest_to_json(filter_manifest(full, lvl)).encode("utf-8"))
         for lvl in levels
     ]
-    assert sizes == sorted(sizes), f"monotonicity violated: {list(zip(levels, sizes))}"
+    assert sizes == sorted(sizes), f"monotonicity violated: {list(zip(levels, sizes, strict=False))}"
     assert sizes[0] < sizes[-1]  # redaction actually removes bytes
 
 

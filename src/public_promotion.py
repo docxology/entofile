@@ -12,12 +12,12 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 if sys.version_info >= (3, 11):
     import tomllib
-else:  # pragma: no cover - tomli backfills Python 3.10 (declared dep)
-    import tomli as tomllib
-
-import yaml
+else:
+    import tomli as tomllib  # type: ignore[no-redef]
 
 from . import crypto
 
@@ -37,7 +37,7 @@ CORE_CURRENT_DEFAULT_DOCS = (
     "docs/entofile-threat-model.md",
     "tests/test_format_0_3_0.py",
 )
-PUBLIC_DEFAULT_FORMAT_SURFACES = CORE_CURRENT_DEFAULT_DOCS + (
+PUBLIC_DEFAULT_FORMAT_SURFACES = (*CORE_CURRENT_DEFAULT_DOCS,
     "README.md",
     "CONTRIBUTING.md",
     ".github/ISSUE_TEMPLATE/bug_report.yml",

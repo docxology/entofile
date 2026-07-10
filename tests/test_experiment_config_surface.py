@@ -14,10 +14,10 @@ import pytest
 import yaml
 
 from src.experiment_config import (
+    _ALLOWED_VIZ_KEYS,
     ALLOWED_HEATMAP_CMAPS,
     NAMED_PALETTES,
     ConfigError,
-    _ALLOWED_VIZ_KEYS,
     load_experiment_config,
     viz_config_field_names,
 )
@@ -39,7 +39,7 @@ def test_no_dead_knobs_allowed_viz_keys_are_exactly_the_fields() -> None:
     field set is the dataclass fields. The allowed-key set must equal it exactly:
     a key with no field is a dead knob; a field with no key is unreachable config.
     """
-    assert _ALLOWED_VIZ_KEYS == viz_config_field_names()
+    assert viz_config_field_names() == _ALLOWED_VIZ_KEYS
 
 
 def test_unknown_viz_key_is_rejected_loudly(tmp_path: Path) -> None:

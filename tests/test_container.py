@@ -50,5 +50,5 @@ def test_unpack_rejects_forged_plaintext_hash(tmp_path: Path) -> None:
                 manifest["tracks"][0]["sha256_plaintext"] = "f" * 64
                 data = json.dumps(manifest, indent=2, sort_keys=True).encode() + b"\n"
             zout.writestr(name, data)
-    with pytest.raises(ValueError, match="proof chain does not match|plaintext digest mismatch"):
+    with pytest.raises(ValueError, match=r"proof chain does not match|plaintext digest mismatch"):
         unpack_container(tampered, key)

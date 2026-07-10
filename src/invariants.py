@@ -6,9 +6,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .fixtures import load_fixture_tracks
 from .container import pack_container, unpack_container
 from .crypto import generate_master_key
+from .fixtures import load_fixture_tracks
 from .manifest import validate_manifest_dict
 from .models import ObservabilityLevel
 

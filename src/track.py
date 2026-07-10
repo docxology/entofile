@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from . import crypto
-from . import padding
+from . import crypto, padding
 from .crypto import FORMAT_VERSION
 from .models import EncryptedTrack, PlainTrack
 

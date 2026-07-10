@@ -11,6 +11,7 @@ from typing import Any
 
 import yaml
 
+from .benchmark_io import benchmark_csv_path, load_benchmark_csv
 from .benchmark_stats import (
     avg_field,
     avg_manifest_bytes,
@@ -20,7 +21,6 @@ from .benchmark_stats import (
     result_table_rows,
     tamper_detected_count,
 )
-from .benchmark_io import benchmark_csv_path, load_benchmark_csv
 from .container import REPORTED_INTEGRITY_LEVELS
 from .crypto import (
     FORMAT_VERSION,
@@ -39,17 +39,21 @@ from .figure_registry import (
     figure_index_markdown,
     spec_by_label,
 )
-from .output_gates import benchmark_report_ok
 from .fixtures import FIXTURE_MAPPING, fixtures_dir
-from .output_gates import load_container_verification_report
+from .output_gates import benchmark_report_ok, load_container_verification_report
 
 try:
     from .experiment_config import ExperimentConfig, load_experiment_config
 except ImportError:  # pragma: no cover
-    from experiment_config import ExperimentConfig, load_experiment_config  # type: ignore[no-redef,import-untyped,import-not-found]
+    from experiment_config import (  # type: ignore[no-redef,import-untyped,import-not-found]
+        ExperimentConfig,
+        load_experiment_config,
+    )
 
 try:
-    from infrastructure.core.logging.utils import get_logger  # type: ignore[import-not-found]  # template infra, runtime-only
+    from infrastructure.core.logging.utils import (
+        get_logger,  # type: ignore[import-not-found]  # template infra, runtime-only
+    )
 
     logger = get_logger(__name__)
 except ImportError:

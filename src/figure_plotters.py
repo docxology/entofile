@@ -24,10 +24,10 @@ from .figure_registry import (
 from .viz_theme import (
     active_palette,
     annotate_bar_values,
-    line_width,
     annotate_enabled,
     color_cycle,
     heatmap_cmap,
+    line_width,
     markersize,
     open_figure,
     open_panel,
@@ -562,7 +562,7 @@ def plot_throughput_by_observability(
         maxs,
         color=active_palette()[0],
         alpha=0.2,
-        label="Min–max repetitions",
+        label="Min-max repetitions",
     )
     ax.set_xticks(levels)
     _prune_edge_ticks(ax, y=True)
@@ -764,7 +764,7 @@ def plot_expansion_law(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -
     # Integer model curve across the observed plaintext range.
     lo, hi = min(sizes), max(sizes)
     span = hi - lo or hi
-    curve_x = sorted({max(1, int(round(lo + span * k / 100.0))) for k in range(101)})
+    curve_x = sorted({max(1, round(lo + span * k / 100.0)) for k in range(101)})
     curve_y = [
         expansion_ratio_model(x, format_version=format_version) for x in curve_x
     ]
@@ -804,7 +804,7 @@ def plot_expansion_law(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -
     ax.text(
         0.97,
         0.97,
-        f"max |measured − model| = {residual:.1e}",
+        f"max |measured - model| = {residual:.1e}",
         transform=ax.transAxes,
         ha="right",
         va="top",

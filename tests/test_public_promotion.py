@@ -449,10 +449,10 @@ def test_machine_path_scan_self_allowlist_is_minimal_and_complete() -> None:
     the live tree that match the pattern, and the live gate is clean."""
     from src.public_promotion import _MACHINE_PATH_RE, _SCANNER_SELF_REFERENTIAL
 
-    assert _SCANNER_SELF_REFERENTIAL == {
+    assert {
         "src/public_promotion.py",
         "tests/test_public_promotion.py",
-    }
+    } == _SCANNER_SELF_REFERENTIAL
 
     root = Path(__file__).resolve().parent.parent
     tracked = subprocess.run(

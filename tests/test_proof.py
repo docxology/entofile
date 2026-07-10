@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from src import crypto
 from src.manifest import manifest_to_json
-from src.proof import export_proof, verify_proof_chain, verify_proof_export
 from src.models import (
     Manifest,
     ObservabilityLevel,
@@ -12,6 +11,7 @@ from src.models import (
     ProofLink,
     TrackDescriptor,
 )
+from src.proof import export_proof, verify_proof_chain, verify_proof_export
 
 
 def _manifest() -> Manifest:

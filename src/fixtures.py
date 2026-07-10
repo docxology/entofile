@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .ontology import default_resolution
 from .models import PlainTrack
+from .ontology import default_resolution
 
 FIXTURE_MAPPING: dict[str, tuple[str, str]] = {
     "eeg.csv": ("eeg", "ento:timeseries.eeg"),

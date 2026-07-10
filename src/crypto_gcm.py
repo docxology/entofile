@@ -9,11 +9,10 @@ caller (``src/crypto.py`` derives them from ``format_version``): 0.2.0 uses a
 from __future__ import annotations
 
 import secrets
+from typing import Final
 
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-from typing import Final
 
 NONCE_SIZE: Final[int] = 16
 TAG_SIZE: Final[int] = 16

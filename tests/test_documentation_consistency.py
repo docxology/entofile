@@ -17,7 +17,6 @@ from src import crypto
 from src.cli import build_parser
 from src.figure_registry import FIGURE_SPECS
 
-
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -94,8 +93,8 @@ def test_threat_model_inventory_includes_length_disclosure_id() -> None:
     threat_model = _read("docs/entofile-threat-model.md")
     agents = _read("docs/AGENTS.md")
     assert "| TM-008 | Sealed plaintext-length disclosure |" in threat_model
-    assert "TM-001–008" in agents
-    assert "TM-001–007" not in agents
+    assert "TM-001-008" in agents
+    assert "TM-001-007" not in agents
 
 
 def test_public_repository_language_is_published() -> None:

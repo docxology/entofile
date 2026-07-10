@@ -13,8 +13,8 @@ from matplotlib.transforms import Bbox
 from .benchmark_io import load_benchmark_csv
 from .figure_plotters import (
     plot_benchmark_overview,
-    plot_crypto_overhead,
     plot_conformance_outcomes,
+    plot_crypto_overhead,
     plot_determinism_cv,
     plot_expansion,
     plot_expansion_heatmap,

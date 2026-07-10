@@ -46,7 +46,7 @@ NAMED_PALETTES: dict[str, tuple[str, ...]] = {
         "#F0E442",
         "#D55E00",
     ),
-    # Okabe–Ito 8-colour qualitative set (adds black, reorders).
+    # Okabe-Ito 8-colour qualitative set (adds black, reorders).
     "okabe_ito": (
         "#000000",
         "#E69F00",

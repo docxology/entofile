@@ -18,7 +18,9 @@ from .output_gates import validate_all_outputs
 from .verification_report import write_container_verification_report
 
 try:
-    from infrastructure.core.logging.utils import get_logger  # type: ignore[import-not-found]  # template infra, runtime-only
+    from infrastructure.core.logging.utils import (
+        get_logger,  # type: ignore[import-not-found]  # template infra, runtime-only
+    )
 
     logger = get_logger(__name__)
 except ImportError:

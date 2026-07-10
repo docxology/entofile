@@ -75,11 +75,7 @@ def _report_is_substantive(report: dict[str, Any]) -> bool:
     if not all(bool(row.get("ok")) for row in samples):
         return False
     negative_control = report.get("negative_control")
-    if not isinstance(negative_control, dict) or not bool(
-        negative_control.get("rejected")
-    ):
-        return False
-    return True
+    return not (not isinstance(negative_control, dict) or not bool(negative_control.get("rejected")))
 
 
 def container_verification_report_ok(project_root: Path, *, live: bool = False) -> bool:

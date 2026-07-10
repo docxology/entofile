@@ -7,10 +7,15 @@ from pathlib import Path
 import jsonschema
 import pytest
 
-from src.manifest import build_track_descriptor, manifest_from_json, manifest_to_json, validate_manifest_dict
 from src.crypto import sha256_hex
-from src.ontology import default_resolution
+from src.manifest import (
+    build_track_descriptor,
+    manifest_from_json,
+    manifest_to_json,
+    validate_manifest_dict,
+)
 from src.models import Manifest, ObservabilityLevel, PlainTrack, TrackDescriptor
+from src.ontology import default_resolution
 
 
 def _project_root() -> Path:
@@ -48,7 +53,7 @@ def test_schema_rejects_unknown_version() -> None:
         "observability_level": 3,
         "tracks": [],
     }
-    with pytest.raises(jsonschema.ValidationError, match="9.9.9"):
+    with pytest.raises(jsonschema.ValidationError, match=r"9.9.9"):
         validate_manifest_dict(bad, _project_root())
 
 

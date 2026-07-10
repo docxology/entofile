@@ -352,7 +352,7 @@ def _build_figure_specs() -> tuple[FigureSpec, ...]:
     throughput_obs = _registered_spec(
         summary=(
             "Pack throughput, in MiB/s, against observability level for the medium-track condition: the solid line "
-            "is the per-level mean and the shaded band spans the min–max across repetitions. Throughput is largely "
+            "is the per-level mean and the shaded band spans the min-max across repetitions. Throughput is largely "
             "flat across levels in this local run. Redaction trims manifest fields at export time and never touches the "
             "encrypted payload, consistent with observability being a metadata-only control."
         ),
@@ -779,7 +779,9 @@ def write_figure_registry(project_root: Path, outputs: dict[str, Path]) -> Path:
 def register_with_infrastructure(project_root: Path, outputs: dict[str, Path]) -> None:
     """Register figures with infrastructure FigureManager when available."""
     try:
-        from infrastructure.documentation.figure_manager import FigureManager  # type: ignore[import-not-found]  # template infra, runtime-only
+        from infrastructure.documentation.figure_manager import (
+            FigureManager,  # type: ignore[import-not-found]  # template infra, runtime-only
+        )
     except ImportError:
         return
     registry_path = project_root / "output" / "figures" / "figure_registry.json"

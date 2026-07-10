@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 from src.analysis import validate_generated_outputs
 from src.figure_registry import register_with_infrastructure
+from src.models import Manifest, ObservabilityLevel, ProofExport, ProofLink, TrackDescriptor
 from src.ontology import default_resolution
 from src.proof import export_proof, verify_proof_chain
-from src.models import Manifest, ObservabilityLevel, ProofExport, ProofLink, TrackDescriptor
 
 
 def test_register_with_infrastructure_no_crash(tmp_path: Path) -> None:

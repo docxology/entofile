@@ -17,7 +17,6 @@ import pytest
 from src import container, crypto, padding
 from src.models import ObservabilityLevel, PlainTrack
 
-
 # --- PADMÉ unit -------------------------------------------------------------
 
 

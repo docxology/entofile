@@ -23,7 +23,7 @@ Operational documentation for `projects/working/entofile/`. Pipeline gates do no
 | `methods.md` | Crypto and benchmark methods |
 | `figure_registry.md` | Figure pipeline, registry, and visual evidence contract |
 | `security.md` | Key handling, verify CLI, ZIP limits |
-| `entofile-threat-model.md` | AppSec threat model (TM-001–008) |
+| `entofile-threat-model.md` | AppSec threat model (TM-001-008) |
 | `nation_state_roadmap.md` | Nation-state pillar gap analysis |
 | `research/reproducible_figures_crypto_vectors.md` | Figure pipeline and crypto test strategy |
 

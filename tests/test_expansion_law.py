@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pytest
 
+from src import crypto, padding
 from src.benchmark_io import benchmark_csv_path, load_benchmark_csv
 from src.benchmark_stats import (
     TRACK_HEADER_BYTES,
     expansion_ratio_model,
     max_expansion_ratio_residual,
 )
-from src import crypto, padding
 from src.crypto import FORMAT_VERSION, TAG_SIZE
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent

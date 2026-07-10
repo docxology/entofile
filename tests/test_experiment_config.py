@@ -6,8 +6,7 @@ from pathlib import Path
 
 import yaml
 
-from src.experiment_config import load_experiment_config
-from src.experiment_config import ExperimentConfig
+from src.experiment_config import ExperimentConfig, load_experiment_config
 from src.manuscript_variables import benchmark_rows_per_repetition
 
 

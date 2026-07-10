@@ -48,7 +48,7 @@ def test_figure_registry_matches_generators(
     assert len(registry) == len(FIGURE_SPECS)
     labels = {spec.label for spec in FIGURE_SPECS}
     filenames = {spec.filename for spec in FIGURE_SPECS}
-    assert EXPECTED_0_4_FIGURES <= labels
+    assert labels >= EXPECTED_0_4_FIGURES
     assert len(labels) == len(filenames) == len(FIGURE_SPECS)
     cfg = load_experiment_config(root)
     for spec in FIGURE_SPECS:

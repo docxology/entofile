@@ -6,7 +6,6 @@ from pathlib import Path
 
 from src.release_bundle import RELEASE_FILES
 
-
 ROOT = Path(__file__).resolve().parent.parent
 AUDIT = ROOT / "docs" / "redteam_claim_scholarship_audit_0.4.md"
 

@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import zipfile
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Literal
 
 from . import crypto
 from . import track as track_mod
@@ -20,8 +21,6 @@ from .manifest import (
     validate_manifest_dict,
     validate_plain_tracks,
 )
-from .observability import filter_manifest, include_proof_chain
-from .proof import export_proof, verify_proof_export
 from .models import (
     EncryptedTrack,
     Manifest,
@@ -29,6 +28,8 @@ from .models import (
     PlainTrack,
     ProofExport,
 )
+from .observability import filter_manifest, include_proof_chain
+from .proof import export_proof, verify_proof_export
 from .security import (
     MAX_MANIFEST_BYTES,
     assert_zip_members_match_manifest,

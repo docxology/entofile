@@ -8,8 +8,8 @@ from typing import Any
 
 import jsonschema  # type: ignore[import-untyped]  # no bundled stubs; validate() is dynamically typed
 
-from .ontology import validate_track_resolution
 from .models import Manifest, PlainTrack, TrackDescriptor
+from .ontology import validate_track_resolution
 
 _SCHEMA_CACHE: dict[str, Any] | None = None
 

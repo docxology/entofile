@@ -7,7 +7,6 @@ from pathlib import Path
 from src.figure_registry import FIGURE_SPECS
 from src.release_bundle import RELEASE_FILES
 
-
 ROOT = Path(__file__).resolve().parent.parent
 AUDIT = ROOT / "docs" / "redteam_repo_visual_audit_0.4.md"
 

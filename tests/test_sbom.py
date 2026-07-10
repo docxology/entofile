@@ -27,7 +27,7 @@ def test_release_label_fails_closed_without_version(tmp_path: Path) -> None:
     config = tmp_path / "manuscript" / "config.yaml"
     config.parent.mkdir(parents=True)
     config.write_text("paper: {title: x}\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="paper.version missing"):
+    with pytest.raises(ValueError, match=r"paper.version missing"):
         release_label(tmp_path)
 
 

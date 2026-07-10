@@ -118,7 +118,7 @@ def test_verify_requires_proof_when_missing(tmp_path: Path) -> None:
         observability_level=ObservabilityLevel.SEALED,
         export_level=ObservabilityLevel.SEALED,
     )
-    with pytest.raises(ValueError, match="proof/chain.json required"):
+    with pytest.raises(ValueError, match=r"proof/chain.json required"):
         verify_container(out, require_proof=True)
 
 

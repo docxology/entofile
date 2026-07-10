@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from src.crypto import FORMAT_VERSION, NONCE_SIZE, TAG_SIZE, generate_master_key, pads_payload
-from src.ontology import default_resolution
-from src.track import decrypt_track, encrypt_track, parse_track_bytes
 from src.models import PlainTrack
+from src.ontology import default_resolution
 from src.padding import pad_payload
+from src.track import decrypt_track, encrypt_track, parse_track_bytes
 
 
 def test_header_layout_size() -> None:
