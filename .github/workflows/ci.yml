@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: uv sync --extra dev
+      - name: Lint (ruff)
+        run: uv run ruff check src/ tests/
+      - name: Type check (mypy)
+        run: uv run mypy src/
+      - name: Test with coverage
+        run: uv run pytest tests/ --cov=src --cov-fail-under=90 --tb=short
+      - name: Analysis pipeline smoke
+        run: uv run python scripts/ento_analysis.py
+      - name: Conformance fixtures
+        run: |
+          uv run python scripts/generate_conformance_fixtures.py
+          uv run python scripts/verify_conformance_fixtures.py

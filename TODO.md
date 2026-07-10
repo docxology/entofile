@@ -16,6 +16,8 @@ calls for a breaking release:
 - Periodically re-run public/private wording checks before promotion using the
   metadata checker so the private working checkout is never described as already
   public.
+- Add a `run.sh` convenience script wrapping the common pipeline commands
+  (lint, typecheck, test, analysis, conformance, release-bundle).
 
 ## Completed in TODO pass
 
@@ -56,13 +58,26 @@ calls for a breaking release:
   tested `src/sbom.py`, Python 3.10 `tomllib` compatibility, reproducible mypy
   gate (`[tool.mypy]` + stub deps), tightened exception-message test oracles,
   and stale 0.2.0-default wording fixes in `REVIEW.md`/`entofile.md`.
+- 2026-07-10 lint cleanup pass: 120 ruff errors fixed (import sorting, ambiguous
+  unicode, raw string patterns, iterable unpacking), mypy Python 3.10 compat
+  (`datetime.UTC` -> `timezone.utc`), `[tool.ruff]` config added, `run.sh`
+  convenience script, GitHub Actions CI workflow, `.pre-commit-config.yaml`,
+  `.github/dependabot.yml`, pyproject.toml version promoted to `0.4.0`.
 
 ## Medium Improvements
 
 - Add stricter visual diffing for figure changes, using a fixed CSV and per-pixel
   tolerance windows for intentional style changes.
-- Add package build smoke tests once the Python package version is promoted
-  beyond the manuscript-only RC.
+- Add package build smoke tests (`uv build` + `pip install` round-trip) now that
+  the Python package version is promoted to `0.4.0`.
+- Generate the SBOM (`output/reports/sbom.cyclonedx.json`) as part of the
+  standalone analysis pipeline so `release_manifest.ok` can be true without
+  the template rendering pipeline.
+- Add a standalone manuscript-variables generation path that works without the
+  template checkout (currently `z_generate_manuscript_variables.py` exits with
+  a message on standalone clones).
+- Generate the figure layout report (`output/reports/figure_layout_report.json`)
+  as part of the standalone analysis pipeline.
 
 ## Large Initiatives
 
