@@ -236,8 +236,17 @@ def cmd_proof(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    from . import __version__ as ento_version
+    from .crypto import FORMAT_VERSION as _fmt_version
+
     parser = argparse.ArgumentParser(
-        prog="python -m src.cli", description="ENTO format 0.4.0 container tool"
+        prog="entofile",
+        description="ENTO format 0.4.0 container tool",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"entofile {ento_version} (ENTO format {_fmt_version})",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
