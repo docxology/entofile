@@ -24,6 +24,11 @@ uv run python scripts/check_public_promotion_metadata.py --check
 uv run python scripts/check_public_promotion_metadata.py --check --require-public-endpoints --live-public-endpoints
 ```
 
+`run_tests.py` and the certifying publication oracle both clear pytest's cache
+before execution. Their timeout paths terminate the complete pytest process tree
+and preserve only a bounded diagnostic tail; a timeout is a failed gate, not a
+pass inferred from an existing `test_results.json`.
+
 Render/validate through the sibling template:
 
 ```bash

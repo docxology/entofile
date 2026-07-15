@@ -2,8 +2,8 @@
 project: entofile
 task: ENTO stable 0.4.0 plus opt-in 0.5.0 authenticated manifest context
 effort: E4
-phase: build
-progress: current 0.5.0 implementation landed; certifying publication retry blocked by shared-host timeout
+phase: verify
+progress: current 0.5.0 implementation and cache-free runner hardening landed; certifying publication gate passed, clean-head bundle pending
 mode: algorithm
 started: 2026-05-28
 updated: 2026-07-15
@@ -516,17 +516,15 @@ independent implementation result.
 ### Current-cycle verification record
 
 Commits c3e74e4 and 0515b5d landed on `main` and were pushed without force.
-The landed head passed 448 tests at 90.38 percent coverage, Ruff, mypy, fresh
-analysis with 2,400 rows and tamper rate 1.0, conformance 8/8, figure layout
-21/21, manuscript hydration, package build/install/import smoke,
-equation-fidelity, no-mock, and repository consistency checks. The display-only
-local publication gate is green, and a clean-head release bundle plus the live
-public endpoint probe report release-ready with HTTP 200 for GitHub, DOI, and
-Zenodo. The certifying live publication gate was attempted, but its pytest child
-exceeded the 600-second bound under shared-host contention and failed closed;
-this is an infrastructure verification blocker, not evidence of a test failure.
-The independent live `run_tests.py` gate remains green. No certifying live-gate
-pass is claimed until that command is rerun under adequate host capacity.
+The current working tree passes 454 tests at 90.32 percent coverage with cache
+cleared, Ruff, mypy, fresh analysis with 2,400 rows and tamper rate 1.0,
+conformance 8/8, figure layout 21/21, manuscript hydration, package
+build/install/import smoke, equation-fidelity, no-mock, and repository
+consistency checks. The certifying `audit_publication_readiness.py --check`
+also passed from live source with zero blockers. Live public endpoint probes for
+GitHub, DOI, and Zenodo returned HTTP 200. Release readiness remains false only
+while this working tree is dirty; the clean-head release bundle must be rebuilt
+after the final commit.
 
 ## Current cycle — 2026-07-15 — opt-in 0.5.0 profile
 
@@ -599,7 +597,7 @@ land the result on synchronized `main` without force-pushing.
   rebinding, relabeling, missing/invalid binding, and empty-container controls fail.
 - [x] ISC-35: all observability export levels bind the exact emitted view, and the
   returned pack manifest equals the manifest on disk.
-- [ ] ISC-36: Ruff, mypy, full pytest/coverage, analysis, conformance, figure QA,
+- [x] ISC-36: Ruff, mypy, full pytest/coverage, analysis, conformance, figure QA,
   manuscript hydration, package smoke, and release-bundle gates pass freshly.
 - [x] ISC-37: format, security, architecture, migration, operator, threat-model,
   related-format, and manuscript docs agree on default/forward/compatibility state.
@@ -633,7 +631,7 @@ land the result on synchronized `main` without force-pushing.
 | conditional schema + fail-closed readers | implemented | `data/ento_manifest_schema.json`, `src/manifest.py` |
 | vectors and negative controls | implemented | `tests/test_format_0_5_0.py` |
 | format/manuscript/research documentation | implemented | `docs/`, `manuscript/`, `experiment_plan.yaml` |
-| regenerated release evidence and synchronized landing | landed | gate sequence below; live certification retry remains |
+| regenerated release evidence and synchronized landing | landed | gate sequence below; clean-head bundle/parity remains |
 
 ### Decisions
 
@@ -667,8 +665,8 @@ land the result on synchronized `main` without force-pushing.
 
 ### Verification
 
-Verification is partially complete on the current working tree. The canonical
-sequence for the final clean-head certification is:
+The current working tree has passed the implementation and certifying gates. The
+canonical sequence for final clean-head certification is:
 
 ```text
 uv run ruff check --no-cache src/ scripts/ tests/
@@ -689,3 +687,44 @@ The final record must state exact test/coverage counts, analysis row/tamper
 results, conformance and figure counts, local readiness, live endpoint results,
 `git diff --check`, clean status, and `main...origin/main`. Endpoint failure is
 an explicit external-public-promotion blocker.
+
+## Current-cycle follow-up — 2026-07-15 — certifying runner resilience
+
+The previous live publication attempt failed closed after its pytest child exceeded
+the 600-second bound under shared-host contention. This follow-up makes the
+execution contract more reproducible and diagnosable without changing the ENTO
+wire format: both the canonical test runner and the certifying publication runner
+clear pytest's cache, use bounded process-tree cleanup, and retain a bounded
+diagnostic tail. The sidecar remains contextual; only a fresh live oracle can
+certify publication.
+
+### Criteria and anti-criteria
+
+- [x] ISC-42: `scripts/run_tests.py` and `src.publication._live_test_command`
+  invoke pytest with `--cache-clear` and preserve the structured JSON contract.
+- [x] ISC-43: timeout and SIGINT paths terminate/reap descendant processes and
+  write bounded diagnostics; real subprocess tests cover success, launch failure,
+  timeout, interrupt, forged side files, and descendant cleanup.
+- [x] ISC-44: testing, publication, troubleshooting, ISA, and taskboard docs
+  distinguish cache-free live certification from contextual side-file evidence;
+  stale taskboard claims are corrected.
+- [x] ISC-45: a fresh `audit_publication_readiness.py --check` completed green
+  with live tests, coverage, analysis, conformance, PDF, evidence, variables,
+  and DOI checks. A timeout remains a release blocker and is not converted into
+  a pass by `--no-live-tests`.
+- [x] ISC-46 anti-criterion: no ENTO 0.2.0-0.5.0 wire behavior, vector, or default
+  format was changed by runner hardening.
+
+### Follow-up evidence
+
+- Static gates: Ruff and mypy pass after the runner changes.
+- Focused lifecycle/publication tests: 14 passed, including real process-group
+  timeout/SIGINT cleanup, launch failure, cache bypass, bounded output, live
+  recursion, forged-side-file rejection, and certifying conformance.
+- Canonical cache-cleared test gate: 454 passed, 90.32% coverage, zero failures.
+- Fresh analysis: 2,400 rows, tamper detection rate 1.0, registry/container
+  outputs valid. Conformance: 8/8. Figure layout: 21/21. Package build/install
+  smoke: 3/3. Certifying publication: `ok: true`, live source, zero blockers.
+  The public endpoint probe is also green for GitHub, DOI, and Zenodo; release
+  readiness remains false until the final source commit and clean release bundle
+  are regenerated.

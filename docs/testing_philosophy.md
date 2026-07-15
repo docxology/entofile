@@ -12,6 +12,13 @@ No `unittest.mock`, `MagicMock`, or `@patch`. Tests exercise real crypto, real t
 uv run python scripts/run_tests.py
 ```
 
+The canonical runner invokes pytest with `--cache-clear`, writes a structured
+JUnit/coverage-derived sidecar, and enforces the 90% floor on `src/`. A timeout
+or interrupt terminates the pytest process group, reaps descendants, and records
+a bounded stdout/stderr tail in the fail-closed report. The sidecar is
+operational evidence only; the certifying publication command reruns the suite
+independently.
+
 ## Test modules
 
 | File | Focus |

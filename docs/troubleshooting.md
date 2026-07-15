@@ -8,6 +8,12 @@ uv run python scripts/run_tests.py
 
 Target: ≥90% on `src/`.
 
+If the runner reports a timeout, inspect the report's bounded `detail` tail and
+rerun when the host has capacity. The runner fails closed, kills pytest
+descendants, and writes exit code 124 (timeout) or 130 (interrupt); do not replace
+the result with a stale green `output/reports/test_results.json`. The certifying
+publication gate has the same cache-free, live-source contract.
+
 ## `FileNotFoundError: ento_benchmark_results.csv`
 
 Run analysis before variable generation:

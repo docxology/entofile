@@ -197,7 +197,7 @@ tasks:
   deps:
   - ef-6
   tags: []
-  notes: 'Current 0.4 release metadata and DOI endpoint are live; the certifying publication gate and clean release bundle passed on 2026-07-15.'
+  notes: 'Current 0.4 release metadata, clean release bundle, and DOI/public endpoint probes passed on 2026-07-15. The certifying live publication gate later passed from live source after cache-free runner hardening; final clean-head bundle regeneration remains the release handoff step.'
 - id: ef-16
   title: Current-cycle shared-boundary hardening and gate reconciliation
   status: done
@@ -253,3 +253,16 @@ tasks:
   - security
   - manuscript
   notes: 'Completed 2026-07-15: 0.5.0 canonical exported-view binding, schema/AAD dispatch, fixed vectors, mutation/rebinding/downgrade controls, formal manuscript equations, strict canonicalization, RQ-8 protocol, regenerated artifacts, and timeout-safe live publication runner. Full final evidence is recorded in ISA.md.'
+- id: ef-20
+  title: Harden cache-free test and publication runner lifecycle
+  status: done
+  start: '2026-07-15'
+  end: '2026-07-15'
+  progress: 100
+  milestone: false
+  deps:
+  - ef-19
+  tags:
+  - hardening
+  - verification
+  notes: 'Canonical run_tests.py and certifying publication execution now clear pytest cache, terminate/reap descendants on timeout or SIGINT, and retain bounded diagnostics. Four real-process runner tests plus publication live tests pass; Windows taskkill behavior is documented but not executable on this macOS host.'
