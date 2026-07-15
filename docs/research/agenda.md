@@ -1,8 +1,9 @@
 # ENTO Research Agenda
 
 This agenda is the current research source of truth after the 0.4.0 release
-candidate. It separates claims that the reference implementation can establish
-from deployment, interoperability, and publication claims that require new
+candidate and the opt-in 0.5.0 authenticated-manifest-context profile. It
+separates claims that the reference implementation can establish from
+deployment, interoperability, and publication claims that require new
 experiments or external controls.
 
 ## Protocol contract
@@ -26,6 +27,11 @@ experiments or external controls.
 
 Question: Can an independent implementation reproduce the ENTO 0.4.0 wire
 contract and reject the same hostile inputs?
+
+Owner: DAF. Control: the published 0.4.0 vectors and the current Python
+reference verifier. Repetition rationale: one complete matrix plus three
+independent implementations or implementation runs. Limits: a passing matrix
+does not prove arbitrary payload or schema-extension interoperability.
 
 Competing hypotheses:
 
@@ -51,6 +57,11 @@ Stop rule: stop the compatibility claim until every divergence is classified.
 Question: Can large multimodal tracks be processed without releasing
 unauthenticated plaintext or exceeding bounded memory?
 
+Owner: DAF. Control: the current whole-track ZIP pack/unpack path with
+verify-before-release tests. Repetition rationale: at least three sizes across
+three repetitions, with one hostile mutation per failure class. Limits: memory
+results are host-specific and do not establish distributed-service behavior.
+
 Competing hypotheses:
 
 - H2-A: temporary authenticated files plus atomic promotion preserve the current
@@ -66,10 +77,16 @@ authentication, throughput, temporary-disk usage, and failure cleanup success.
 
 Falsification: any unauthenticated plaintext release or cleanup failure after a
 hostile-input run.
+Stop rule: stop immediately on a verify-before-release violation.
 
 ### RQ-3 — Leakage and observability
 
 Question: What information remains visible at each format and observability level?
+
+Owner: DAF. Control: matched plaintexts in all supported formats and all four
+export levels. Repetition rationale: at least 30 matched size/content pairs per
+format and level, observed three times. Limits: archive-only measurements do not
+model side channels, traffic analysis, or operator metadata.
 
 Competing hypotheses:
 
@@ -88,11 +105,18 @@ Metrics: observable field inventory, distinguishable-size classes, bucket width,
 
 Falsification: any documented privacy claim contradicted by a deterministic
   observer using only permitted archive bytes.
+Stop rule: downgrade the claim to the measured leakage boundary.
 
 ### RQ-4 — Cryptographic interoperability
 
 Question: Are the cryptographic primitives, nonce rules, AAD, and canonical
-  padding independently reproducible and safely constrained?
+padding independently reproducible and safely constrained?
+
+Owner: DAF. Control: pinned RFC/NIST vectors plus the ENTO 0.4.0/0.5.0 vectors,
+with legacy verdicts replayed unchanged. Repetition rationale: three independent
+implementations or language bindings must reproduce every fixed vector. Limits:
+vector parity does not prove nonce custody, random-source quality, or production
+key management.
 
 Competing hypotheses:
 
@@ -108,11 +132,19 @@ Experiment: add RFC/NIST known-answer vectors, cross-language vectors, nonce
 
 Metrics: vector parity, duplicate nonce count, downgrade rejection rate, and
   unresolved specification questions.
+Falsification: any vector, nonce, downgrade, or canonical-padding mismatch.
+Stop rule: freeze profile claims until the mismatch is resolved.
 
 ### RQ-5 — Custody and recovery boundary
 
 Question: What production wrapper is required around the 32-byte local master-key
-  interface?
+interface?
+
+Owner: DAF. Control: the current local 32-byte master-key file boundary with no
+provider credentials in the repository. Repetition rationale: three rotation and
+three recovery drills per custody design, including denied-access and cleanup
+failure cases. Limits: a design study cannot certify a vendor, facility, policy,
+or compliance boundary.
 
 Competing hypotheses:
 
@@ -127,11 +159,20 @@ Experiment: threat-model and prototype a wrapper with access logs, rotation,
 
 Metrics: key exposure duration, audit completeness, rotation blast radius,
   recovery time, and operator-error paths.
+Falsification: any unlogged key access, unrecoverable rotation, or unsafe cleanup
+path. Stop rule: keep custody outside the reference implementation until controls
+pass.
 
 ### RQ-6 — Supply-chain and release provenance
 
 Question: Can release artifacts be reproduced, inventoried, signed, and verified
 outside the working checkout?
+
+Owner: DAF. Control: the current local release manifest, SBOM, uv.lock, and
+generated manuscript/artifact set. Repetition rationale: two clean builds in
+separate environments plus one independent checksum/provenance verification.
+Limits: local builds do not establish public registry availability, signature
+trust, or CI isolation.
 
 Competing hypotheses:
 
@@ -146,11 +187,19 @@ Experiment: build from a clean clone in two environments, compare checksums,
 
 Metrics: checksum parity, artifact completeness, provenance verification result,
   dependency drift, and reproducibility failure classification.
+Falsification: any unexplained checksum or provenance verification failure.
+Stop rule: do not claim reproducible release artifacts until clean-clone parity
+passes.
 
 ### RQ-7 — Related-format interoperability
 
 Question: Which exports make ENTO useful alongside RO-Crate, BagIt, HDF5, and Zarr
 without misrepresenting ENTO as a replacement?
+
+Owner: DAF. Control: an ENTO-only baseline that preserves the original encrypted
+container bytes. Repetition rationale: at least three representative multimodal
+datasets per target ecosystem and three adapter repetitions. Limits: successful
+export/import does not establish semantic equivalence with any target ecosystem.
 
 Competing hypotheses:
 
@@ -166,6 +215,47 @@ Experiment: define representative multimodal datasets, map metadata and digests,
 
 Metrics: field preservation, digest preservation, round-trip data equality,
   metadata loss, and adapter complexity.
+Falsification: any unreported data, digest, or metadata loss in a round trip.
+Stop rule: document the loss boundary before adding an extension.
+
+### RQ-8 — Authenticated exported-manifest context
+
+Question: Does the opt-in 0.5.0 profile prevent metadata reinterpretation while
+preserving redaction behavior and the earlier wire contracts?
+
+Competing hypotheses:
+
+- H8-A: binding the canonical exported manifest projection into every track's
+  GCM AAD rejects creator, timestamp, observability, ordering, descriptor, and
+  rebound-manifest mutations under a supplied key.
+- H8-B: the binding improves interpretation integrity but introduces
+  canonicalization or compatibility failures that are not present in 0.4.0.
+- H8-C: even a correct public binding cannot establish origin; an external
+  signature over the container or release bundle remains necessary.
+
+Control: 0.4.0 containers with format-plus-track AAD but no manifest-context
+binding, plus fixed 0.2.0/0.3.0/0.3.1 vectors.
+
+Experiment: enumerate all four observability levels and each authenticated
+manifest field class; mutate each field once with the old binding, then
+recompute the public binding while retaining the original ciphertext. Run the
+fixed vector in independent implementations and compare canonical bytes,
+bindings, tags, decrypt verdicts, and legacy verdicts.
+
+Metrics: keyed mutation rejection rate, rebound-manifest rejection rate,
+redaction-level binding parity, independent vector byte parity, legacy verdict
+parity, canonicalization divergence count, and median pack overhead bytes.
+Generate at least three independent containers per level and field class; use
+three implementation repetitions before any interoperability claim.
+
+Falsification: any keyed mutation accepted, any level that cannot round-trip,
+any legacy verdict change, or any unexplained canonicalization divergence.
+Stopping rule: stop on the first such result and freeze profile claims until
+the discrepancy is classified and resolved.
+
+Limits: this cycle can show metadata-context authentication under a supplied
+key. It cannot prove origin, signature validity, KMS/HSM custody, streaming
+safety, or equivalence with RO-Crate, BagIt, HDF5, Zarr, or another ecosystem.
 
 ## Output contract
 

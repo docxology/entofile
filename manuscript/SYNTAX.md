@@ -1,6 +1,6 @@
 # Manuscript Syntax Reference (entofile)
 
-Overlay for ENTO manuscript authoring (default format 0.4.0; compatibility formats 0.2.0/0.3.0/0.3.1). Repository-wide semantics: [docxology manuscript semantics guide](https://github.com/docxology/template/blob/main/docs/guides/manuscript-semantics.md).
+Overlay for ENTO manuscript authoring (stable default format 0.4.0; opt-in format 0.5.0; compatibility formats 0.2.0/0.3.0/0.3.1). Repository-wide semantics: [docxology manuscript semantics guide](https://github.com/docxology/template/blob/main/docs/guides/manuscript-semantics.md).
 
 ## Citations
 
@@ -55,6 +55,9 @@ Use `[@sec:label]` where `#sec:label` appears on section headers (e.g. `{#sec:me
 | Token | Source |
 | --- | --- |
 | `FORMAT_VERSION` | Current default ENTO wire format (`0.4.0`) |
+| `FORMAT_VERSION_NEXT` | Opt-in authenticated-manifest-context profile (`0.5.0`) |
+| `FORMAT_NEXT_AAD_TEMPLATE` | Version-derived manifest-context AAD template |
+| `FORMAT_NEXT_BINDING_DESCRIPTION` | Version-derived binding description |
 | `CRYPTO_BACKEND_DEFAULT` | `crypto_backend_for_format(FORMAT_VERSION)` |
 | `PAPER_TITLE` / `PAPER_SUBTITLE` / `PAPER_VERSION` | `manuscript/config.yaml` `paper.*` |
 | `NONCE_BYTES` / `TAG_BYTES` | `crypto.NONCE_SIZE` / `TAG_SIZE` |

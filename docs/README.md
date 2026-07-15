@@ -1,7 +1,7 @@
 # Documentation — entofile
 
 Navigation hub for the ENTO format **0.4.0** reference implementation (0.4 paper
-release). The public repository is
+release) and opt-in **0.5.0** authenticated-manifest-context profile. The public repository is
 [github.com/docxology/entofile](https://github.com/docxology/entofile); the
 maintainer's build and render path remains `projects/working/entofile`.
 
@@ -13,6 +13,7 @@ maintainer's build and render path remains `projects/working/entofile`.
 | Operators | [`operator_checklist.md`](operator_checklist.md) |
 | AI agents | [`agent_instructions.md`](agent_instructions.md) |
 | Architecture | [`architecture.md`](architecture.md) |
+| Format 0.5.0 | [`format_0_5_0.md`](format_0_5_0.md) |
 | Manuscript tokens | [`syntax_guide.md`](syntax_guide.md) + [`../manuscript/AGENTS.md`](../manuscript/AGENTS.md) |
 | Glossary | [`glossary.md`](glossary.md) |
 
@@ -53,7 +54,7 @@ maintainer's build and render path remains `projects/working/entofile`.
 | [`methods.md`](methods.md) | Crypto, benchmarks, validation |
 | [`security.md`](security.md) | Key handling, verify CLI, ZIP limits |
 | [`entofile-threat-model.md`](entofile-threat-model.md) | AppSec threat model |
-| [`format_migration.md`](format_migration.md) | Choosing default `0.4.0` or compatibility formats |
+| [`format_migration.md`](format_migration.md) | Choosing stable `0.4.0`, opt-in `0.5.0`, or compatibility formats |
 | [`provenance_signing.md`](provenance_signing.md) | Signing and SLSA-compatible release provenance |
 | [`kms_hsm_profile.md`](kms_hsm_profile.md) | External key custody profile |
 | [`pq_transition_note.md`](pq_transition_note.md) | Post-quantum integration note |

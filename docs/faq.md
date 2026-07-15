@@ -2,7 +2,7 @@
 
 ## What is ENTO?
 
-**EN**crypted, **T**yped, **O**mnitrack (default format **0.4.0**) — a flat ZIP container holding many independently typed tracks, each sealed with per-track AES-256-GCM, plus graded observability levels and optional hash-chained proof export. "Omnitrack" means one archive carries arbitrarily many heterogeneous tracks side by side.
+**EN**crypted, **T**yped, **O**mnitrack (stable default format **0.4.0**, opt-in **0.5.0**) — a flat ZIP container holding many independently typed tracks, each sealed with per-track AES-256-GCM, plus graded observability levels and optional hash-chained proof export. "Omnitrack" means one archive carries arbitrarily many heterogeneous tracks side by side.
 
 ## Which cryptography library is used?
 

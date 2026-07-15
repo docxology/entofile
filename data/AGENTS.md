@@ -6,7 +6,7 @@ Fixture files are committed and small. Do not store secrets or large datasets he
 
 | Path | Role |
 | --- | --- |
-| `ento_manifest_schema.json` | `format_version` enum: `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0` |
+| `ento_manifest_schema.json` | `format_version` enum: `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`, `0.5.0`; 0.5.0 requires `manifest_binding` |
 | `ento_track_header.ksy` | Binary track layout; tag semantics per format version |
 | `claim_ledger.yaml` | Publication claims → tests ([`../docs/claim_ledger.md`](../docs/claim_ledger.md)) |
 | `conformance/README.md` | Deterministic fixture policy; generated vectors live under `output/conformance/` |

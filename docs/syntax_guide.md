@@ -7,6 +7,8 @@ Manuscript authoring reference. Project overlay: [`../manuscript/SYNTAX.md`](../
 | Token | Meaning |
 | --- | --- |
 | `FORMAT_VERSION` | `0.4.0` |
+| `FORMAT_VERSION_NEXT` | Opt-in authenticated-manifest-context profile |
+| `FORMAT_NEXT_AAD_TEMPLATE` | 0.5.0 AAD template |
 | `FORMAT_VERSIONS_COMPATIBILITY` | Prior supported wire formats |
 | `FORMAT_DEFAULT_EXPANSION_MODEL` | Default format expansion-law wording |
 | `CONFIG_BENCHMARK_REPETITIONS` | Benchmark repetitions |

@@ -13,6 +13,13 @@ claims:
     source_tier: project_source
     freshness: active
     artifact_path: src/crypto.py
+  - claim_id: format-version-next
+    kind: text
+    value: "0.5.0"
+    source: projects/working/entofile/src/crypto.py
+    source_tier: project_source
+    freshness: active
+    artifact_path: src/manifest_binding.py
   - claim_id: tamper-detection-rate
     kind: number
     value: 1.0

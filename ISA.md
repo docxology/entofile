@@ -1,9 +1,9 @@
 ---
 project: entofile
-task: ENTO 0.4.0 main synchronization, hardening, and research agenda
+task: ENTO stable 0.4.0 plus opt-in 0.5.0 authenticated manifest context
 effort: E4
 phase: build
-progress: 18/18 historical + current-cycle ISC-1..ISC-12
+progress: current 0.5.0 implementation validated; landing and certifying publication retry pending
 mode: algorithm
 started: 2026-05-28
 updated: 2026-07-15
@@ -430,12 +430,13 @@ Baseline → final: **142 tests / 92.05%** → **153 tests / 92.41%** (full `pyt
 
 ---
 
-## Current cycle — 2026-07-15
+## Completed cycle — 2026-07-15 — shared-boundary synchronization
 
 The historical rounds above remain immutable evidence. This section is the active
 0.4.0 synchronization and research contract. The current worktree started with
 main equal to origin/main, but with an intentional hardening batch awaiting review,
-static cleanup, and landing. No wire compatibility change is authorized.
+static cleanup, and landing. Existing wire profiles remain unchanged; additive
+forward-format work is recorded in the active cycle below.
 
 ### Current goal
 
@@ -514,13 +515,177 @@ independent implementation result.
 
 ### Current-cycle verification record
 
-Final evidence on implementation head b2ee93f and ledger closeout head 0853b3d:
-canonical run_tests.py passed 429 tests at
-90.48 percent coverage; the certifying publication gate returned ok true with
-tests_source live, coverage floor true, live conformance true, and zero blockers;
-fresh analysis passed with 2,400 rows and tamper rate 1.0; conformance verified
-7/7; figure layout verified 21/21; wheel build/install/import smoke passed;
-no-mock and unresolved-token checks passed; Ruff and mypy passed. The clean-head
-release bundle reported release_ready true. Separate endpoint probes returned
-HTTP 200 for GitHub, DOI, and Zenodo. After push, fetch and parity verification
-reported main...origin/main 0/0 and git status was clean.
+The current working tree has passed 448 tests at 90.38 percent coverage,
+Ruff, mypy, fresh analysis with 2,400 rows and tamper rate 1.0, conformance
+8/8, figure layout 21/21, manuscript hydration, package build/install/import
+smoke, equation-fidelity, no-mock, and repository consistency checks. The
+display-only local publication gate is green. The certifying live publication
+gate was also attempted, but its pytest child exceeded the 600-second bound
+under shared-host contention and failed closed; this is an infrastructure
+verification blocker, not evidence of a test failure. No certifying live-gate
+pass or clean-head release readiness is claimed until that command is rerun.
+The live public endpoint probe returned HTTP 200 for GitHub, DOI, and Zenodo;
+the metadata checker correctly reports source-dirty blockers while this tree is
+uncommitted. Final clean status and main/origin parity remain landing checks.
+
+## Current cycle — 2026-07-15 — opt-in 0.5.0 profile
+
+This is the active format, documentation, and manuscript cycle. It preserves the
+stable 0.4.0 writer default and every 0.2.0-0.4.0 compatibility vector while
+adding one explicit forward profile. No release claim is made from generated
+side files alone; all evidence below must be regenerated on the final head.
+
+### Problem
+
+The 0.4.0 AEAD contract binds the format label and track identifier, but the
+manifest context that interprets a track remains outside the GCM associated data.
+A public party can therefore rewrite unkeyed interpretation metadata and recompute
+public digests/proof bytes. Keyed verification still protects ciphertext, but the
+format has no profile that authenticates the exported interpretation context.
+
+### Vision
+
+ENTO has a conservative, opt-in profile whose track tags bind the exact exported
+manifest view, with a fixed vector, a redaction-level matrix, fail-closed parsing,
+and documentation that distinguishes keyed authenticity from public consistency.
+The project can then study cross-language interoperability and signing without
+pretending that a local Python implementation is already a standard.
+
+### Out of Scope
+
+- Changing the stable 0.4.0 default or mutating the 0.2.0-0.4.0 wire contracts.
+- Streaming, random access, KMS/HSM custody, external signatures, SBOM provenance,
+  or reproducible package builds; these remain research questions and deployment
+  controls.
+- Claiming RFC 8785/JCS or independent-language interoperability from the current
+  canonicalization profile.
+- Treating a public `manifest_binding`, proof chain, or digest as origin proof.
+
+### Principles
+
+- Keep the default boring: forward behavior is explicit via `--format 0.5.0`.
+- Authenticate the exported view actually emitted, not an unseen internal view.
+- Keep the circular ciphertext-digest field outside the binding; GCM authenticates
+  bytes and the digest remains a separate unkeyed corruption check.
+- Reject malformed, non-finite, duplicate-key, missing-binding, stale-binding,
+  and incompatible-version inputs before plaintext release.
+- Encode every security and scientific limitation in tests, docs, and the agenda.
+
+### Constraints
+
+- `format_version` remains version-dispatched and unknown values fail closed.
+- 0.5.0 uses the existing ZIP/member layout, 12-byte nonce, AES-256-GCM,
+  per-track HKDF key, and PADMÉ body encoding.
+- A 0.5.0 binding is lowercase SHA-256 over sorted compact UTF-8 JSON of the
+  emitted manifest projection; strings are NFC-normalized, non-finite numbers are
+  rejected, and integral floats are emitted as integers.
+- Export-level changes for 0.5.0 require repacking because the selected view is
+  authenticated as GCM context.
+- The project continues to use its Python/uv contract and thin scripts over `src`.
+
+### Goal
+
+Implement and document the 0.5.0 authenticated-manifest-context profile, update
+the manuscript's formal/security model and forward-format claims, add a complete
+research protocol for validation, regenerate the certifying artifact surface, and
+land the result on synchronized `main` without force-pushing.
+
+### Criteria and anti-criteria
+
+- [x] ISC-32: default 0.4.0 and all 0.2.0-0.4.0 vectors remain unchanged.
+- [x] ISC-33: 0.5.0 pack, unpack, inspect, verify, and byte-pack paths share one
+  tested preparation/validation boundary.
+- [x] ISC-34: canonical binding and fixed AEAD vectors pass; manifest mutation,
+  rebinding, relabeling, missing/invalid binding, and empty-container controls fail.
+- [x] ISC-35: all observability export levels bind the exact emitted view, and the
+  returned pack manifest equals the manifest on disk.
+- [ ] ISC-36: Ruff, mypy, full pytest/coverage, analysis, conformance, figure QA,
+  manuscript hydration, package smoke, and release-bundle gates pass freshly.
+- [x] ISC-37: format, security, architecture, migration, operator, threat-model,
+  related-format, and manuscript docs agree on default/forward/compatibility state.
+- [x] ISC-38: research agenda RQ-1 through RQ-8 are machine-readable and specify
+  competing hypotheses, controls, metrics, falsification, stopping, and limits.
+- [x] ISC-39 anti-criterion: no public digest is described as a signature or proof
+  of origin, and no independent interoperability claim is made prematurely.
+- [x] ISC-40 anti-criterion: no stale 0.2.0/0.4.0 default wording remains in active
+  format guidance, and no generated report substitutes for its owning command.
+- [ ] ISC-41 anti-criterion: no mixed unreviewed staging, force-push, or dirty-head
+  release certification is accepted.
+
+### Test Strategy
+
+| surface | required control | evidence |
+| --- | --- | --- |
+| Canonicalization | fixed bytes, Unicode NFC equivalence, integral-float equivalence, non-finite rejection | unit/vector tests |
+| Binding | changed creator, descriptor, export view, stale/missing/wrong binding, relabel/downgrade | manifest and container negative tests |
+| AEAD | fixed key/nonce/tag/ciphertext and rebound-manifest failure | crypto vector and keyed unpack tests |
+| Compatibility | existing legacy vector suite and version matrix | 0.2.0-0.4.0 tests/conformance |
+| Pipeline | fresh analysis, conformance, figure, manuscript, SBOM, release, publication gates | owning scripts and reports |
+| Documentation | token, claim-ledger, taskboard, no-mock, unresolved-token, and link consistency | repository checks |
+
+### Features
+
+| feature | status | seam |
+| --- | --- | --- |
+| `manifest_binding` canonical projection | implemented | `src/manifest_binding.py` |
+| 0.5.0 version/AAD dispatch | implemented | `src/crypto.py`, `src/track.py` |
+| exported-view pack orchestration | implemented | `src/container.py`, `src/observability.py` |
+| conditional schema + fail-closed readers | implemented | `data/ento_manifest_schema.json`, `src/manifest.py` |
+| vectors and negative controls | implemented | `tests/test_format_0_5_0.py` |
+| format/manuscript/research documentation | implemented | `docs/`, `manuscript/`, `experiment_plan.yaml` |
+| regenerated release evidence and synchronized landing | pending | gate sequence below |
+
+### Decisions
+
+- Keep `FORMAT_VERSION` and package version at the stable 0.4.0 contract; expose
+  `FORMAT_VERSION_NEXT = "0.5.0"` as explicit opt-in.
+- Bind the exported projection and exclude only `sha256_ciphertext`, because the
+  digest is computed after encryption and would create circular state; document
+  this as redundant unkeyed metadata rather than hidden authentication.
+- Use a strict ENTO canonicalization profile now and preregister cross-language
+  parity before claiming JCS or interoperability.
+- Return the emitted/redacted manifest from pack APIs so public return values and
+  on-disk bytes cannot disagree at 0.5.0 export levels.
+- Treat two independent read-only review passes as adversarial design input; they
+  found the provisional-validation, legacy-field, canonicalization, return-value,
+  and rebound-test seams now covered by remediation/tests. No independent runtime
+  implementation is claimed.
+
+### Changelog
+
+- Added the 0.5.0 forward profile, conditional manifest field, canonical binding,
+  version-aware AAD, and fixed vector.
+- Added export-level binding tests and explicit negative controls for mutation,
+  rebinding, relabeling, empty containers, wrong/missing/legacy bindings, and
+  redundant ciphertext-digest behavior.
+- Updated root/project docs, migration/security/threat-model material, manuscript
+  formalism and limitations, claim ledger, release inputs, TODO, taskboard, and
+  preregistered RQ-8.
+- Reviewer finding: provisional binding validation must target the emitted view,
+  not the full internal manifest. Remediated by validating the filtered manifest
+  at the ZIP boundary and returning that same view.
+
+### Verification
+
+Verification is partially complete on the current working tree. The canonical
+sequence for the final clean-head certification is:
+
+```text
+uv run ruff check --no-cache src/ scripts/ tests/
+uv run --extra dev mypy --no-incremental src/
+uv run python scripts/run_tests.py
+uv run python scripts/ento_analysis.py
+uv run python scripts/generate_conformance_fixtures.py
+uv run python scripts/verify_conformance_fixtures.py
+uv run python scripts/check_figure_layout.py
+uv run python scripts/z_generate_manuscript_variables.py
+uv run python scripts/export_sbom.py
+uv run python scripts/build_release_bundle.py
+uv run python scripts/audit_publication_readiness.py --check
+uv run python scripts/check_public_promotion_metadata.py --check --live-public-endpoints
+```
+
+The final record must state exact test/coverage counts, analysis row/tamper
+results, conformance and figure counts, local readiness, live endpoint results,
+`git diff --check`, clean status, and `main...origin/main`. Endpoint failure is
+an explicit external-public-promotion blocker.

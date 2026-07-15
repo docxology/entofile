@@ -29,7 +29,7 @@
     \node[anchor=north west, text=white, font=\sffamily\bfseries\small]
       at ([xshift=0.55in,yshift=-0.47in]current page.north west) {ENTO 0.4 RC};
     \node[anchor=north east, text=white, font=\sffamily\small]
-      at ([xshift=-0.55in,yshift=-0.47in]current page.north east) {default wire format 0.4.0};
+      at ([xshift=-0.55in,yshift=-0.47in]current page.north east) {stable default wire format {{FORMAT_VERSION}};
     \draw[EntoRule,line width=0.55pt]
       ([xshift=0.50in,yshift=-0.50in]current page.north west)
       rectangle

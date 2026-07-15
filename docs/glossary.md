@@ -10,7 +10,7 @@
 | Paper release label | Manuscript/version label such as `0.4`; related to but distinct from semver wire strings such as `0.4.0`. |
 | Proof export | Unkeyed hash-chain JSON derived from the manifest; useful for reproducibility, not origin authentication. |
 | Telemetry JSONL | Optional local event stream emitted by the CLI when `--telemetry-jsonl` is provided. |
-| Wire format | On-disk ENTO container version, currently default `0.4.0` with compatibility support for `0.2.0`, `0.3.0`, and `0.3.1`. |
+| Wire format | On-disk ENTO container version, currently stable default `0.4.0` with opt-in `0.5.0` authenticated context and compatibility support for `0.2.0`, `0.3.0`, and `0.3.1`. |
 
 ## Observability Levels
 

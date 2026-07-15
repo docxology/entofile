@@ -45,39 +45,99 @@ controls:
 research_questions:
   - id: RQ-1
     title: independent_conformance
+    owner: DAF
+    control: "Published 0.4.0 vectors and the current Python reference verifier."
     hypotheses: [H1-A, H1-B, H1-C]
+    metrics: [case_outcome_parity, byte_vector_parity, hostile_input_rejection_parity, unexplained_divergence_count]
+    sample_size_or_repetition: "One complete fixture matrix plus three independent implementations or implementation runs before any interoperability claim."
     falsification: "Any unexplained byte or verdict divergence."
     stopping_rule: "Do not claim interoperability while a divergence is unexplained."
+    limits: "A passing fixture matrix does not prove arbitrary payload or schema-extension interoperability."
   - id: RQ-2
     title: streaming_safety
+    owner: DAF
+    control: "Current whole-track ZIP pack/unpack path with verify-before-release tests."
     hypotheses: [H2-A, H2-B, H2-C]
+    metrics: [peak_resident_memory_bytes, time_to_first_plaintext_byte, bytes_released_before_authentication, throughput, temporary_disk_bytes, cleanup_success_rate]
+    sample_size_or_repetition: "At least three sizes across three repetitions, with one hostile mutation per failure class."
     falsification: "Any unauthenticated plaintext release or cleanup failure."
     stopping_rule: "Stop immediately on a verify-before-release violation."
+    limits: "Memory results are host-specific and do not establish distributed-service behavior."
   - id: RQ-3
     title: leakage_and_observability
+    owner: DAF
+    control: "Matched plaintexts in the 0.2.0, 0.3.0, 0.3.1, 0.4.0, and 0.5.0 profiles at every export level."
     hypotheses: [H3-A, H3-B, H3-C]
+    metrics: [observable_field_count, distinguishable_size_classes, padme_bucket_width, manifest_byte_delta, attacker_classification_accuracy]
+    sample_size_or_repetition: "At least 30 matched size/content pairs per format and level, repeated across three archive observations."
     falsification: "Any documented privacy claim contradicted by archive-only observation."
     stopping_rule: "Downgrade the claim to the measured leakage boundary."
+    limits: "Archive-only measurements do not model side channels, traffic analysis, or operator metadata."
   - id: RQ-4
     title: cryptographic_interoperability
+    owner: DAF
+    control: "Pinned RFC/NIST vectors and the ENTO 0.4.0/0.5.0 vectors, with legacy verdicts replayed unchanged."
     hypotheses: [H4-A, H4-B, H4-C]
+    metrics: [vector_byte_parity, duplicate_nonce_count, downgrade_rejection_rate, canonical_padding_rejection_rate, unresolved_specification_question_count]
+    sample_size_or_repetition: "Three independent implementations or language bindings must reproduce every fixed vector before interoperability wording is promoted."
     falsification: "Any vector, nonce, downgrade, or canonical-padding mismatch."
     stopping_rule: "Freeze profile claims until the mismatch is resolved."
+    limits: "Vector parity does not prove nonce custody, random-source quality, or production key management."
   - id: RQ-5
     title: custody_and_recovery_boundary
+    owner: DAF
+    control: "The current local 32-byte master-key file boundary with no provider credentials in the repository."
     hypotheses: [H5-A, H5-B, H5-C]
+    metrics: [key_exposure_duration, audit_event_completeness, rotation_blast_radius, recovery_time, operator_error_rate]
+    sample_size_or_repetition: "Three rotation and three recovery drills per custody design, including one denied-access and one cleanup failure."
     falsification: "Any unlogged key access, unrecoverable rotation, or unsafe cleanup path."
     stopping_rule: "Keep custody outside the reference implementation until controls pass."
+    limits: "A design study cannot certify a vendor, facility, policy, or compliance boundary."
   - id: RQ-6
     title: supply_chain_and_release_provenance
+    owner: DAF
+    control: "Current local release manifest, SBOM, uv.lock, and generated manuscript/artifact set."
     hypotheses: [H6-A, H6-B, H6-C]
+    metrics: [checksum_parity, artifact_completeness, provenance_verification_result, dependency_drift_count, reproducibility_failure_count]
+    sample_size_or_repetition: "Two clean builds in separate environments plus one independent checksum/provenance verification."
     falsification: "Any unexplained checksum or provenance verification failure."
     stopping_rule: "Do not claim reproducible release artifacts until clean-clone parity passes."
+    limits: "Local builds do not establish public registry availability, signature trust, or CI isolation."
   - id: RQ-7
     title: related_format_interoperability
+    owner: DAF
+    control: "Round-trip through an ENTO-only baseline that preserves the original encrypted container bytes."
     hypotheses: [H7-A, H7-B, H7-C]
+    metrics: [field_preservation, digest_preservation, round_trip_data_equality, metadata_loss_count, adapter_complexity]
+    sample_size_or_repetition: "At least three representative multimodal datasets per target ecosystem and three adapter repetitions."
     falsification: "Any unreported data, digest, or metadata loss in a round trip."
     stopping_rule: "Document the loss boundary before adding an extension."
+    limits: "Successful export/import does not establish semantic equivalence with RO-Crate, BagIt, HDF5, Zarr, or another ecosystem."
+  - id: RQ-8
+    title: authenticated_manifest_context
+    owner: DAF
+    status: planned
+    question: "Does binding a canonical exported-manifest context into each 0.5.0 track tag prevent metadata reinterpretation without breaking redaction, legacy vectors, or independent decoding?"
+    hypotheses:
+      - id: H8-A
+        statement: "Manifest-context AAD blocks creator, timestamp, observability, track-order, descriptor, and rebinding mutations under keyed verification."
+      - id: H8-B
+        statement: "Manifest-context AAD improves interpretation integrity but increases implementation complexity enough to create measurable compatibility or canonicalization failures."
+      - id: H8-C
+        statement: "External signatures over the complete container remain necessary because a public binding cannot establish origin."
+    control: "0.4.0 containers with format+track AAD but no manifest-context binding, plus legacy 0.2.0/0.3.0/0.3.1 vectors."
+    metrics:
+      - keyed_manifest_mutation_rejection_rate
+      - rebound_manifest_rejection_rate
+      - redaction_level_binding_parity
+      - independent_vector_byte_parity
+      - legacy_vector_verdict_parity
+      - canonicalization_divergence_count
+      - median_pack_overhead_bytes
+    sample_size_or_repetition: "Enumerate every supported observability level and every manifest field class in at least 3 independently generated containers; repeat fixed vectors across 3 implementations before claiming interoperability."
+    falsification: "Any keyed metadata mutation accepted, any exported observability level unable to round-trip, any legacy verdict change, or any unexplained independent canonicalization divergence."
+    stopping_rule: "Stop the cycle on the first accepted mutation, canonicalization divergence, or unexplained compatibility failure; do not publish a security or interoperability claim until resolved."
+    limits: "The result can show metadata-context authentication under a supplied key. It cannot prove origin, signature validity, KMS custody, streaming safety, or equivalence with another research-container ecosystem."
 
 protocol: "Pack and unpack fixture tracks with fixed master key and three repetitions per size class."
 expected_figures:

@@ -1,10 +1,10 @@
 # entofile threat model
 
-AppSec-oriented threat model for ENTO (`projects/working/entofile`). Packs default to `format_version` **0.4.0** (AES-256-GCM with AAD and PADMÉ padding); compatibility formats **0.2.0**, **0.3.0**, and **0.3.1** are version-dispatched and supported for write/read.
+AppSec-oriented threat model for ENTO (`projects/working/entofile`). Packs default to `format_version` **0.4.0** (AES-256-GCM with AAD and PADMÉ padding); opt-in **0.5.0** adds authenticated exported-manifest context; compatibility formats **0.2.0**, **0.3.0**, and **0.3.1** are version-dispatched and supported for write/read.
 
 ## Executive summary
 
-ENTO is an offline CLI/library for encrypted research ZIP containers. Top risks are **hostile-archive ingestion** (ZIP/member tampering, path escape via track IDs), **integrity bypass**, and **operational key handling** (no in-repo HSM/signing). The default 0.4.0 write path and the prior compatibility paths use audited AEAD (`cryptography`); residual gaps include unsigned ZIP metadata, visible padded bucket sizes, optional proof at level 0, and no replay timestamps.
+ENTO is an offline CLI/library for encrypted research ZIP containers. Top risks are **hostile-archive ingestion** (ZIP/member tampering, path escape via track IDs), **integrity bypass**, and **operational key handling** (no in-repo HSM/signing). The default 0.4.0 write path, opt-in 0.5.0 profile, and prior compatibility paths use audited AEAD (`cryptography`); residual gaps include unsigned ZIP metadata, visible padded bucket sizes, optional proof at level 0, and no replay timestamps.
 
 ### Integrity model — what actually authenticates (read first)
 
@@ -32,7 +32,7 @@ verify (or unpack) **with the key**.
 
 ### Format ladder
 
-Default writes use 0.4.0. Legacy formats remain selectable via `pack --format 0.2.0|0.3.0|0.3.1` / `pack_container(..., format_version=...)`; verify/unpack dispatch on the manifest's `format_version`.
+Default writes use 0.4.0. The opt-in 0.5.0 profile is selectable with `pack --format 0.5.0`; legacy formats remain selectable via `pack --format 0.2.0|0.3.0|0.3.1` / `pack_container(..., format_version=...)`; verify/unpack dispatch on the manifest's `format_version`.
 
 **0.3.0** changes two things on the wire:
 
@@ -44,6 +44,11 @@ Default writes use 0.4.0. Legacy formats remain selectable via `pack --format 0.
 **0.4.0** promotes the 0.3.1 security profile to the default writer (AAD =
 `ento:0.4.0:track:<track_id>`). It mitigates exact-length disclosure by default,
 but still exposes ZIP names, member presence, and PADMÉ bucket size.
+**0.5.0** keeps the same binary layout and additionally carries a
+`manifest_binding` over the exported manifest projection. Every track binds
+`ento:0.5.0:manifest:{manifest_binding}:track:{track_id}` as GCM AAD. This
+authenticates the metadata context used for interpretation when the key is
+available; the public binding is still not a signature of origin.
 AES-GCM-SIV is a future-format candidate when deployments cannot bound nonce
 uniqueness assumptions, but ENTO does not implement it in 0.4.0 [@rfc8452].
 
@@ -58,7 +63,7 @@ uniqueness assumptions, but ENTO does not implement it in 0.4.0 [@rfc8452].
   per track, not global). It is **frozen** for legacy 0.2.0 compatibility; 0.3.0 introduced the
   96-bit nonce/AAD profile and 0.4.0 is the current default. A repeated GCM nonce under the same key is still a catastrophic
   misuse condition, not a recoverable validation warning [@joux2006forbidden; @bock2016nonce].
-- **What "key-authenticated" covers.** GCM with no AAD authenticates the **track plaintext** only.
+- **What "key-authenticated" covers.** In 0.2.0 GCM with no AAD authenticates the **track plaintext** only.
   The track_id is bound via the HKDF `info` label, so cross-track swaps fail. Unkeyed manifest
   header fields (`format_version`, `observability_level`, `creator`) are **not** authenticated at
   any level; a keyed verify still cannot be downgraded by mutating them, because the integrity
@@ -66,7 +71,7 @@ uniqueness assumptions, but ENTO does not implement it in 0.4.0 [@rfc8452].
 - **No AAD.** Tracks are encrypted with `associated_data=None`. Track context is bound via the
   HKDF `info` label (above) rather than GCM AAD, so a cross-track ciphertext swap is already
   rejected by key derivation. Binding `format_version`/manifest fields as explicit AAD is a
-  defense-in-depth improvement introduced in 0.3.0 and promoted into the 0.4.0 default path (it changes
+  defense-in-depth improvement introduced in 0.3.0 and promoted into the 0.4.0 default path (0.5.0 additionally binds the exported manifest context; it changes
   the authenticated input and would not decrypt existing 0.2.0 containers).
 
 ## Scope and assumptions
@@ -179,7 +184,7 @@ flowchart LR
 | TM-005 | Weak crypto implementation | Confidentiality break | GCM regression vectors + tamper benchmarks | Not FIPS-validated deployment | HSM + FIPS module selection | medium |
 | TM-006 | No artifact signing | Supply-chain swap | Optional CycloneDX SBOM via `scripts/export_sbom.py` | No in-repo Sigstore/provenance policy | Sign releases and SBOMs externally using NIST C-SCRM / SLSA / in-toto style controls [@nist2022sp800161r1; @slsa2024levels; @torresarias2019intoto] | medium |
 | TM-007 | Key mishandling | Key theft | genkey CSPRNG, chmod 600 | No HSM/KMS or cryptoperiod policy | KMS/HSM integration and key-management policy outside the file format [@nistsp80057pt1r5] | high |
-| TM-008 | Sealed plaintext-length disclosure | Metadata inference | Default `0.4.0` and compatibility `0.3.1` PADMÉ padding; explicit residual docs for `0.2.0`/`0.3.0` | Bucket size remains visible; exact length leaks in unpadded formats | Use default `0.4.0` for length-sensitive sealed exports | medium |
+| TM-008 | Sealed plaintext-length disclosure | Metadata inference | Default `0.4.0` and opt-in `0.5.0` plus compatibility `0.3.1` PADMÉ padding; explicit residual docs for `0.2.0`/`0.3.0` | Bucket size remains visible; exact length leaks in unpadded formats | Use a padded format for length-sensitive sealed exports | medium |
 
 ## Criticality calibration
 

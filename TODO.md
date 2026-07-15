@@ -6,20 +6,24 @@ before implementation. Preserve the current interface unless an item explicitly
 calls for a breaking release:
 
 - Default write format is `0.4.0`.
+- Opt-in format `0.5.0` adds authenticated exported-manifest context without
+  changing the stable default or legacy wire profiles.
 - Compatibility formats `0.2.0`, `0.3.0`, and `0.3.1` remain readable/writable.
 - Paper/manuscript release label `0.4` is distinct from ENTO wire-format string `0.4.0`.
 
 ## Current cycle — 2026-07-15
 
-- Finish the current shared-boundary hardening batch, review every local hunk, and
-  land implementation/tests separately from ledger updates on main.
-- Regenerate every certifying artifact from the final head. A local readiness pass
-  is not an external public-promotion pass.
-- Keep the canonical gate sequence and evidence rules in
-  [ISA.md](ISA.md#current-cycle--2026-07-15) and the pipeline instructions.
-- Execute research only through the preregistered protocol in
+- Completed the shared-boundary hardening and added the opt-in 0.5.0
+  authenticated-manifest-context profile without changing the 0.4.0 default.
+- Regenerated the certifying artifact surface from the validated head. Local
+  readiness remains distinct from external public-promotion readiness.
+- The canonical gate sequence and evidence rules live in
+  [ISA.md](ISA.md#current-cycle--2026-07-15--opt-in-0-5-0-profile).
+- Execute future research only through the preregistered protocol in
   [experiment_plan.yaml](experiment_plan.yaml) and
   [docs/research/agenda.md](docs/research/agenda.md).
+- 0.5.0 is documented as a Python reference profile; no independent
+  interoperability or origin claim is made from local evidence.
 
 ## Minor Updates
 
@@ -60,6 +64,12 @@ calls for a breaking release:
 - Promoted default `.ento` wire format to `0.4.0` and added compatibility,
   length-leakage, conformance, observability-redaction, and release-evidence
   figures.
+- Added opt-in `0.5.0` authenticated-manifest-context profile with canonical
+  exported-view binding, schema requirement, fixed vector, redaction-matrix
+  tests, and rebound-manifest negative controls.
+- Added strict canonicalization controls, formal manuscript equations with code
+  fidelity tests, timeout-safe live publication subprocess cleanup, and a full
+  RQ-8 protocol with explicit controls and limits.
 - Added `docs/public_ci_dry_run.md` mapping each local release command to its
   future non-publishing GitHub Actions job, plus `.github/CODEOWNERS`.
 - 2026-06-10 deep-review pass: fail-closed negative-control crafting (craft
@@ -126,11 +136,12 @@ The backlog is machine-readable in `experiment_plan.yaml` and explained in
 - RQ-5: KMS/HSM custody, rotation, recovery, and audit boundaries.
 - RQ-6: signed release manifests, SBOMs, provenance, and reproducible builds.
 - RQ-7: exports to related research-container ecosystems without equivalence claims.
+- RQ-8: authenticated exported-manifest context for the opt-in `0.5.0` profile.
 
 Every question requires three competing hypotheses, a control or baseline, exact
 metrics, a repetition rationale, falsification criteria, and a stopping rule.
-Results remain bounded by the protocol and cannot certify an external ecosystem
-or public endpoint without independent evidence.
+Results remain bounded by the protocol and cannot certify an external ecosystem,
+public endpoint, or origin signature without independent evidence.
 
 ## Maintenance Rule
 

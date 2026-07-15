@@ -98,13 +98,13 @@ Pinned regression vectors in `data/test_vectors/` lock HKDF and GCM backends acr
 
 ## Manifest schema
 
-`manifest.json` validates against Draft-07 JSON Schema in `data/ento_manifest_schema.json`. The schema accepts the supported format set ({{FORMAT_VERSIONS_SUPPORTED}}); the default writer uses **{{FORMAT_VERSION}}** unless a compatibility format is selected explicitly. Required fields include `observability_level` and per-track `type`, `sha256_plaintext`, `sha256_ciphertext`, and `byte_length`. Proof export hashes the exact JSON bytes emitted by `manifest_to_json`; the JCS specification defines a general JSON canonicalization scheme, but ENTO does not claim JCS interoperability in this release [@rfc8785].
+`manifest.json` validates against Draft-07 JSON Schema in `data/ento_manifest_schema.json`. The schema accepts the supported format set ({{FORMAT_VERSIONS_SUPPORTED}}); the default writer uses **{{FORMAT_VERSION}}** unless a compatibility format is selected explicitly. Required fields include `observability_level` and per-track `type`, `sha256_plaintext`, `sha256_ciphertext`, and `byte_length`. Format {{FORMAT_VERSION_NEXT}} additionally requires `manifest_binding`, computed from the exported view using ENTO's documented strict JSON profile. Proof export hashes the exact JSON bytes emitted by `manifest_to_json`; the JCS specification defines a general JSON canonicalization scheme, but ENTO does not claim JCS interoperability in this release [@rfc8785].
 
 ## Manifest footprint across tracks
 
 ![{{FIG_CAPTION_MANIFEST_MULTITRACK}}](../output/figures/manifest_multitrack.png){#fig:manifest_multitrack width={{FIGURE_WIDTH}}%}
 
-[@fig:manifest_multitrack] shows how exported manifest size changes with observability level for each committed fixture track (`eeg`, `vcf`, `spectrogram`) under `small_tracks_r0`. The plot makes the redaction trade-off visible across modalities without re-encrypting track payloads.
+[@fig:manifest_multitrack] shows how exported manifest size changes with observability level for each committed fixture track (`eeg`, `vcf`, `spectrogram`) under `small_tracks_r0`. For the stable and compatibility profiles, this redaction is metadata-only; the opt-in authenticated-context profile treats the selected view as AEAD context and requires repacking when the view changes.
 
 ![{{FIG_CAPTION_OBSERVABILITY_REDACTION_MATRIX}}](../output/figures/observability_redaction_matrix.png){#fig:observability_redaction_matrix width={{FIGURE_WIDTH}}%}
 

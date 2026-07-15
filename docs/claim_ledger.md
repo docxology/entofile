@@ -7,6 +7,7 @@ Machine-readable claims live in [`../data/claim_ledger.yaml`](../data/claim_ledg
 | claim_id | Kind | Bound value | Artifact / source | Test module |
 | --- | --- | --- | --- | --- |
 | `format-version` | text | `0.4.0` | `src/crypto.py`, schema enum | `test_claim_ledger.py` |
+| `format-version-next` | text | `0.5.0` | `src/crypto.py`, `src/manifest_binding.py`, schema enum | `test_format_0_5_0.py` |
 | `tamper-detection-rate` | number | `1.0` | `output/reports/benchmark_validation.json` | `test_claim_ledger_security.py` |
 | `container-verify-gate` | text | `verify_container` | benchmark ZIP under `output/data/_bench_tmp/` | `test_claim_ledger_security.py` |
 | `figure-export-dpi` | number | `300` | `output/figures/` | `test_claim_ledger.py` |
@@ -38,6 +39,7 @@ that boundary.
 | `tamper-detection-rate` | `benchmark_validation.json` → `tamper_detection_rate == 1.0` after `ento_analysis.py`. **Adversarial:** corrupts ciphertext and unpacks **with the key**, so it exercises real GCM authentication. |
 | `container-verify-gate` | `container_verification.json` → all samples `ok: true` from `build_container_verification_report()`, run with `require_integrity=True`. **Keyless → `digest-only` integrity (accidental-corruption detection); NOT adversarial.** Adversarial integrity is the `tamper-detection-rate` (key-based) gate above. |
 | `crypto-backend-gcm` | New packs use `format_version: 0.4.0` and GCM AEAD on write |
+| `format-version-next` | Opt-in `0.5.0` requires a canonical exported-manifest binding in every track's GCM AAD; it remains distinct from stable default `0.4.0` |
 
 > **Integrity caveat.** The unkeyed manifest digests and proof chain detect corruption, not a
 > motivated attacker (who recomputes them). `verify_container`'s `integrity` field reports the

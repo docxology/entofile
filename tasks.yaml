@@ -3,7 +3,7 @@
 # status: todo | in_progress | blocked | done. dates: YYYY-MM-DD. progress: 0-100.
 project:
   name: entofile
-  title: ENTO — Encrypted Typed Omnitrack format 0.4
+  title: ENTO — Encrypted Typed Omnitrack format 0.4 + opt-in 0.5
   status: active
   color: '#4C72B0'
   lead: DAF
@@ -20,7 +20,7 @@ tasks:
   - format
   notes: ''
 - id: ef-2
-  title: Deterministic conformance fixtures 0.2.0–0.4.0 + tamper/path-escape
+  title: Deterministic conformance fixtures 0.2.0–0.5.0 + tamper/path-escape
   status: done
   start: '2026-06-02'
   end: '2026-06-03'
@@ -237,4 +237,19 @@ tasks:
   tags:
   - research
   - future
-  notes: 'Execute RQ-1 through RQ-7 only with three competing hypotheses, controls, exact metrics, falsification criteria, repetition rationale, stopping rules, and bounded claims.'
+  notes: 'Execute RQ-1 through RQ-8 only with three competing hypotheses, controls, exact metrics, falsification criteria, repetition rationale, stopping rules, and bounded claims.'
+- id: ef-19
+  title: Add opt-in 0.5.0 authenticated-manifest-context format profile
+  status: done
+  start: '2026-07-15'
+  end: '2026-07-15'
+  progress: 100
+  milestone: false
+  deps:
+  - ef-16
+  - ef-17
+  tags:
+  - format
+  - security
+  - manuscript
+  notes: 'Completed 2026-07-15: 0.5.0 canonical exported-view binding, schema/AAD dispatch, fixed vectors, mutation/rebinding/downgrade controls, formal manuscript equations, strict canonicalization, RQ-8 protocol, regenerated artifacts, and timeout-safe live publication runner. Full final evidence is recorded in ISA.md.'

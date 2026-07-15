@@ -1,6 +1,6 @@
 # ENTO architecture
 
-Normative on-disk specification for the entofile reference implementation. **ENTO** stands for **EN**crypted, **T**yped, **O**mnitrack: a flat ZIP archive that seals each of an arbitrary number of typed tracks under authenticated encryption. Default format **0.4.0** uses AES-256-GCM with a 12-byte nonce, associated-data binding, and PADMÉ length padding; compatibility formats **0.2.0**, **0.3.0**, and **0.3.1** remain version-dispatched and readable/writable.
+Normative on-disk specification for the entofile reference implementation. **ENTO** stands for **EN**crypted, **T**yped, **O**mnitrack: a flat ZIP archive that seals each of an arbitrary number of typed tracks under authenticated encryption. Stable default format **0.4.0** uses AES-256-GCM with a 12-byte nonce, track AAD binding, and PADMÉ length padding. Opt-in **0.5.0** keeps that layout and adds an exported-manifest context binding; compatibility formats **0.2.0**, **0.3.0**, and **0.3.1** remain version-dispatched and readable/writable.
 
 An ENTO file is plain ZIP, so any archive tool can list its members even without the key; only the per-track payloads are encrypted. A reader's path is always *verify, then unpack* — integrity is checked before any plaintext is released.
 
@@ -16,7 +16,7 @@ proof/chain.json   # optional when observability >= 1
 
 | Field | Size | Description |
 | --- | --- | --- |
-| nonce | 16 for `0.2.0`; 12 for `0.3.0`/`0.3.1`/`0.4.0` | GCM nonce |
+| nonce | 16 for `0.2.0`; 12 for `0.3.0`/`0.3.1`/`0.4.0`/`0.5.0` | GCM nonce |
 | tag | 16 | GCM AEAD authentication tag |
 | ciphertext | variable | Authenticated payload |
 
@@ -27,6 +27,9 @@ Kaitai: [`data/ento_track_header.ksy`](../data/ento_track_header.ksy).
 - Master key: 32 bytes (`genkey` CLI)
 - Per-track key: `HKDF-SHA256(master, info="ento:track:{id}")`
 - Pack and unpack: `cryptography` AES-256-GCM (`src/crypto_gcm.py`, facade `src/crypto.py`)
+- `0.5.0` AAD: `ento:0.5.0:manifest:{manifest_binding}:track:{track_id}`;
+  `manifest_binding` is the SHA-256 of the canonical exported-manifest
+  projection described in [`format_0_5_0.md`](format_0_5_0.md).
 
 ## Container verification
 
@@ -38,9 +41,11 @@ See [`security.md`](security.md) and manuscript `02c_security_verification.md`.
 ## Manifest
 
 Validated by [`data/ento_manifest_schema.json`](../data/ento_manifest_schema.json).
-`format_version` enum: `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`. The default writer
-emits `0.4.0`; prior compatibility formats are explicit `pack --format` choices
-and version-dispatched on read.
+`format_version` enum: `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`, `0.5.0`. The stable
+default writer emits `0.4.0`; `0.5.0` is an explicit `pack --format` choice,
+and the prior compatibility formats remain explicit choices and are
+version-dispatched on read. See [`format_0_5_0.md`](format_0_5_0.md) for the
+canonical binding contract.
 
 Track `type` URIs in `src/ontology.py`:
 

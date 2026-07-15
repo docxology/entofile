@@ -4,6 +4,11 @@ Research notes distilled for ENTO manuscript prose: default format 0.4.0 plus
 compatibility formats 0.2.0, 0.3.0, and 0.3.1. Sources verified against public
 specifications and DOIs listed in `manuscript/references.bib`.
 
+The opt-in 0.5.0 profile adds authenticated exported-manifest context to each
+track's GCM associated data. It is a forward ENTO profile, not an equivalence
+claim with any ecosystem below; interoperability remains governed by the
+preregistered agenda in [`agenda.md`](agenda.md).
+
 ## Research data containers
 
 **OAIS and PREMIS** [@ccsds2024oais; @premis2015] are preservation-system references rather than file envelopes. OAIS frames archive responsibilities and information packages; PREMIS defines preservation metadata around objects, events, rights, and agents. ENTO should therefore be described as a content object those systems can store, transfer, describe, or cite--not as an archival repository, preservation-metadata standard, or repository-certification substitute.
@@ -63,7 +68,7 @@ and signing mechanisms, not as properties of an `.ento.zip` archive
 | --- | --- | --- | --- | --- | --- |
 | Preservation-system role | Metadata/transfer layer; not repository operations | Storage substrate | Publication/media package | Policy package | File envelope only; OAIS/PREMIS remain external |
 | Typed multimodal tracks | Partial (files + roles) | Array-centric | Media-centric | Document-centric | URI registry + resolution |
-| Per-track AEAD | No | Optional filters | No | Policy-bound | Required header; default `0.4.0` binds format + track AAD |
+| Per-track AEAD | No | Optional filters | No | Policy-bound | Required header; default `0.4.0` binds format + track AAD; opt-in `0.5.0` also binds exported manifest context |
 | Graded export | Metadata profiles | N/A | N/A | Policy attributes | Observability levels 0–3 |
 | Length hiding | No | Chunk-dependent | No | Policy-dependent | Default `0.4.0` PADMÉ padding; `0.3.1` compatibility |
 | Stdlib-oriented reference | N/A | N/A | N/A | No | Offline Python CLI with ZIP transport |

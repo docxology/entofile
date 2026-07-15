@@ -14,7 +14,7 @@ Baseline operations: [`security.md`](security.md). AppSec model:
 | NationStateSecurity pillar | Repository-enforced controls | Partial / documented controls | External / residual controls |
 | --- | --- | --- | --- |
 | Zero trust / verify before use | `verify_container`, CLI `verify`, verify-before-unpack path, duplicate-member and member-set gates | `container_verification.json` is keyless and therefore digest-only; manuscript distinguishes assurance levels | Operators must run keyed verify before trusting third-party containers; no network ZTA plane exists in this offline CLI |
-| Cryptographic discipline | `cryptography` AES-256-GCM, HKDF-SHA256, format dispatch, pinned HKDF/GCM vectors, default `0.4.0` AAD binding and PADMÉ padding [@nistfips197; @nistfips1804; @rfc5116; @dworkin2007gcm; @mcgrew2004gcm; @krawczyk2010hkdf; @nikitin2019purb] | Legacy `0.2.0` remains readable with 16-byte nonce/no AAD; bucket-size leakage remains in padded formats; nonce reuse remains catastrophic if CSPRNG assumptions fail [@joux2006forbidden; @bock2016nonce] | FIPS-validated module selection, HSM/KMS custody, key rotation, PQC transport/signing, and nonce-misuse-resistant future formats remain deployment or future-format controls [@nistsp80057pt1r5; @nist2024mlkem; @nist2024mldsa; @rfc8452] |
+| Cryptographic discipline | `cryptography` AES-256-GCM, HKDF-SHA256, format dispatch, pinned HKDF/GCM vectors, default `0.4.0` AAD binding/PADMÉ padding, and opt-in `0.5.0` exported-manifest binding [@nistfips197; @nistfips1804; @rfc5116; @dworkin2007gcm; @mcgrew2004gcm; @krawczyk2010hkdf; @nikitin2019purb] | Legacy `0.2.0` remains readable with 16-byte nonce/no AAD; bucket-size leakage remains in padded formats; nonce reuse remains catastrophic if CSPRNG assumptions fail; 0.5.0 canonicalization has no independent-language certification yet [@joux2006forbidden; @bock2016nonce] | FIPS-validated module selection, HSM/KMS custody, key rotation, PQC transport/signing, and nonce-misuse-resistant future formats remain deployment or future-format controls [@nistsp80057pt1r5; @nist2024mlkem; @nist2024mldsa; @rfc8452] |
 | Supply chain integrity | `uv.lock`, no-mock tests, artifact manifest, claim ledger, CycloneDX SBOM export | SBOM exists as local artifact; release provenance is described but not emitted by this repo | Sign source, SBOM, PDF, and packages with Sigstore/cosign or equivalent; target SLSA Build L3+ and in-toto-style provenance in public CI [@nist2022sp800161r1; @torresarias2019intoto] |
 | Detection and telemetry | Structured CLI verify failure JSON, validation reports, adversarial security tests | ATT&CK mapping is review coverage, not live detection coverage | Forward verify/audit events to SIEM; add detection-as-code, runbooks, MTTD/MTTR ownership |
 | Identity and key handling | `genkey` CSPRNG, 32-byte key check, Unix `0600`, keys never embedded in ENTO ZIPs | Local file permissions reduce accidental exposure only | Enforce FIDO2/JIT on operator hosts, KMS/HSM storage, audited key use, cryptoperiods, rotation, and break-glass policy [@nistsp80057pt1r5] |
@@ -25,11 +25,13 @@ Baseline operations: [`security.md`](security.md). AppSec model:
 ## Format posture
 
 - Default write format is **0.4.0**: 12-byte GCM nonce, AEAD AAD binding of
-  `format_version` and `track_id`, and PADMÉ length-padding.
+  `format_version` and `track_id`, and PADMÉ length-padding. Opt-in **0.5.0**
+  additionally binds the canonical exported-manifest context per track.
 - Compatibility formats remain **0.2.0** (16-byte nonce, no AAD), **0.3.0**
   (12-byte nonce + AAD), and **0.3.1** (0.3.0 plus PADMÉ length-padding).
 - The 0.4 manuscript release documents that default ENTO `format_version`
-  **0.4.0** while keeping prior formats under explicit version dispatch.
+  **0.4.0** while keeping prior formats under explicit version dispatch; 0.5.0
+  remains a forward profile and does not change the default silently.
 
 ## Standards alignment
 
@@ -56,7 +58,7 @@ the repository should keep the same division of responsibility:
 | Python package artifacts | Not produced by the 0.4 manuscript RC | Reproducible build job, SLSA provenance, package signature, vulnerability scan |
 | Manuscript PDF/HTML | Template render and output validator | Signed release attachment and checksum in release notes |
 | SBOM | `output/reports/sbom.cyclonedx.json` | Signed SBOM attestation and dependency vulnerability snapshot |
-| ENTO containers | Keyed `verify`/`unpack`; default `0.4.0` PADMÉ bucketed length hiding | Operator KMS/HSM policy and external timestamp/signature for origin |
+| ENTO containers | Keyed `verify`/`unpack`; default `0.4.0` PADMÉ bucketed length hiding; opt-in `0.5.0` exported-context binding | Operator KMS/HSM policy and external timestamp/signature for origin |
 
 ## Detection hooks
 
