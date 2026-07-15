@@ -86,11 +86,11 @@ calls for a breaking release:
   bundling, package installation, and has a timeout. Template discovery now supports
   the documented public sibling checkout layout and the full render/validation path
   passes with 43-page transmission bookends.
-- 2026-07-15 current-cycle pass: shared ProjectPaths, structured-data boundaries,
-  fail-closed test-result parsing, exported domain errors with ConfigError
-  compatibility, and the preregistered research agenda were added and covered by
-  focused tests. Final full-gate and main parity evidence belongs in ISA.md after
-  the landing commit.
+- 2026-07-15 current-cycle pass landed in commits b2ee93f and f5c5d24:
+  shared ProjectPaths, structured-data boundaries, fail-closed test-result parsing,
+  exported domain errors with ConfigError compatibility, live publication-gate
+  recursion coverage, and the preregistered research agenda. Final evidence is
+  recorded in ISA.md; main and origin/main are now in parity.
 
 ## Medium Improvements
 

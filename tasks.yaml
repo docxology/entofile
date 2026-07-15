@@ -91,16 +91,16 @@ tasks:
   notes: 'Design is preregistered as RQ-5 and RQ-6 in experiment_plan.yaml; implementation remains gated on custody, recovery, audit, and provenance evidence.'
 - id: ef-8
   title: Public repo cutover validation (license/citation/security/settings)
-  status: in_progress
+  status: done
   start: '2026-06-13'
-  end: '2026-06-16'
-  progress: 85
+  end: '2026-07-15'
+  progress: 100
   milestone: false
   deps:
   - ef-6
   tags:
   - release
-  notes: 'Local readiness and external public-promotion readiness are separate. The current cycle must rerun all live gates, record endpoint probes separately, and keep this task open while endpoint or clean-tree evidence is absent.'
+  notes: 'Completed on 2026-07-15 after clean-head release bundle regeneration and live endpoint probes: GitHub, DOI, and Zenodo returned HTTP 200; release_ready=true; local and external readiness evidence are recorded separately in ISA.md.'
 - id: ef-9
   title: Publish package (PyPI)
   status: todo
@@ -189,41 +189,41 @@ tasks:
   notes: Sign output/release/ manifest (PDF, HTML, SBOM, conformance report) + verify checksums.
 - id: ef-m1
   title: ENTO 0.4 paper release
-  status: todo
+  status: done
   start: '2026-06-16'
-  end: '2026-06-16'
-  progress: 0
+  end: '2026-07-15'
+  progress: 100
   milestone: true
   deps:
   - ef-6
   tags: []
-  notes: ''
+  notes: 'Current 0.4 release metadata and DOI endpoint are live; the certifying publication gate and clean release bundle passed on 2026-07-15.'
 - id: ef-16
   title: Current-cycle shared-boundary hardening and gate reconciliation
-  status: in_progress
+  status: done
   start: '2026-07-15'
   end: '2026-07-17'
-  progress: 70
+  progress: 100
   milestone: false
   deps:
   - ef-1
   tags:
   - hardening
   - architecture
-  notes: 'ProjectPaths, structured readers, fail-closed test-result parsing, exported errors, compatibility tests, static gates, and generated-artifact verification. Land only after full live gates.'
+  notes: 'Landed in b2ee93f. ProjectPaths, structured readers, fail-closed test-result parsing, exported errors, compatibility tests, static gates, and generated-artifact verification all passed.'
 - id: ef-17
   title: Refresh ISA, taskboard, documentation, and research protocol
-  status: in_progress
+  status: done
   start: '2026-07-15'
   end: '2026-07-17'
-  progress: 70
+  progress: 100
   milestone: false
   deps:
   - ef-16
   tags:
   - docs
   - research
-  notes: 'Current state is encoded in ISA.md, TODO.md, docs/research/agenda.md, and experiment_plan.yaml; final evidence is appended after final-head verification.'
+  notes: 'Landed in f5c5d24. ISA.md, TODO.md, docs/research/agenda.md, experiment_plan.yaml, and this taskboard now encode the current verified state and research dependencies.'
 - id: ef-18
   title: Research execution gate and independent validation backlog
   status: todo

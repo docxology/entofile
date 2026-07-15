@@ -446,19 +446,19 @@ turning design hypotheses into interoperability or security claims.
 
 ### Criteria and anti-criteria
 
-- [ ] ISC-19: main synchronization is fast-forward-only and final main...origin/main is 0/0.
-- [ ] ISC-20: the complete Ruff command is clean.
-- [ ] ISC-21: the complete mypy command is clean.
-- [ ] ISC-22: the live test gate passes with coverage at or above 90 percent.
-- [ ] ISC-23: fresh analysis reports tamper detection 1.0 and validates all outputs.
-- [ ] ISC-24: freshly generated conformance fixtures verify 7/7.
-- [ ] ISC-25: figure layout QA verifies every registered figure.
-- [ ] ISC-26: the release manifest is regenerated and has no required missing entries.
-- [ ] ISC-27: public error imports, the ConfigError alias, multi-root paths, and structured readers are covered by tests.
-- [ ] ISC-28: ISA, TODO, tasks.yaml, docs, experiment_plan.yaml, and release metadata describe the same current state.
-- [ ] ISC-29: every research question has three competing hypotheses, a control, metrics, falsification, and stopping rules.
-- [ ] ISC-30 anti-criterion: no local metadata is presented as proof that public endpoints are live.
-- [ ] ISC-31 anti-criterion: no force-push, wire-format mutation, unreviewed mixed staging, or side-file-only certification.
+- [x] ISC-19: main synchronization is fast-forward-only and final main...origin/main is 0/0.
+- [x] ISC-20: the complete Ruff command is clean.
+- [x] ISC-21: the complete mypy command is clean.
+- [x] ISC-22: the live test gate passes with coverage at or above 90 percent.
+- [x] ISC-23: fresh analysis reports tamper detection 1.0 and validates all outputs.
+- [x] ISC-24: freshly generated conformance fixtures verify 7/7.
+- [x] ISC-25: figure layout QA verifies every registered figure.
+- [x] ISC-26: the release manifest is regenerated and has no required missing entries.
+- [x] ISC-27: public error imports, the ConfigError alias, multi-root paths, and structured readers are covered by tests.
+- [x] ISC-28: ISA, TODO, tasks.yaml, docs, experiment_plan.yaml, and release metadata describe the same current state.
+- [x] ISC-29: every research question has three competing hypotheses, a control, metrics, falsification, and stopping rules.
+- [x] ISC-30 anti-criterion: no local metadata is presented as proof that public endpoints are live.
+- [x] ISC-31 anti-criterion: no force-push, wire-format mutation, unreviewed mixed staging, or side-file-only certification.
 
 ### Canonical gate sequence
 
@@ -514,6 +514,12 @@ independent implementation result.
 
 ### Current-cycle verification record
 
-Static gates and focused boundary tests are complete. The full generated-artifact,
-publication, endpoint, commit, and parity results are appended only after their
-commands run on the final current head.
+Final evidence on landed head f5c5d24: canonical run_tests.py passed 429 tests at
+90.48 percent coverage; the certifying publication gate returned ok true with
+tests_source live, coverage floor true, live conformance true, and zero blockers;
+fresh analysis passed with 2,400 rows and tamper rate 1.0; conformance verified
+7/7; figure layout verified 21/21; wheel build/install/import smoke passed;
+no-mock and unresolved-token checks passed; Ruff and mypy passed. The clean-head
+release bundle reported release_ready true. Separate endpoint probes returned
+HTTP 200 for GitHub, DOI, and Zenodo. After push, fetch and parity verification
+reported main...origin/main 0/0 and git status was clean.
