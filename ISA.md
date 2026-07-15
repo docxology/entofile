@@ -514,7 +514,8 @@ independent implementation result.
 
 ### Current-cycle verification record
 
-Final evidence on landed head f5c5d24: canonical run_tests.py passed 429 tests at
+Final evidence on implementation head b2ee93f and ledger closeout head 0853b3d:
+canonical run_tests.py passed 429 tests at
 90.48 percent coverage; the certifying publication gate returned ok true with
 tests_source live, coverage floor true, live conformance true, and zero blockers;
 fresh analysis passed with 2,400 rows and tamper rate 1.0; conformance verified
