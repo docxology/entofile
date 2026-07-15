@@ -16,6 +16,8 @@ import pytest
 
 from src.publication import (
     _LIVE_RUN_ENV,
+    _live_test_command,
+    _output_tail,
     _run_live_test_summary,
     check_publication_readiness,
 )
@@ -31,6 +33,17 @@ def _forged_green_project(root: Path) -> None:
     (root / "output" / "reports" / "test_results.json").write_text(
         json.dumps({"summary": {"all_passed": True, "project_coverage": 99.0}})
     )
+
+
+def test_live_command_clears_pytest_cache(tmp_path: Path) -> None:
+    command = _live_test_command(tmp_path / "junit.xml", tmp_path / "coverage.json")
+    assert "--cache-clear" in command
+
+
+def test_live_output_tail_is_bounded() -> None:
+    output = _output_tail("x" * 2500, limit=100)
+    assert output.startswith("[truncated 2400 characters]")
+    assert len(output) == len("[truncated 2400 characters] ") + 100
 
 
 def test_forged_side_file_does_not_certify_under_live(tmp_path: Path) -> None:
@@ -74,13 +87,15 @@ def test_live_summary_refuses_recursion_when_guard_set(
     assert "recursion guard" in summary["detail"]
 
 
-@pytest.mark.skipif(
-    _INSIDE_LIVE_RUN, reason="recursion guard: do not spawn nested live pytest"
-)
-def test_live_summary_passes_on_a_real_green_temp_project(tmp_path: Path) -> None:
+def test_live_summary_passes_on_a_real_green_temp_project(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """A minimal real temp project with a passing test + a covered module must yield
     all_passed True and a numeric coverage — proves the parser binds real success,
     not just fail-closed on everything."""
+    # This is an isolated temp project, so it is safe to exercise the subprocess
+    # path even when the enclosing certifying suite has the recursion guard set.
+    monkeypatch.delenv(_LIVE_RUN_ENV, raising=False)
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "__init__.py").write_text("")
     (tmp_path / "src" / "mod.py").write_text("def add(a, b):\n    return a + b\n")
@@ -111,15 +126,13 @@ def test_live_summary_fails_on_a_real_failing_temp_project(tmp_path: Path) -> No
         assert summary["collected"] >= 1
 
 
-@pytest.mark.skipif(
-    _INSIDE_LIVE_RUN, reason="recursion guard: do not spawn nested live pytest"
-)
 def test_live_summary_kills_timed_out_process_group(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A timeout must terminate pytest descendants instead of hanging on open pipes."""
     from src import publication
 
+    monkeypatch.delenv(_LIVE_RUN_ENV, raising=False)
     monkeypatch.setattr(publication, "_LIVE_RUN_TIMEOUT_S", 0.05)
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests" / "test_slow.py").write_text(

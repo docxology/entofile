@@ -20,6 +20,42 @@ from .test_results import parse_test_summary
 # run does not recurse (it skips when this is set). See tests/test_publication_live.py.
 _LIVE_RUN_ENV = "ENTOFILE_PUBLICATION_LIVE_RUN"
 _LIVE_RUN_TIMEOUT_S = 600
+_LIVE_DIAGNOSTIC_LIMIT = 2000
+
+
+def _live_test_command(junit: Path, cov_json: Path) -> list[str]:
+    """Build the cache-free command used by the certifying live gate."""
+    return [
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/",
+        "--cache-clear",
+        f"--junitxml={junit}",
+        "--cov=src",
+        f"--cov-report=json:{cov_json}",
+        "-q",
+    ]
+
+
+def _output_tail(*streams: str | None, limit: int = _LIVE_DIAGNOSTIC_LIMIT) -> str:
+    """Return bounded child output for a useful, non-amplifying failure detail."""
+    text = "\n".join(stream.strip() for stream in streams if stream and stream.strip())
+    if len(text) <= limit:
+        return text
+    return f"[truncated {len(text) - limit} characters] {text[-limit:]}"
+
+
+def _with_live_diagnostics(
+    summary: dict[str, Any], stdout: str | None, stderr: str | None
+) -> dict[str, Any]:
+    if summary.get("all_passed") is True:
+        return summary
+    tail = _output_tail(stderr, stdout)
+    if not tail:
+        return summary
+    detail = str(summary.get("detail", "live pytest failed"))
+    return {**summary, "detail": f"{detail}; output tail: {tail}"}
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -74,16 +110,7 @@ def _run_live_test_summary(project_root: Path) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as td:
         junit = Path(td) / "junit.xml"
         cov_json = Path(td) / "coverage.json"
-        cmd = [
-            sys.executable,
-            "-m",
-            "pytest",
-            "tests/",
-            f"--junitxml={junit}",
-            "--cov=src",
-            f"--cov-report=json:{cov_json}",
-            "-q",
-        ]
+        cmd = _live_test_command(junit, cov_json)
         env = {**os.environ, _LIVE_RUN_ENV: "1"}
         try:
             proc = subprocess.Popen(
@@ -96,19 +123,26 @@ def _run_live_test_summary(project_root: Path) -> dict[str, Any]:
                 start_new_session=os.name != "nt",
             )
             try:
-                proc.communicate(timeout=_LIVE_RUN_TIMEOUT_S)
+                stdout, stderr = proc.communicate(timeout=_LIVE_RUN_TIMEOUT_S)
             except subprocess.TimeoutExpired as exc:
-                if os.name == "nt":
-                    proc.kill()
-                else:
-                    os.killpg(proc.pid, signal.SIGKILL)
-                proc.communicate()
+                try:
+                    if os.name == "nt":
+                        proc.kill()
+                    else:
+                        os.killpg(proc.pid, signal.SIGKILL)
+                except OSError:
+                    pass
+                stdout, stderr = proc.communicate()
+                tail = _output_tail(stderr, stdout)
+                detail = f"subprocess failed: {exc}"
+                if tail:
+                    detail += f"; output tail: {tail}"
                 return {
                     "all_passed": False,
                     "project_coverage": None,
                     "collected": 0,
                     "source": "live",
-                    "detail": f"subprocess failed: {exc}",
+                    "detail": detail,
                 }
         except (OSError, subprocess.SubprocessError) as exc:
             return {
@@ -118,7 +152,8 @@ def _run_live_test_summary(project_root: Path) -> dict[str, Any]:
                 "source": "live",
                 "detail": f"subprocess failed: {exc}",
             }
-        return _parse_live_results(junit, cov_json, proc.returncode)
+        summary = _parse_live_results(junit, cov_json, proc.returncode)
+        return _with_live_diagnostics(summary, stdout, stderr)
 
 
 def _parse_live_results(junit: Path, cov_json: Path, returncode: int) -> dict[str, Any]:
