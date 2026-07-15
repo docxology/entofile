@@ -1,6 +1,6 @@
-# Publication readiness — entofile 0.4 paper release candidate
+# Publication readiness — entofile 0.5 paper release candidate
 
-Manuscript release **0.4** documents ENTO container format **0.4.0**
+Manuscript release **0.5** documents ENTO container format **0.5.0**
 (AES-256-GCM with AAD and PADMÉ padding) as the default on-disk contract, with
 supported compatibility formats **0.2.0**, **0.3.0**, and **0.3.1**. Gate before
 Zenodo update or public promotion.
@@ -55,7 +55,7 @@ uv run python scripts/04_validate_output.py --project working/entofile
 | Clean source | `release_manifest.json` has `source_dirty_project: false` after final commit/clean rebuild |
 
 `output/reports/test_results.json` is retained as pipeline context only. It may
-summarize a broader template run; do not use it to certify the ENTO 0.4 RC.
+summarize a broader template run; do not use it to certify the ENTO 0.5 RC.
 The certifying test oracle is the live subprocess invoked by
 `audit_publication_readiness.py --check`.
 
@@ -69,7 +69,7 @@ The certifying test oracle is the live subprocess invoked by
 
 ## RedTeam summary
 
-See `docs/redteam_publish_0.4.md` for 0.4 RC findings and remediations. The
+See the current 0.5 migration ledger for findings and remediations. The
 previous `docs/redteam_publish_1.0.md` remains historical evidence only.
 
 ## Version semantics
@@ -77,6 +77,6 @@ previous `docs/redteam_publish_1.0.md` remains historical evidence only.
 | Label | Value | Meaning |
 | --- | --- | --- |
 | Manuscript `paper.version` | 0.4 | This PDF/manuscript release candidate |
-| ENTO `format_version` default write | 0.4.0 | Current on-disk container spec (AES-256-GCM, AAD, PADMÉ) |
+| ENTO `format_version` default write | 0.5.0 | Current on-disk container spec (AES-256-GCM, manifest-context AAD, PADMÉ) |
 | ENTO supported compatibility formats | 0.2.0, 0.3.0, 0.3.1 | Legacy baseline, AAD-bound, and padded predecessor profiles |
-| Python package `version` | 0.4.0 | Package metadata aligned with the current 0.4 paper/repository release line |
+| Python package `version` | 0.5.0 | Package metadata aligned with the current 0.5 paper/repository release line |

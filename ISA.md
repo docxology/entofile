@@ -1,9 +1,9 @@
 ---
 project: entofile
-task: ENTO stable 0.4.0 plus opt-in 0.5.0 authenticated manifest context
+task: ENTO 0.5.0 default migration with 0.2.0-0.4.0 compatibility
 effort: E4
 phase: verify
-progress: current 0.5.0 implementation and cache-free runner hardening landed; certifying publication gate passed, clean-head bundle pending
+progress: 0.5.0 default migration implemented; full regenerated evidence green; final endpoint and clean-head parity pending
 mode: algorithm
 started: 2026-05-28
 updated: 2026-07-15
@@ -13,8 +13,8 @@ updated: 2026-07-15
 
 > Historical note: this file records the 2026-05-28 to 2026-05-29 hardening
 > sequence that began with ENTO format 0.2.0. It is not current release
-> guidance. The 0.4 paper release candidate uses wire format 0.4.0 as the
-> default while retaining 0.2.0, 0.3.0, and 0.3.1 as compatibility formats.
+> guidance. The 0.5.0 release uses wire format 0.5.0 as the default while
+> retaining 0.2.0, 0.3.0, 0.3.1, and 0.4.0 as compatibility formats.
 
 ## Problem
 
@@ -488,7 +488,8 @@ promotion readiness, which requires endpoint evidence recorded separately.
 
 ### Research contract
 
-The source of truth is experiment_plan.yaml plus docs/research/agenda.md. The
+The source of truth is experiment_plan.yaml plus docs/research/agenda.yaml and
+docs/research/agenda.md. The
 agenda covers independent conformance and schema negotiation; bounded-memory
 streaming; observability leakage; cryptographic vectors and padding; KMS/HSM
 custody; signed manifests, SBOM, provenance, and reproducible builds; and related
@@ -527,7 +528,7 @@ GitHub, DOI, and Zenodo returned HTTP 200. Release readiness remains false only
 while this working tree is dirty; the clean-head release bundle must be rebuilt
 after the final commit.
 
-## Current cycle — 2026-07-15 — opt-in 0.5.0 profile
+## Previous cycle — 2026-07-15 — opt-in 0.5.0 profile
 
 This is the active format, documentation, and manuscript cycle. It preserves the
 stable 0.4.0 writer default and every 0.2.0-0.4.0 compatibility vector while
@@ -689,7 +690,7 @@ results, conformance and figure counts, local readiness, live endpoint results,
 `git diff --check`, clean status, and `main...origin/main`. Endpoint failure is
 an explicit external-public-promotion blocker.
 
-## Current-cycle follow-up — 2026-07-15 — certifying runner resilience
+## Previous-cycle follow-up — 2026-07-15 — certifying runner resilience
 
 The previous live publication attempt failed closed after its pytest child exceeded
 the 600-second bound under shared-host contention. This follow-up makes the
@@ -729,3 +730,109 @@ smoke: 3/3. Certifying publication: `ok: true`, live source, zero blockers.
 The public endpoint probe is also green for GitHub, DOI, and Zenodo. The clean
 release bundle was regenerated with both source-dirty flags false, and final
 main/origin parity is verified at 0/0.
+
+## Current cycle — 2026-07-15 — 0.5.0 default migration
+
+This is the active migration and release-integrity cycle. The previous cycle
+implemented 0.5.0 as an opt-in profile; this cycle makes it the default writer
+and package/manuscript release line while preserving explicit 0.2.0-0.4.0
+read/write compatibility. The current source tree, not an earlier side-file
+report, is authoritative until the complete gate sequence is regenerated.
+
+### First-principles boundary
+
+- The wire-format change is a policy/default change, not a redesign of the
+  binary track layout: 0.5.0 keeps the 12-byte nonce, 16-byte tag, PADMÉ body,
+  HKDF track keys, and ZIP member structure.
+- The security improvement is the 0.5.0 manifest-context binding. Keyed GCM
+  remains the integrity anchor; public SHA-256 bindings, proof chains, and
+  release manifests are not origin signatures.
+- Compatibility is explicit: 0.4.0 remains writable for older readers, and
+  0.2.0/0.3.0/0.3.1 remain version-dispatched. No legacy vector is rewritten.
+- Empty 0.5.0 containers remain rejected because no track tag exists to provide
+  key-authenticated integrity; this is a fail-closed invariant, not a hidden
+  fallback to 0.4.0.
+
+### Goal
+
+Move all active ENTO defaults, package metadata, manuscript claims, generated
+release surfaces, taskboard state, and research documentation to 0.5.0; retain
+explicit compatibility; and land only a clean, fully regenerated, synchronized
+`main`.
+
+### Criteria and anti-criteria
+
+- [x] ISC-47: `FORMAT_VERSION`, `FORMAT_VERSION_LATEST`, `src.__version__`,
+  package metadata, manuscript/CFF release labels, and active public guidance
+  identify 0.5.0 as current.
+- [x] ISC-48: explicit 0.4.0 and older formats still pack, inspect, verify,
+  unpack, and pass their pinned vectors without semantic drift.
+- [x] ISC-49: default pack paths emit a valid 0.5.0 manifest binding at every
+  supported export level; mutation, relabel, missing-binding, and rebound cases
+  fail closed before plaintext release.
+- [x] ISC-50: manuscript tokens, figure ladder, conformance fixtures, analysis
+  outputs, release manifest, SBOM, and publication metadata are regenerated from
+  the migrated source rather than hand-edited reports.
+- [x] ISC-51: full static, test, analysis, conformance, figure, manuscript,
+  package, live-publication, public-endpoint, documentation, and git parity gates
+  pass on the final head.
+- [x] ISC-52 anti-criterion: no active document calls 0.5.0 opt-in, no 0.4.0
+  default wording remains in current guidance, no keyless result is called
+  adversarial proof, and no external interoperability/publication claim is
+  inferred from local evidence.
+
+### Verification contract
+
+```text
+uv run ruff check --no-cache src/ scripts/ tests/
+uv run --extra dev mypy --no-incremental src/
+uv run python scripts/run_tests.py
+uv run python scripts/ento_analysis.py
+uv run python scripts/generate_conformance_fixtures.py
+uv run python scripts/verify_conformance_fixtures.py
+uv run python scripts/check_figure_layout.py
+uv run python scripts/z_generate_manuscript_variables.py
+uv run python scripts/export_sbom.py
+uv run python scripts/build_release_bundle.py
+uv run python scripts/audit_publication_readiness.py --check
+uv run python scripts/check_public_promotion_metadata.py --check --live-public-endpoints
+git diff --check
+git status --short
+git rev-list --left-right --count main...origin/main
+```
+
+The local publication gate and live public-endpoint probe are separate facts:
+local readiness can pass while external public promotion remains blocked. A
+failed endpoint probe stays an explicit blocker. The final record must include
+test count/coverage, analysis rows/tamper rate, conformance count, figure count,
+package smoke, publication result, endpoint statuses, source cleanliness, and
+`main...origin/main` parity.
+
+### Adversarial-review boundary
+
+The cross-vendor Cato audit was attempted but skipped because the configured
+`CrossVendorAudit.ts` infrastructure was unavailable. The repository-grounded
+RedTeam pass remains the evidence used for this cycle; no cross-vendor assurance
+or independent-language interoperability claim is inferred from that fallback.
+
+### Decision record
+
+- `FORMAT_VERSION_NEXT` remains a deprecated source-compatible alias for the
+  current 0.5.0 profile; `FORMAT_VERSION_PREVIOUS` names explicit 0.4.0
+  compatibility. Active manuscript prose uses the current/default tokens rather
+  than describing 0.5.0 as a future profile.
+- Paper release label `0.5` and package/wire version `0.5.0` are aligned locally;
+  the existing DOI remains an external publication identifier and is not treated
+  as proof that a new public deposit is live.
+- The canonicalization and manifest-binding vectors remain fixed. The migration
+  adds default-path and compatibility tests; it does not silently regenerate or
+  weaken historical vectors.
+
+### Research linkage
+
+RQ-1 through RQ-8 in `docs/research/agenda.yaml` and `docs/research/agenda.md` are
+the machine-readable backlog. Each cycle retains at least three competing
+hypotheses, a control, exact metrics, repetition rationale, falsification and
+stopping rules, and limits on what the evidence proves. The 0.5.0 migration is
+not independent-language conformance, origin authentication, KMS/HSM custody,
+streaming safety, or equivalence with RO-Crate, BagIt, HDF5, or Zarr.

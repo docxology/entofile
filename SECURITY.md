@@ -6,9 +6,10 @@ The planned public home after release readiness is
 
 ## Supported Scope
 
-The 0.4 paper release candidate documents ENTO format `0.4.0` as the default
-wire format: AES-256-GCM with 12-byte nonces, format/track associated data, and
-PADME length padding. Formats `0.2.0`, `0.3.0`, and `0.3.1` remain supported
+The 0.5.0 release documents ENTO format `0.5.0` as the default wire format:
+AES-256-GCM with 12-byte nonces, PADME length padding, and an authenticated
+exported-manifest context in each track's AAD. Formats `0.2.0`, `0.3.0`,
+`0.3.1`, and `0.4.0` remain supported
 compatibility formats for explicit read/write testing. Security reports should
 identify the affected format version, command, and whether the issue is in
 container parsing, cryptography, documentation, generated artifacts, or the

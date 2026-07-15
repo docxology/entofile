@@ -1,7 +1,7 @@
 paper:
   title: "ENTO: an ENcrypted, Typed, Omnitrack container format for multimodal research data"
   subtitle: "Authenticated ZIP containers for observability-graded research data"
-  version: "0.4"
+  version: "0.5"
 
 authors:
   - name: "Daniel Ari Friedman"

@@ -1,9 +1,15 @@
-# Publication ledger — entofile 0.4 paper release candidate
+# Historical publication ledger — entofile 0.4 paper release candidate
+
+> This ledger is retained as historical evidence for the 0.4 release. The
+> current release line is 0.5.0 (paper label 0.5), with 0.2.0–0.4.0 retained
+> as explicit compatibility profiles. See [`docs/redteam_publish_0.5.md`](docs/redteam_publish_0.5.md)
+> for the current migration and release ledger.
 
 **Date:** 2026-06-10 (initial ledger 2026-05-30)  
 **Manuscript version:** 0.4  
-**Default format version:** 0.4.0 (AES-256-GCM, 12-byte nonce, format+track AAD, PADMÉ padding)  
+**Historical default format version:** 0.4.0 (AES-256-GCM, 12-byte nonce, format+track AAD, PADMÉ padding)
 **Supported compatibility formats:** 0.2.0, 0.3.0, and 0.3.1
+**Current default format version:** 0.5.0 (authenticated exported-manifest context)
 
 ## DOI status
 
@@ -13,7 +19,7 @@
 
 ## Release scope
 
-The 0.4 release candidate is a manuscript/paper release that ALSO promotes the
+The historical 0.4 release candidate was a manuscript/paper release that ALSO promoted the
 default `.ento` wire format to `0.4.0` (paper label `0.4` and wire format string
 `0.4.0` are distinct identifiers). Formats `0.2.0`, `0.3.0`, and `0.3.1` remain
 readable and writable compatibility profiles. The RC further improves the paper,

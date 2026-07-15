@@ -21,7 +21,7 @@ Read this before modifying `src/`, `tests/`, or `manuscript/`.
 - Certifying publication checks must rerun live gates; side-file metadata is diagnostic evidence, not certification.
 - Regenerate analysis, conformance, figure-layout, manuscript-variable, SBOM, and release artifacts before release claims.
 - Local publication readiness and external public-endpoint readiness are separate states and must be reported separately.
-- `experiment_plan.yaml` and [`research/agenda.md`](research/agenda.md) are the research source of truth: every cycle has at least three competing hypotheses, a control, exact metrics, falsification criteria, and a stopping rule.
+- `experiment_plan.yaml` is the benchmark design overlay; [`research/agenda.yaml`](research/agenda.yaml) and [`research/agenda.md`](research/agenda.md) are the preregistered research source of truth. Every cycle has at least three competing hypotheses, a control, exact metrics, falsification criteria, and a stopping rule.
 
 ## Verification checklist
 

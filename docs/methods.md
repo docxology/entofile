@@ -1,6 +1,6 @@
 # Methods reference — entofile
 
-Normative algorithms and configurable parameters for ENTO stable default format **0.4.0** (AES-256-GCM with associated-data binding and PADMÉ length padding), opt-in format **0.5.0** (authenticated exported-manifest context), and compatibility formats **0.2.0**, **0.3.0**, and **0.3.1**. Implementation lives under [`../src/`](../src/); figures are code-derived from [`output/data/ento_benchmark_results.csv`](../output/data/ento_benchmark_results.csv).
+Normative algorithms and configurable parameters for ENTO default format **0.5.0** (AES-256-GCM with associated-data binding, PADMÉ length padding, and authenticated exported-manifest context), and compatibility formats **0.2.0**, **0.3.0**, **0.3.1**, and **0.4.0**. Implementation lives under [`../src/`](../src/); figures are code-derived from [`output/data/ento_benchmark_results.csv`](../output/data/ento_benchmark_results.csv).
 
 ## First-principles boundary
 
@@ -12,7 +12,7 @@ assumptions:
 | ZIP member names and sizes are visible before decryption | Observability redacts manifest fields, not ZIP metadata; padded `0.4.0`/`0.5.0` hides exact length only to PADMÉ buckets. |
 | AEAD authenticates only with the key and associated data actually supplied | Keyed `verify`/`unpack` is the adversarial integrity path; keyless digest checks are corruption detection only. |
 | Wall-clock timing is host-state dependent | Timing metrics are re-measured and reported with dispersion; deterministic benchmark columns get the reproducibility fingerprint. |
-| Paper and wire versions differ in shape | Paper release `0.4` documents stable default wire format `0.4.0`; opt-in `0.5.0` is a forward profile and prior wire formats remain explicit compatibility choices. |
+| Paper and wire versions differ in shape | Release label `0.5` documents default wire format `0.5.0`; prior wire formats remain explicit compatibility choices. |
 | No-mock evidence is not the same as all-real-world input data | Benchmarks and conformance use documented fixture, synthetic stress, and test-vector inputs; generated reports and rendered artifacts are real executions. |
 
 ## Cryptography (`src/crypto.py`)
@@ -21,15 +21,14 @@ assumptions:
 | --- | --- | --- |
 | Master key | `generate_master_key()` | 32 random bytes |
 | Per-track key | `derive_track_key(master, track_id)` | HKDF-SHA256 [@krawczyk2010hkdf], `info = "ento:track:{track_id}"` |
-| Encrypt / decrypt | `encrypt_payload` / `decrypt_payload` | default `0.4.0`; opt-in `0.5.0`; compatibility `0.2.0`/`0.3.0`/`0.3.1` dispatch through `src/crypto_gcm.py` |
+| Encrypt / decrypt | `encrypt_payload` / `decrypt_payload` | default `0.5.0`; compatibility `0.2.0`/`0.3.0`/`0.3.1`/`0.4.0` dispatch through `src/crypto_gcm.py` |
 | Suite name | `crypto_backend_for_format(version)` | Maps supported formats to `aes-256-gcm` |
 
-Wire layout per track: `nonce || tag(16) || ciphertext`. Default `0.4.0` uses a
-12-byte nonce, binds `format_version` plus `track_id` as AEAD associated data, and
-encrypts a PADMÉ-padded body. Legacy `0.2.0` uses a 16-byte nonce and no AAD;
-`0.3.0`/`0.3.1` use the 12-byte/AAD path, with padding added in `0.3.1`.
-The opt-in `0.5.0` profile keeps the same binary layout and additionally binds
-`manifest_binding` into AAD; see [`format_0_5_0.md`](format_0_5_0.md). The
+Wire layout per track: `nonce || tag(16) || ciphertext`. Default `0.5.0` uses a
+12-byte nonce, PADMÉ padding, and binds `manifest_binding` into AAD; see
+[`format_0_5_0.md`](format_0_5_0.md). Legacy `0.2.0` uses a 16-byte nonce and no
+AAD; `0.3.0`/`0.3.1` use the 12-byte/AAD path, with padding added in `0.3.1`;
+`0.4.0` is the previous 12-byte/AAD/PADMÉ compatibility profile. The
 0.5.0 binding uses ENTO's documented canonicalization profile rather than
 claiming general JCS or cross-language interoperability.
 
@@ -80,7 +79,7 @@ hashed across the boundary:
 
 | Class | Columns | Reproducibility |
 | --- | --- | --- |
-| **Deterministic** (`DETERMINISTIC_BENCHMARK_COLUMNS`) | `format_version`, `condition`, `track_id`, `track_type`, `plaintext_bytes`, `ciphertext_bytes`, `expansion_ratio`, `tamper_detected`, `observability_level`, `manifest_bytes` | **Byte-exact across runs.** Expansion follows the version-aware identity `r(n) = (H + PADME(n + 8)) / n` for default `0.4.0` and `r(n) = (H + n) / n` for unpadded compatibility formats; manifest sizes are fixed by the export schema; tamper outcomes are deterministic. |
+| **Deterministic** (`DETERMINISTIC_BENCHMARK_COLUMNS`) | `format_version`, `condition`, `track_id`, `track_type`, `plaintext_bytes`, `ciphertext_bytes`, `expansion_ratio`, `tamper_detected`, `observability_level`, `manifest_bytes` | **Byte-exact across runs.** Expansion follows the version-aware identity `r(n) = (H + PADME(n + 8)) / n` for default `0.5.0` and padded compatibility `0.3.1`/`0.4.0`; manifest sizes are fixed by the export schema; tamper outcomes are deterministic. |
 | **Volatile** (`VOLATILE_BENCHMARK_COLUMNS`) | `pack_seconds`, `unpack_seconds`, `pack_throughput_mib_s` | **Re-measured every run** (host-load dependent). Reported with dispersion (sd, CV, 95% t-CI), never as a reproducibility target. |
 
 `benchmark_data_fingerprint(rows)` in [`src/benchmark_stats.py`](../src/benchmark_stats.py)

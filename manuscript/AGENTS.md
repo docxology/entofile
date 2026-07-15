@@ -36,8 +36,9 @@ Doc-only files (excluded from cross-reference test): `AGENTS.md`, `README.md`, `
 
 | Token | Description |
 | --- | --- |
-| `FORMAT_VERSION` | Stable default ENTO format (`0.4.0`) |
-| `FORMAT_VERSION_NEXT` | Opt-in authenticated-manifest-context profile (`0.5.0`) |
+| `FORMAT_VERSION` | Stable default ENTO format (`0.5.0`) |
+| `FORMAT_VERSION_PREVIOUS` | Explicit compatibility profile (`0.4.0`) |
+| `FORMAT_VERSION_NEXT` | Deprecated source-compatible alias for the current profile (`0.5.0`) |
 | `FORMAT_NEXT_AAD_TEMPLATE` | Canonical 0.5.0 manifest-context AAD template |
 | `FORMAT_NEXT_BINDING_DESCRIPTION` | Generated description of the bound exported manifest context |
 | `CRYPTO_BACKEND_DEFAULT` | Suite from `crypto_backend_for_format(FORMAT_VERSION)` |

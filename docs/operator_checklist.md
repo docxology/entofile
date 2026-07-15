@@ -57,17 +57,18 @@ reviewable before any output directory is populated.
 
 ## Format Selection
 
-- default / `--format 0.4.0`: 12-byte nonce, AAD binding, and PADME length padding.
-- opt-in / `--format 0.5.0`: same track layout plus canonical exported-manifest
-  binding in every track's GCM AAD; use only when readers support it.
+- default / `--format 0.5.0`: 12-byte nonce, PADME length padding, and canonical
+  exported-manifest binding in every track's GCM AAD.
+- compatibility / `--format 0.4.0`: previous 12-byte nonce, format+track AAD,
+  and PADME length padding; use when a reader has not adopted 0.5.0.
 - `--format 0.2.0`: legacy compatibility baseline from the earlier paper line.
 - `--format 0.3.0`: compatibility 12-byte nonce plus AAD binding for
   `format_version` and `track_id`.
 - `--format 0.3.1`: compatibility `0.3.0` plus PADME length padding.
 
-Use the default `0.4.0` for sealed exports where exact plaintext length is sensitive.
-Use `0.5.0` when metadata reinterpretation under a supplied key is also in scope;
-the public binding does not replace external origin signatures.
+Use `0.5.0` for new sealed exports where metadata reinterpretation under a supplied
+key is in scope; the public binding does not replace external origin signatures.
+The 0.4.0 compatibility writer is available for older readers.
 
 ## Automation Sidecars
 

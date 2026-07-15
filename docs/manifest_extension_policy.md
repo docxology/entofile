@@ -10,7 +10,7 @@ strict readers.
   introduced.
 - Do not rely on unauthenticated manifest fields for adversarial integrity.
 - If a field affects decryption or interpretation, bind it through AAD in a new
-  opt-in wire format. Format `0.5.0` is the current example: its
+  current wire format. Format `0.5.0` is the current example: its
   `manifest_binding` authenticates the exported interpretation context.
 - Document redaction behavior for each observability level before adding fields.
 

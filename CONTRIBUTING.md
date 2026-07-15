@@ -3,8 +3,8 @@
 ENTO changes should preserve the current compatibility boundary unless a
 proposal explicitly targets a future breaking release:
 
-- Default writes use format `0.4.0`.
-- `0.2.0`, `0.3.0`, and `0.3.1` remain compatibility formats.
+- Default writes use format `0.5.0`.
+- `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0` remain compatibility formats.
 - Existing CLI stdout/stderr and exit behavior remain compatible.
 - Keyed `verify` before `unpack` is the safe operator workflow.
 

@@ -1,26 +1,25 @@
 # TODO — ENTO Upcoming Improvements
 
-This roadmap tracks post-0.4 release-candidate work. It is intentionally scoped
+This roadmap tracks the 0.5.0 release and its remaining research work. It is intentionally scoped
 as a backlog, not a promise: each item should become a test-backed issue or PR
 before implementation. Preserve the current interface unless an item explicitly
 calls for a breaking release:
 
-- Default write format is `0.4.0`.
-- Opt-in format `0.5.0` adds authenticated exported-manifest context without
-  changing the stable default or legacy wire profiles.
-- Compatibility formats `0.2.0`, `0.3.0`, and `0.3.1` remain readable/writable.
-- Paper/manuscript release label `0.4` is distinct from ENTO wire-format string `0.4.0`.
+- Default write format is `0.5.0`, with authenticated exported-manifest context.
+- Compatibility formats `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0` remain readable/writable.
+- Paper/manuscript release label `0.5` is distinct from ENTO wire-format string `0.5.0`.
 
 ## Current cycle — 2026-07-15
 
-- Completed the shared-boundary hardening and added the opt-in 0.5.0
-  authenticated-manifest-context profile without changing the 0.4.0 default.
+- Completed the shared-boundary hardening and promoted 0.5.0 to the default
+  authenticated-manifest-context profile while preserving 0.4.0 compatibility.
 - Regenerated the certifying artifact surface from the validated head. Local
   readiness remains distinct from external public-promotion readiness.
 - The canonical gate sequence and evidence rules live in
-  [ISA.md](ISA.md#current-cycle--2026-07-15--opt-in-0-5-0-profile).
+  [ISA.md](ISA.md#current-cycle--2026-07-15--0-5-0-default-migration).
 - Execute future research only through the preregistered protocol in
-  [experiment_plan.yaml](experiment_plan.yaml) and
+  [docs/research/agenda.yaml](docs/research/agenda.yaml), with benchmark
+  conditions mirrored in [experiment_plan.yaml](experiment_plan.yaml), and
   [docs/research/agenda.md](docs/research/agenda.md).
 - 0.5.0 is documented as a Python reference profile; no independent
   interoperability or origin claim is made from local evidence.
@@ -42,7 +41,7 @@ calls for a breaking release:
 - Added `--json-output` result sidecars and `--telemetry-jsonl` local telemetry
   events for all CLI subcommands without changing default human output.
 - Added deterministic conformance fixture generation for `0.2.0`, `0.3.0`,
-  `0.3.1`, `0.4.0`, ciphertext tamper, duplicate ZIP member, and path escape cases.
+  `0.3.1`, `0.4.0`, `0.5.0`, ciphertext tamper, duplicate ZIP member, and path escape cases.
 - Added optional benchmark knobs for a larger synthetic track and mixed
   multi-track container while keeping the default 0.4 row count unchanged.
 - Added figure artifact QA for registered PNG presence, dimensions, and
@@ -61,12 +60,12 @@ calls for a breaking release:
 - Added a machine-readable public-promotion metadata checker comparing
   manuscript config, `pyproject.toml`, `CITATION.cff`, README, and release
   manifest fields.
-- Promoted default `.ento` wire format to `0.4.0` and added compatibility,
+- Promoted the default `.ento` wire format to `0.5.0`, preserving explicit compatibility,
   length-leakage, conformance, observability-redaction, and release-evidence
   figures.
-- Added opt-in `0.5.0` authenticated-manifest-context profile with canonical
+- Added `0.5.0` authenticated-manifest-context profile with canonical
   exported-view binding, schema requirement, fixed vector, redaction-matrix
-  tests, and rebound-manifest negative controls.
+  tests, rebound-manifest negative controls, and default-writer migration tests.
 - Added strict canonicalization controls, formal manuscript equations with code
   fidelity tests, timeout-safe live publication subprocess cleanup, and a full
   RQ-8 protocol with explicit controls and limits.
@@ -126,8 +125,9 @@ calls for a breaking release:
 
 ## Research agenda
 
-The backlog is machine-readable in `experiment_plan.yaml` and explained in
-`docs/research/agenda.md`. Its current questions are:
+The benchmark design overlay remains machine-readable in `experiment_plan.yaml`;
+the preregistered backlog is machine-readable in `docs/research/agenda.yaml` and
+explained in `docs/research/agenda.md`. Its current questions are:
 
 - RQ-1: independent-language vectors and schema negotiation.
 - RQ-2: bounded-memory streaming pack/unpack with verify-before-release.
@@ -136,7 +136,7 @@ The backlog is machine-readable in `experiment_plan.yaml` and explained in
 - RQ-5: KMS/HSM custody, rotation, recovery, and audit boundaries.
 - RQ-6: signed release manifests, SBOMs, provenance, and reproducible builds.
 - RQ-7: exports to related research-container ecosystems without equivalence claims.
-- RQ-8: authenticated exported-manifest context for the opt-in `0.5.0` profile.
+- RQ-8: default-migration validation for the `0.5.0` authenticated context profile.
 
 Every question requires three competing hypotheses, a control or baseline, exact
 metrics, a repetition rationale, falsification criteria, and a stopping rule.

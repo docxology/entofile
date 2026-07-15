@@ -21,6 +21,7 @@ Operational documentation for the ENTO project. Pipeline gates do not parse thes
 | `troubleshooting.md` | Failure recipes |
 | `research/related_formats.md` | Related work notes |
 | `research/agenda.md` | Preregistered research questions, hypotheses, metrics, and stopping rules |
+| `research/agenda.yaml` | Machine-readable research backlog and preregistration contract |
 | `methods.md` | Crypto and benchmark methods |
 | `figure_registry.md` | Figure pipeline, registry, and visual evidence contract |
 | `security.md` | Key handling, verify CLI, ZIP limits |

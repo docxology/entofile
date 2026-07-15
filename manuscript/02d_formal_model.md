@@ -52,8 +52,8 @@ those bytes are the original-length prefix plus payload padded to a PADMÉ bucke
 
 ## Exported-manifest context binding
 
-The stable default authenticates the format label and track identifier. The
-opt-in profile {{FORMAT_VERSION_NEXT}} adds a canonical binding for the
+The default profile authenticates the format label, track identifier, and
+canonical binding for the
 manifest view that is actually exported. Let pi(M) remove
 manifest_binding and each sha256_ciphertext field from manifest M,
 while preserving root values and track order. Define
@@ -70,16 +70,16 @@ fields.
 
 The ciphertext digest is excluded because encryption depends on B(M) and
 would otherwise create a circular definition. The track associated data for
-{{FORMAT_VERSION_NEXT}} is
+{{FORMAT_VERSION}} is
 
 $$
-A_i = \texttt{"ento:"} \mathbin\Vert {{FORMAT_VERSION_NEXT}}
+A_i = \texttt{"ento:"} \mathbin\Vert {{FORMAT_VERSION}}
 \mathbin\Vert \texttt{":manifest:"} \mathbin\Vert B(M)
 \mathbin\Vert \texttt{":track:"} \mathbin\Vert i.
 $$ {#eq:manifest_aad}
 
 Equation [@eq:manifest_aad] is the exact track_aad() string passed to
-AES-256-GCM for the {{FORMAT_VERSION_NEXT}} profile.
+AES-256-GCM for the {{FORMAT_VERSION}} profile.
 
 Because M is the exported view, changing observability, creator, timestamp,
 track order, descriptor fields, or redaction changes B(M). A keyed reader
@@ -140,7 +140,7 @@ l in {0,...,{{CONFIG_OBSERVABILITY_LEVEL_MAX}}}, and |mu_l(C)| its byte size.
 Redaction is subtractive on field content: lowering l only removes or shortens
 field classes (digests, then resolution descriptors, then type URIs - the sealed
 level replaces each type URI with the shorter sentinel ento:opaque), and does not
-re-encrypt the payload for the stable and compatibility profiles. The opt-in
+re-encrypt the payload for the compatibility profiles. The default
 authenticated-context profile binds the selected view into AEAD context, so
 changing the view requires repacking. Under the implementation's URI registry -
 where every ontology URI is at least as long as that sentinel - the exported

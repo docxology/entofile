@@ -1,7 +1,7 @@
 # ENTO Research Agenda
 
-This agenda is the current research source of truth after the 0.4.0 release
-candidate and the opt-in 0.5.0 authenticated-manifest-context profile. It
+This agenda is the current research source of truth for the 0.5.0 release
+and its authenticated-manifest-context default. It
 separates claims that the reference implementation can establish from
 deployment, interoperability, and publication claims that require new
 experiments or external controls.
@@ -19,16 +19,21 @@ experiments or external controls.
   experiment record.
 - Do not claim production custody, public provenance, independent
   interoperability, or statistical superiority from the Python reference
-  implementation alone.
+implementation alone.
+
+The machine-readable companion is [`agenda.yaml`](agenda.yaml). `experiment_plan.yaml`
+remains the template-compatible design overlay for benchmark conditions and figures;
+the YAML agenda owns preregistration metadata, research-question hypotheses, and
+stopping rules.
 
 ## Workstreams
 
 ### RQ-1 — Independent conformance
 
-Question: Can an independent implementation reproduce the ENTO 0.4.0 wire
+Question: Can an independent implementation reproduce the ENTO 0.5.0 wire
 contract and reject the same hostile inputs?
 
-Owner: DAF. Control: the published 0.4.0 vectors and the current Python
+Owner: DAF. Control: the published 0.5.0 vectors and the current Python
 reference verifier. Repetition rationale: one complete matrix plus three
 independent implementations or implementation runs. Limits: a passing matrix
 does not prove arbitrary payload or schema-extension interoperability.
@@ -90,7 +95,7 @@ model side channels, traffic analysis, or operator metadata.
 
 Competing hypotheses:
 
-- H3-A: 0.4.0 reduces exact-length leakage to PADMÉ bucket leakage while keeping
+- H3-A: 0.5.0 reduces exact-length leakage to PADMÉ bucket leakage while keeping
   the documented manifest redactions.
 - H3-B: ZIP names, member sizes, or ordering reveal materially more than the
   current documentation states.
@@ -218,9 +223,9 @@ Metrics: field preservation, digest preservation, round-trip data equality,
 Falsification: any unreported data, digest, or metadata loss in a round trip.
 Stop rule: document the loss boundary before adding an extension.
 
-### RQ-8 — Authenticated exported-manifest context
+### RQ-8 — 0.5.0 default-migration validation
 
-Question: Does the opt-in 0.5.0 profile prevent metadata reinterpretation while
+Question: Does making 0.5.0 the default prevent metadata reinterpretation while
 preserving redaction behavior and the earlier wire contracts?
 
 Competing hypotheses:

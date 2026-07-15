@@ -1,6 +1,6 @@
 # Manuscript directory
 
-ENTO default format **0.4.0** paper source for the manuscript release candidate, including compatibility notes for formats **0.2.0**, **0.3.0**, and **0.3.1**. Sections `00_abstract` through `08_limitations_and_threat_model`, plus `99_references`.
+ENTO default format **0.5.0** paper source for the manuscript release, including compatibility notes for formats **0.2.0**, **0.3.0**, **0.3.1**, and **0.4.0**. Sections `00_abstract` through `08_limitations_and_threat_model`, plus `99_references`.
 
 ## Render order
 

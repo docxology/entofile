@@ -1,6 +1,6 @@
 # entofile — project documentation
 
-Active private project implementing **ENTO** (stable `format_version` **0.4.0**, opt-in **0.5.0**, AES-256-GCM). Layout mirrors `template_code_project`: modular `src/`, thin `scripts/`, 90% test coverage, manuscript with `{{TOKEN}}` injection.
+Active private project implementing **ENTO** (stable `format_version` **0.5.0**, with explicit **0.2.0–0.4.0** compatibility, AES-256-GCM). Layout mirrors `template_code_project`: modular `src/`, thin `scripts/`, 90% test coverage, manuscript with `{{TOKEN}}` injection.
 
 ## Module map
 
@@ -70,6 +70,6 @@ and the binding + negative-control tests in `tests/test_data_fingerprint.py`.
 ## Security invariants
 
 - Track IDs: `^[a-z0-9._-]+$`.
-- Default format `0.4.0` / AES-256-GCM; opt-in `0.5.0` adds authenticated exported-manifest context; compatibility formats `0.2.0`, `0.3.0`, and `0.3.1`.
+- Default format `0.5.0` / AES-256-GCM with authenticated exported-manifest context; explicit compatibility formats `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0`.
 - Verify before unpack; structured stderr JSON on failure.
 - Docs: [`docs/security.md`](docs/security.md), [`docs/entofile-threat-model.md`](docs/entofile-threat-model.md), [`docs/claim_ledger.md`](docs/claim_ledger.md), [`docs/nation_state_roadmap.md`](docs/nation_state_roadmap.md).

@@ -16,7 +16,7 @@ Start from the bytes an attacker can actually control:
 | Manifest/proof | JSON digests and hash chains are unkeyed unless externally signed | Use them for corruption detection and reproducibility, not origin authentication |
 | Track payload | AES-GCM only proves authenticity when the correct master key and format-specific AAD are used [@rfc5116; @dworkin2007gcm; @mcgrew2004gcm] | Keyed `verify`/`unpack` is the adversarial integrity gate |
 | Keys | Master keys are intentionally outside the ENTO ZIP | Store keys in operator-controlled KMS/HSM or locked-down files; apply key-management policy outside the file format [@nistsp80057pt1r5] |
-| Length | ZIP_STORED preserves member size; default 0.4.0 and opt-in 0.5.0 pad only to PADMÉ buckets | Treat bucket size as visible; use external traffic controls when even bucket leakage is sensitive |
+| Length | ZIP_STORED preserves member size; default 0.5.0 and compatibility 0.4.0/0.3.1 pad only to PADMÉ buckets | Treat bucket size as visible; use external traffic controls when even bucket leakage is sensitive |
 | Release artifacts | SBOMs and rendered PDFs are files an attacker can swap | Public releases need external signature/provenance policy, not just local checks |
 
 ## Master keys
@@ -35,17 +35,17 @@ chmod 600 ./master.key   # redundant on Unix when genkey succeeds
 
 Benchmark temp keys under `output/data/_bench_tmp/` are disposable pipeline artifacts.
 
-## Cryptography (default 0.4.0, opt-in 0.5.0, plus compatibility formats)
+## Cryptography (default 0.5.0, plus compatibility formats)
 
 | `format_version` | Write | Read | Module |
 | --- | --- | --- | --- |
 | `0.2.0` (compatibility) | AES-256-GCM, 16-byte nonce, no AAD | Yes | `src/crypto_gcm.py` |
 | `0.3.0` (compatibility) | AES-256-GCM, 12-byte nonce, AAD binds `format_version`+`track_id` | Yes | `src/crypto_gcm.py` |
 | `0.3.1` (compatibility + length-hiding) | 0.3.0 + PADMÉ plaintext padding (`src/padding.py`) | Yes | `src/crypto_gcm.py`, `src/track.py` |
-| `0.4.0` (default) | 0.3.1 profile promoted as the default writer | Yes | `src/crypto_gcm.py`, `src/track.py` |
-| `0.5.0` (opt-in) | 0.4.0 layout plus exported-manifest context in GCM AAD | Yes | `src/manifest_binding.py`, `src/crypto.py`, `src/container.py` |
+| `0.4.0` (compatibility) | 0.3.1 profile with format+track AAD | Yes | `src/crypto_gcm.py`, `src/track.py` |
+| `0.5.0` (default) | 0.4.0 layout plus exported-manifest context in GCM AAD | Yes | `src/manifest_binding.py`, `src/crypto.py`, `src/container.py` |
 
-Default `pack` writes `0.4.0`. Select `0.5.0` explicitly when every reader supports authenticated exported-manifest context, or select a compatibility format with `pack --format 0.2.0|0.3.0|0.3.1`. `pack_container(..., format_version=...)` exposes the same choice. Verify/unpack dispatch on the manifest's `format_version`, so existing 0.2.0/0.3.0/0.3.1/0.4.0 containers keep working unchanged.
+Default `pack` writes `0.5.0`. Select `0.4.0` explicitly when a reader has not adopted authenticated exported-manifest context, or select an older compatibility format with `pack --format 0.2.0|0.3.0|0.3.1`. `pack_container(..., format_version=...)` exposes the same choice. Verify/unpack dispatch on the manifest's `format_version`, so existing 0.2.0/0.3.0/0.3.1/0.4.0 containers keep working unchanged.
 
 The source `observability_level` is an upper bound on an export: `export_level`
 may reduce metadata exposure, but cannot raise it. The pack APIs reject an attempted
@@ -58,10 +58,11 @@ HKDF-SHA256 derived with `info = "ento:track:<id>"` via the vetted
 `cryptography` HKDF (byte-identical to the prior hand-rolled loop; locked by
 `data/test_vectors/hkdf_regression.json`) [@krawczyk2010hkdf; @nistfips1804].
 HKDF gives each track a labelled subkey under the same master key, so a track
-swap is checked under the wrong subkey and fails. The default 0.4.0 wire layout
+swap is checked under the wrong subkey and fails. The default 0.5.0 wire layout
 is `nonce(12) || tag(16) || ciphertext`, with AAD
-`ento:0.4.0:track:<track_id>` and a PADMÉ-padded plaintext body. The opt-in
-0.5.0 layout uses `ento:0.5.0:manifest:<manifest_binding>:track:<track_id>`
+`ento:0.5.0:manifest:<manifest_binding>:track:<track_id>` and a PADMÉ-padded
+plaintext body. The 0.4.0 compatibility layout uses
+`ento:0.4.0:track:<track_id>`
 and binds the canonical manifest view that is actually exported. AAD is
 cleartext context authenticated by GCM; it is like a tamper-evident label on the
 sealed payload, not extra plaintext hidden inside the ciphertext. The frozen
@@ -166,7 +167,7 @@ metadata when operators need a compact CBOR-based provenance envelope [@rfc9052]
   cap; a crafted archive of many members that each under-declare size is still bounded by
   `member_count × per-member` actual-byte caps — tune `MAX_*_UNCOMPRESSED` down for hostile inputs
 
-See [`nation_state_roadmap.md`](nation_state_roadmap.md) for the 0.4 RC deployment matrix.
+See [`nation_state_roadmap.md`](nation_state_roadmap.md) for the 0.5.0 deployment matrix.
 
 ## API
 

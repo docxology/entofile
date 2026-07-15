@@ -1,7 +1,7 @@
 # Reproducible figures and crypto verification (research notes)
 
-External synthesis for ENTO default format 0.4.0 design choices and the
-0.2.0/0.3.x compatibility ladder. Complements [`related_formats.md`](related_formats.md).
+External synthesis for ENTO default format 0.5.0 design choices and the
+0.2.0-0.4.0 compatibility ladder. Complements [`related_formats.md`](related_formats.md).
 
 ## Figure pipelines (2024–2026 practice)
 
@@ -27,7 +27,7 @@ WAV + sidecar JSON is common for field recordings but splits integrity across fi
 | RFC 5869 / NIST known-answer vectors | Required before claiming standards interoperability |
 | Pinned regression vectors from live implementation | Honest gate for stdlib-first v0.1 reference code |
 
-ENTO format **0.4.0** uses **pinned regression vectors** (`data/test_vectors/hkdf_regression.json`, `aes256_gcm_regression.json`) plus format-specific tests to lock HKDF, GCM, AAD, and PADMÉ behavior across refactors; compatibility `0.2.0`/`0.3.x` paths remain covered so older containers stay readable.
+ENTO format **0.5.0** uses **pinned regression vectors** (`data/test_vectors/hkdf_regression.json`, `aes256_gcm_regression.json`) plus format-specific tests to lock HKDF, GCM, manifest-context AAD, canonicalization, and PADMÉ behavior across refactors; compatibility `0.2.0`-`0.4.0` paths remain covered so older containers stay readable.
 
 ## References
 

@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use ENTO, please cite the manuscript and software release."
 title: "ENTO: an ENcrypted, Typed, Omnitrack container format for multimodal research data"
-version: "0.4"
+version: "0.5"
 doi: "10.5281/zenodo.20396329"
 date-released: 2026-05-31
 repository-code: "https://github.com/docxology/entofile"

@@ -27,9 +27,9 @@
     \fill[EntoGraphite] (current page.north west) rectangle ([yshift=-1.75cm]current page.north east);
     \fill[EntoSignal] ([yshift=-1.75cm]current page.north west) rectangle ([yshift=-1.87cm]current page.north east);
     \node[anchor=north west, text=white, font=\sffamily\bfseries\small]
-      at ([xshift=0.55in,yshift=-0.47in]current page.north west) {ENTO 0.4 RC};
+      at ([xshift=0.55in,yshift=-0.47in]current page.north west) {ENTO 0.5.0};
     \node[anchor=north east, text=white, font=\sffamily\small]
-      at ([xshift=-0.55in,yshift=-0.47in]current page.north east) {stable default wire format {{FORMAT_VERSION}};
+      at ([xshift=-0.55in,yshift=-0.47in]current page.north east) {stable default wire format 0.5.0};
     \draw[EntoRule,line width=0.55pt]
       ([xshift=0.50in,yshift=-0.50in]current page.north west)
       rectangle

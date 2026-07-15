@@ -37,7 +37,7 @@ uv run python scripts/run_tests.py
 
 | Script | Delegates to | Purpose |
 | --- | --- | --- |
-| `generate_conformance_fixtures.py` | `src.conformance` | Deterministic fixtures (0.2.0–0.4.0 + tamper cases) |
+| `generate_conformance_fixtures.py` | `src.conformance` | Deterministic fixtures (0.2.0–0.5.0 + tamper cases) |
 | `verify_conformance_fixtures.py` | `src.conformance` | Verify fixtures, write `conformance_report.json` |
 | `run_benchmark_profile.py` | `src.benchmark_profiles` | Non-default benchmark profiles (isolated outputs) |
 

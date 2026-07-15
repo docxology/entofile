@@ -7,10 +7,10 @@
 | Digest-only integrity | Keyless verification where ciphertext digests match; useful for corruption detection but not adversarial authenticity. |
 | Key-authenticated integrity | Verification with the master key, AES-GCM authentication, and plaintext digest checks when available. |
 | Observability level | Manifest redaction setting from sealed `0` to auditable `3`. |
-| Paper release label | Manuscript/version label such as `0.4`; related to but distinct from semver wire strings such as `0.4.0`. |
+| Paper release label | Manuscript/version label such as `0.5`; related to but distinct from semver wire strings such as `0.5.0`. |
 | Proof export | Unkeyed hash-chain JSON derived from the manifest; useful for reproducibility, not origin authentication. |
 | Telemetry JSONL | Optional local event stream emitted by the CLI when `--telemetry-jsonl` is provided. |
-| Wire format | On-disk ENTO container version, currently stable default `0.4.0` with opt-in `0.5.0` authenticated context and compatibility support for `0.2.0`, `0.3.0`, and `0.3.1`. |
+| Wire format | On-disk ENTO container version, currently default `0.5.0` with authenticated exported-manifest context and compatibility support for `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0`. |
 
 ## Observability Levels
 

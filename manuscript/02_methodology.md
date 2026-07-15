@@ -41,7 +41,7 @@ byte 0                {{NONCE_BYTES}}                 {{TRACK_HEADER_BYTES}}    
        {{NONCE_BYTES}} bytes           {{TAG_BYTES}} bytes              variable length
 ```
 
-The first {{NONCE_BYTES}} bytes are the AES-256-GCM nonce and the next {{TAG_BYTES}} bytes are the authentication tag for `format_version` **{{FORMAT_VERSION}}** (a fixed {{TRACK_HEADER_BYTES}}-byte header in total), followed by the ciphertext body. Under the default profile, that body is the PADMÉ-padded plaintext with an original-length prefix; compatibility formats without padding keep a length-preserving body. The canonical machine-readable definition is the Kaitai Struct spec in `data/ento_track_header.ksy`, using the `.ksy` declarative binary-format language [@kaitai2026]. Decryption recomputes and verifies the tag *before* releasing any plaintext — a corrupted or forged byte makes the whole track fail closed ([@sec:security_verification]). This layout fixes the version-aware ciphertext-expansion law {{FORMAT_DEFAULT_EXPANSION_MODEL}} ([@eq:expansion_law] in [@sec:formal_model]).
+The first {{NONCE_BYTES}} bytes are the AES-256-GCM nonce and the next {{TAG_BYTES}} bytes are the authentication tag for `format_version` **{{FORMAT_VERSION}}** (a fixed {{TRACK_HEADER_BYTES}}-byte header in total), followed by the ciphertext body. Under the default profile, that body is the PADMÉ-padded plaintext with an original-length prefix; compatibility formats without padding keep a length-preserving body. The default {{FORMAT_VERSION}} AAD also carries the canonical binding of the exported manifest view. The canonical machine-readable definition is the Kaitai Struct spec in `data/ento_track_header.ksy`, using the `.ksy` declarative binary-format language [@kaitai2026]. Decryption recomputes and verifies the tag *before* releasing any plaintext — a corrupted or forged byte makes the whole track fail closed ([@sec:security_verification]). This layout fixes the version-aware ciphertext-expansion law {{FORMAT_DEFAULT_EXPANSION_MODEL}} ([@eq:expansion_law] in [@sec:formal_model]).
 
 ### Worked example
 
@@ -80,8 +80,8 @@ they are not implemented in ENTO {{FORMAT_VERSION}} [@rfc8452].
 | {{FORMAT_VERSIONS_COMPATIBILITY}} (compatibility) | Version-dispatched AES-256-GCM profiles, including no-AAD, AAD-bound, and PADMÉ-padded variants | `cryptography` (`src/crypto_gcm.py`) |
 
 AEAD means the ciphertext and selected cleartext context are checked together.
-For {{FORMAT_VERSION}}, the associated data is a small label containing the
-format version and track id; it is not encrypted, but changing it causes the GCM
+For {{FORMAT_VERSION}}, the associated data contains the format version, the
+canonical exported-manifest binding, and the track id; it is not encrypted, but changing it causes the GCM
 tag check to fail [@rfc5116; @dworkin2007gcm]. Decryption authenticates that tag
 before releasing plaintext (fail closed) [@ferguson2010cryptography]. Unpack and
 `verify` also compare SHA-256 plaintext and ciphertext digests when digest
@@ -98,13 +98,13 @@ Pinned regression vectors in `data/test_vectors/` lock HKDF and GCM backends acr
 
 ## Manifest schema
 
-`manifest.json` validates against Draft-07 JSON Schema in `data/ento_manifest_schema.json`. The schema accepts the supported format set ({{FORMAT_VERSIONS_SUPPORTED}}); the default writer uses **{{FORMAT_VERSION}}** unless a compatibility format is selected explicitly. Required fields include `observability_level` and per-track `type`, `sha256_plaintext`, `sha256_ciphertext`, and `byte_length`. Format {{FORMAT_VERSION_NEXT}} additionally requires `manifest_binding`, computed from the exported view using ENTO's documented strict JSON profile. Proof export hashes the exact JSON bytes emitted by `manifest_to_json`; the JCS specification defines a general JSON canonicalization scheme, but ENTO does not claim JCS interoperability in this release [@rfc8785].
+`manifest.json` validates against Draft-07 JSON Schema in `data/ento_manifest_schema.json`. The schema accepts the supported format set ({{FORMAT_VERSIONS_SUPPORTED}}); the default writer uses **{{FORMAT_VERSION}}** unless a compatibility format is selected explicitly. Required fields include `observability_level` and per-track `type`, `sha256_plaintext`, `sha256_ciphertext`, and `byte_length`. Current format {{FORMAT_VERSION}} additionally requires `manifest_binding`, computed from the exported view using ENTO's documented strict JSON profile. Proof export hashes the exact JSON bytes emitted by `manifest_to_json`; the JCS specification defines a general JSON canonicalization scheme, but ENTO does not claim JCS interoperability in this release [@rfc8785].
 
 ## Manifest footprint across tracks
 
 ![{{FIG_CAPTION_MANIFEST_MULTITRACK}}](../output/figures/manifest_multitrack.png){#fig:manifest_multitrack width={{FIGURE_WIDTH}}%}
 
-[@fig:manifest_multitrack] shows how exported manifest size changes with observability level for each committed fixture track (`eeg`, `vcf`, `spectrogram`) under `small_tracks_r0`. For the stable and compatibility profiles, this redaction is metadata-only; the opt-in authenticated-context profile treats the selected view as AEAD context and requires repacking when the view changes.
+[@fig:manifest_multitrack] shows how exported manifest size changes with observability level for each committed fixture track (`eeg`, `vcf`, `spectrogram`) under `small_tracks_r0`. Redaction is metadata-only for the track ciphertext, while the default authenticated-context profile treats the selected view as AEAD context and requires repacking when the view changes.
 
 ![{{FIG_CAPTION_OBSERVABILITY_REDACTION_MATRIX}}](../output/figures/observability_redaction_matrix.png){#fig:observability_redaction_matrix width={{FIGURE_WIDTH}}%}
 

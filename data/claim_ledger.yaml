@@ -1,14 +1,14 @@
 claims:
   - claim_id: format-version
     kind: text
-    value: "0.4.0"
+    value: "0.5.0"
     source: projects/working/entofile/src/crypto.py
     source_tier: project_source
     freshness: active
     artifact_path: data/ento_manifest_schema.json
   - claim_id: format-version-latest
     kind: text
-    value: "0.4.0"
+    value: "0.5.0"
     source: projects/working/entofile/src/crypto.py
     source_tier: project_source
     freshness: active

@@ -1,7 +1,7 @@
 # Quick Start — entofile
 
-Run ENTO stable default format **0.4.0** benchmarks and render the 0.4 paper release
-candidate; compatibility `0.2.0`/`0.3.0`/`0.3.1` containers remain supported via
+Run ENTO default format **0.5.0** benchmarks and render the 0.5 release candidate;
+compatibility `0.2.0`/`0.3.0`/`0.3.1`/`0.4.0` containers remain supported via
 `pack --format`.
 
 ## Prerequisites
@@ -54,5 +54,5 @@ uv run python -m src.cli verify -i /tmp/demo.ento.zip -k /tmp/ento.key
 ```
 
 See [`architecture.md`](architecture.md) and [`agent_instructions.md`](agent_instructions.md).
-To exercise the forward authenticated-manifest profile explicitly, pass
-`--format 0.5.0` to `pack`; it does not change the default writer.
+To exercise the previous compatibility profile explicitly, pass
+`--format 0.4.0` to `pack`.

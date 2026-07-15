@@ -1,7 +1,7 @@
 # Documentation — entofile
 
-Navigation hub for the ENTO format **0.4.0** reference implementation (0.4 paper
-release) and opt-in **0.5.0** authenticated-manifest-context profile. The public repository is
+Navigation hub for the ENTO format **0.5.0** reference implementation and its
+**0.2.0**-**0.4.0** compatibility profiles. The public repository is
 [github.com/docxology/entofile](https://github.com/docxology/entofile); the
 maintainer's build and render path remains `projects/working/entofile`.
 
@@ -41,10 +41,13 @@ maintainer's build and render path remains `projects/working/entofile`.
 | Document | Topic |
 | --- | --- |
 | [`research/related_formats.md`](research/related_formats.md) | Related formats and security norms |
+| [`research/agenda.yaml`](research/agenda.yaml) | Machine-readable preregistered research backlog |
+| [`research/agenda.md`](research/agenda.md) | Research questions, hypotheses, metrics, and stopping rules |
 | [`research/reproducible_figures_crypto_vectors.md`](research/reproducible_figures_crypto_vectors.md) | Figure pipeline and crypto test strategy |
 | [`redteam_publish_0.4.md`](redteam_publish_0.4.md) | RedTeam findings for release 0.4 RC |
 | [`redteam_claim_scholarship_audit_0.4.md`](redteam_claim_scholarship_audit_0.4.md) | Repo-wide claim and scholarship RedTeam audit for release 0.4 RC |
 | [`redteam_repo_visual_audit_0.4.md`](redteam_repo_visual_audit_0.4.md) | Repo-wide RedTeam and visualization confirmation for release 0.4 RC |
+| [`redteam_publish_0.5.md`](redteam_publish_0.5.md) | Current RedTeam migration ledger for the 0.5.0 default |
 | [`redteam_publish_1.0.md`](redteam_publish_1.0.md) | Historical RedTeam findings for the previous release line |
 | [`publication_checklist.md`](publication_checklist.md) | Pre-deposit gate commands |
 | [`public_release_checklist.md`](public_release_checklist.md) | Public repository release gate |
@@ -54,7 +57,7 @@ maintainer's build and render path remains `projects/working/entofile`.
 | [`methods.md`](methods.md) | Crypto, benchmarks, validation |
 | [`security.md`](security.md) | Key handling, verify CLI, ZIP limits |
 | [`entofile-threat-model.md`](entofile-threat-model.md) | AppSec threat model |
-| [`format_migration.md`](format_migration.md) | Choosing stable `0.4.0`, opt-in `0.5.0`, or compatibility formats |
+| [`format_migration.md`](format_migration.md) | Choosing default `0.5.0` or compatibility formats |
 | [`provenance_signing.md`](provenance_signing.md) | Signing and SLSA-compatible release provenance |
 | [`kms_hsm_profile.md`](kms_hsm_profile.md) | External key custody profile |
 | [`pq_transition_note.md`](pq_transition_note.md) | Post-quantum integration note |

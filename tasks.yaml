@@ -3,13 +3,13 @@
 # status: todo | in_progress | blocked | done. dates: YYYY-MM-DD. progress: 0-100.
 project:
   name: entofile
-  title: ENTO — Encrypted Typed Omnitrack format 0.4 + opt-in 0.5
+  title: ENTO — Encrypted Typed Omnitrack format 0.5 with legacy compatibility
   status: active
   color: '#4C72B0'
   lead: DAF
 tasks:
 - id: ef-1
-  title: Promote default wire format 0.4.0 (GCM nonce + PADMÉ)
+  title: Historical: promote default wire format 0.4.0 (GCM nonce + PADMÉ)
   status: done
   start: '2026-05-28'
   end: '2026-06-02'
@@ -239,7 +239,7 @@ tasks:
   - future
   notes: 'Execute RQ-1 through RQ-8 only with three competing hypotheses, controls, exact metrics, falsification criteria, repetition rationale, stopping rules, and bounded claims.'
 - id: ef-19
-  title: Add opt-in 0.5.0 authenticated-manifest-context format profile
+  title: Add 0.5.0 authenticated-manifest-context format profile
   status: done
   start: '2026-07-15'
   end: '2026-07-15'
@@ -252,7 +252,7 @@ tasks:
   - format
   - security
   - manuscript
-  notes: 'Completed 2026-07-15: 0.5.0 canonical exported-view binding, schema/AAD dispatch, fixed vectors, mutation/rebinding/downgrade controls, formal manuscript equations, strict canonicalization, RQ-8 protocol, regenerated artifacts, and timeout-safe live publication runner. Full final evidence is recorded in ISA.md.'
+  notes: 'Completed 2026-07-15: 0.5.0 canonical exported-view binding, schema/AAD dispatch, fixed vectors, mutation/rebinding/downgrade controls, formal manuscript equations, strict canonicalization, RQ-8 protocol, regenerated artifacts, and timeout-safe live publication runner. The subsequent migration cycle promotes this profile to the default while retaining explicit 0.4.0 compatibility.'
 - id: ef-20
   title: Harden cache-free test and publication runner lifecycle
   status: done
@@ -266,3 +266,19 @@ tasks:
   - hardening
   - verification
   notes: 'Canonical run_tests.py and certifying publication execution now clear pytest cache, terminate/reap descendants on timeout or SIGINT, and retain bounded diagnostics. Four real-process runner tests plus publication live tests pass; Windows taskkill behavior is documented but not executable on this macOS host. Clean release bundle and main/origin parity are verified.'
+- id: ef-21
+  title: Promote 0.5.0 to default and reconcile all release surfaces
+  status: done
+  start: '2026-07-15'
+  end: '2026-07-15'
+  progress: 100
+  milestone: true
+  deps:
+  - ef-19
+  - ef-20
+  tags:
+  - format
+  - compatibility
+  - release
+  - manuscript
+  notes: 'Completed 2026-07-15: moved FORMAT_VERSION, package/manuscript release metadata, public guidance, manuscript claims, taskboard, preregistered research agenda, generated artifacts, and release evidence to 0.5.0. Preserved explicit 0.2.0-0.4.0 read/write compatibility. Evidence: 455 tests, 90.28% coverage, Ruff/mypy clean, analysis 2,400 rows/tamper 1.0, conformance 8/8, figure QA 21/21, manuscript PDF validation 44 pages, and live publication gate green.'

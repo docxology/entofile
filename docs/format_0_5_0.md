@@ -1,8 +1,8 @@
 # ENTO 0.5.0 authenticated-manifest-context profile
 
-ENTO `0.5.0` is an opt-in forward wire profile. The stable writer default
-remains `0.4.0`, so existing applications do not silently change their emitted
-bytes. Readers and writers support `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`, and
+ENTO `0.5.0` is the current default wire profile. Existing `0.4.0` containers
+remain readable and explicitly writable as a compatibility profile. Readers and
+writers support `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`, and
 `0.5.0`; unknown versions fail closed.
 
 The profile addresses a specific limitation in the earlier AAD contract:
@@ -102,9 +102,8 @@ keeps `pack_container()` and `pack_container_bytes()` on one code path.
 
 ## Compatibility and migration
 
-Use `0.5.0` only when all participating readers implement the profile and the
-metadata-authentication improvement is useful. Use stable `0.4.0` when a
-consumer has not yet adopted the profile. Existing 0.2.0–0.4.0 containers keep
+Use `0.5.0` for new containers. Use explicit `0.4.0` when a consumer has not
+yet adopted manifest-context binding. Existing 0.2.0–0.4.0 containers keep
 their original nonce, AAD, padding, and manifest semantics; they are not
 retrofit or silently re-encrypted. A migration is an explicit unpack/repack
 operation with a new key or nonce set, followed by independent verification.

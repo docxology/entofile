@@ -1,6 +1,6 @@
 # Proof export and observability {#sec:proof_observability}
 
-For the stable and compatibility profiles, two mechanisms govern what a recipient sees without re-encrypting tracks: **observability levels** filter exported manifests; **proof export** optionally emits a hash chain over track digests. The opt-in authenticated-context profile binds the selected exported view into each track tag, so changing its observability view requires a fresh pack operation.
+Two mechanisms govern what a recipient sees without re-encrypting track ciphertext: **observability levels** filter exported manifests; **proof export** optionally emits a hash chain over track digests. The default authenticated-context profile binds the selected exported view into each track tag, so changing its observability view requires a fresh pack operation.
 
 ## Observability redaction
 

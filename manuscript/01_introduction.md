@@ -11,7 +11,7 @@ The name ENTO is an acronym for the format's three defining properties: it is **
 1. **Interoperable envelope** — any ZIP tool can list `manifest.json` and `tracks/*.ento` entries [@zipappnote2024].
 2. **Typed multimodal tracks** — ontology URIs with optional resolution metadata ([@sec:ontology_fixtures]).
 3. **Authenticated confidentiality** — AES-256-GCM on default format {{FORMAT_VERSION}} with suite {{CRYPTO_BACKEND_DEFAULT}}, associated-data binding as defined by the AEAD interface, and explicit compatibility dispatch for {{FORMAT_VERSIONS_COMPATIBILITY}} [@nistfips197; @rfc5116] ([@sec:methodology]).
-4. **Graded export** — observability levels redact manifests without re-encrypting payloads for the stable and compatibility profiles; the opt-in authenticated-context profile binds the selected export view and therefore requires repacking when that view changes ([@sec:proof_observability]).
+4. **Graded export** — observability levels redact manifests without re-encrypting payloads; the default authenticated-context profile binds the selected export view and therefore requires repacking when that view changes ([@sec:proof_observability]).
 5. **Reproducible evidence** — scripted benchmarks, claim ledger, and registry-backed manuscript tokens, aligned with reproducible-computational-research guidance that scripts, runs, data classes, and results remain inspectable [@sandve2013reproducible; @wilson2017goodenough] ([@sec:reproducibility]).
 
 ## Reader's guide

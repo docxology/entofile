@@ -51,15 +51,14 @@ Latest gate sample: {{RESULT_CONTAINER_VERIFY_SAMPLE}}. Aggregate status: {{RESU
 
 ## Cryptography and the format ladder
 
-All formats use AES-256-GCM ({{CRYPTO_BACKEND_DEFAULT}}) via the audited `cryptography` library with HKDF-derived per-track keys. The default writer emits {{FORMAT_VERSION}}; {{COUNT_COMPATIBILITY_FORMATS}} compatibility formats ({{FORMAT_VERSIONS_COMPATIBILITY}}) are version-dispatched and remain readable/writable via `pack --format`. The opt-in forward profile {{FORMAT_VERSION_NEXT}} adds {{FORMAT_NEXT_BINDING_DESCRIPTION}}:
+All formats use AES-256-GCM ({{CRYPTO_BACKEND_DEFAULT}}) via the audited `cryptography` library with HKDF-derived per-track keys. The default writer emits {{FORMAT_VERSION}}; {{COUNT_COMPATIBILITY_FORMATS}} compatibility formats ({{FORMAT_VERSIONS_COMPATIBILITY}}) are version-dispatched and remain readable/writable via `pack --format`. The default profile adds {{FORMAT_NEXT_BINDING_DESCRIPTION}}:
 
 ![{{FIG_CAPTION_FORMAT_LADDER}}](../output/figures/format_ladder.png){#fig:format_ladder width={{FIGURE_WIDTH}}%}
 
 | `format_version` | Nonce | Associated data | Length-hiding |
 | --- | --- | --- | --- |
-| {{FORMAT_VERSION}} (default) | {{NONCE_BYTES}}-byte | binds `format_version` + track id | PADMÉ padding [@nikitin2019purb] |
+| {{FORMAT_VERSION}} (default) | {{NONCE_BYTES}}-byte | {{FORMAT_NEXT_AAD_TEMPLATE}} | PADMÉ padding [@nikitin2019purb] |
 | {{FORMAT_VERSIONS_COMPATIBILITY}} | version-dispatched | no-AAD through AAD-bound compatibility profiles | compatibility-dependent |
-| {{FORMAT_VERSION_NEXT}} (opt-in) | {{NONCE_BYTES}}-byte | {{FORMAT_NEXT_AAD_TEMPLATE}} | PADMÉ padding [@nikitin2019purb] |
 
 ![{{FIG_CAPTION_FORMAT_COMPATIBILITY_MATRIX}}](../output/figures/format_compatibility_matrix.png){#fig:format_compatibility_matrix width={{FIGURE_WIDTH}}%}
 
@@ -67,7 +66,7 @@ All formats use AES-256-GCM ({{CRYPTO_BACKEND_DEFAULT}}) via the audited `crypto
 
 ![{{FIG_CAPTION_CONFORMANCE_OUTCOMES}}](../output/figures/conformance_outcomes.png){#fig:conformance_outcomes width={{FIGURE_WIDTH}}%}
 
-[@fig:format_ladder] and [@fig:format_compatibility_matrix] are the release-candidate guardrails: manuscript version {{PAPER_VERSION}} documents stable default wire format {{FORMAT_VERSION}}, the compatibility formats remain explicit rather than implicit, and {{FORMAT_VERSION_NEXT}} remains opt-in. Binding `format_version` in the associated data makes a format downgrade (including a padded↔unpadded swap) fail the GCM tag rather than mis-parse. The {{FORMAT_VERSION_NEXT}} binding additionally covers the canonical exported manifest context, so keyed verification rejects metadata reinterpretation; its public digest is not an origin signature. [@fig:length_leakage_profile] bounds the length claim: default padding hides exact length only to PADMÉ buckets, while ZIP names and bucketed sizes remain visible. [@fig:conformance_outcomes] connects the supported-format claim to deterministic known-good and known-bad fixtures. Pinned vectors: `data/test_vectors/hkdf_regression.json`, `aes256_gcm_regression.json`, and the fixed manifest-context vector in `tests/test_format_0_5_0.py`. See [@sec:methodology].
+[@fig:format_ladder] and [@fig:format_compatibility_matrix] are the release guardrails: manuscript version {{PAPER_VERSION}} documents default wire format {{FORMAT_VERSION}}, while the compatibility formats remain explicit rather than implicit. Binding the format, track, and exported manifest context in associated data makes metadata reinterpretation and format downgrade fail the GCM tag rather than mis-parse; the public digest is not an origin signature. [@fig:length_leakage_profile] bounds the length claim: default padding hides exact length only to PADMÉ buckets, while ZIP names and bucketed sizes remain visible. [@fig:conformance_outcomes] connects the supported-format claim to deterministic known-good and known-bad fixtures. Pinned vectors: `data/test_vectors/hkdf_regression.json`, `aes256_gcm_regression.json`, and the fixed manifest-context vector in `tests/test_format_0_5_0.py`. See [@sec:methodology].
 
 ## Nation-state deployment checklist
 
