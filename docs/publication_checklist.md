@@ -79,4 +79,4 @@ previous `docs/redteam_publish_1.0.md` remains historical evidence only.
 | Manuscript `paper.version` | 0.4 | This PDF/manuscript release candidate |
 | ENTO `format_version` default write | 0.4.0 | Current on-disk container spec (AES-256-GCM, AAD, PADMÉ) |
 | ENTO supported compatibility formats | 0.2.0, 0.3.0, 0.3.1 | Legacy baseline, AAD-bound, and padded predecessor profiles |
-| Python package `version` | 0.1.0 | PyPI-style project version, unchanged for this paper RC |
+| Python package `version` | 0.4.0 | Package metadata aligned with the current 0.4 paper/repository release line |

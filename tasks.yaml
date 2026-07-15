@@ -265,4 +265,4 @@ tasks:
   tags:
   - hardening
   - verification
-  notes: 'Canonical run_tests.py and certifying publication execution now clear pytest cache, terminate/reap descendants on timeout or SIGINT, and retain bounded diagnostics. Four real-process runner tests plus publication live tests pass; Windows taskkill behavior is documented but not executable on this macOS host.'
+  notes: 'Canonical run_tests.py and certifying publication execution now clear pytest cache, terminate/reap descendants on timeout or SIGINT, and retain bounded diagnostics. Four real-process runner tests plus publication live tests pass; Windows taskkill behavior is documented but not executable on this macOS host. Clean release bundle and main/origin parity are verified.'

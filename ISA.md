@@ -516,6 +516,7 @@ independent implementation result.
 ### Current-cycle verification record
 
 Commits c3e74e4 and 0515b5d landed on `main` and were pushed without force.
+The follow-up runner and ledger commits are 2a5ff1b and 636c24f.
 The current working tree passes 454 tests at 90.32 percent coverage with cache
 cleared, Ruff, mypy, fresh analysis with 2,400 rows and tamper rate 1.0,
 conformance 8/8, figure layout 21/21, manuscript hydration, package
@@ -723,8 +724,8 @@ certify publication.
   recursion, forged-side-file rejection, and certifying conformance.
 - Canonical cache-cleared test gate: 454 passed, 90.32% coverage, zero failures.
 - Fresh analysis: 2,400 rows, tamper detection rate 1.0, registry/container
-  outputs valid. Conformance: 8/8. Figure layout: 21/21. Package build/install
-  smoke: 3/3. Certifying publication: `ok: true`, live source, zero blockers.
-  The public endpoint probe is also green for GitHub, DOI, and Zenodo; release
-  readiness remains false until the final source commit and clean release bundle
-  are regenerated.
+outputs valid. Conformance: 8/8. Figure layout: 21/21. Package build/install
+smoke: 3/3. Certifying publication: `ok: true`, live source, zero blockers.
+The public endpoint probe is also green for GitHub, DOI, and Zenodo. The clean
+release bundle was regenerated with both source-dirty flags false, and final
+main/origin parity is verified at 0/0.
