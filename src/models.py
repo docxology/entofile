@@ -107,15 +107,19 @@ class Manifest:
     creator: str
     observability_level: ObservabilityLevel
     tracks: tuple[TrackDescriptor, ...] = field(default_factory=tuple)
+    manifest_binding: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "format_version": self.format_version,
             "created": self.created,
             "creator": self.creator,
             "observability_level": int(self.observability_level),
             "tracks": [t.to_dict() for t in self.tracks],
         }
+        if self.manifest_binding is not None:
+            out["manifest_binding"] = self.manifest_binding
+        return out
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Manifest:
@@ -126,6 +130,11 @@ class Manifest:
             creator=str(data["creator"]),
             observability_level=ObservabilityLevel(int(data["observability_level"])),
             tracks=tuple(TrackDescriptor.from_dict(t) for t in tracks_raw),
+            manifest_binding=(
+                str(data["manifest_binding"])
+                if data.get("manifest_binding") is not None
+                else None
+            ),
         )
 
 

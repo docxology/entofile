@@ -9,17 +9,18 @@ from typing import Final
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-# 0.4.0 is the paper-0.4 release-candidate default: standard 12-byte GCM nonce,
-# AAD binding of format_version+track_id, and PADMÉ length padding. Legacy 0.2.0
-# (16-byte nonce, no AAD), 0.3.0 (12-byte nonce + AAD), and 0.3.1 (0.3.0 +
-# padding) remain explicit compatibility formats.
+# 0.4.0 remains the stable paper-0.4 default. 0.5.0 is an opt-in forward
+# profile: it keeps the 0.4.0 binary track layout while adding a canonical
+# exported-manifest binding to each track's AEAD associated data.
 FORMAT_VERSION: Final[str] = "0.4.0"
 FORMAT_VERSION_LATEST: Final[str] = "0.4.0"
+FORMAT_VERSION_NEXT: Final[str] = "0.5.0"
 SUPPORTED_FORMAT_VERSIONS: Final[tuple[str, ...]] = (
     "0.2.0",
     "0.3.0",
     "0.3.1",
     "0.4.0",
+    "0.5.0",
 )
 
 # Default 0.4.0 nonce size. Per-format sizes live in _NONCE_SIZE_BY_FORMAT so
@@ -30,9 +31,11 @@ _NONCE_SIZE_BY_FORMAT: Final[dict[str, int]] = {
     "0.3.0": 12,
     "0.3.1": 12,
     "0.4.0": 12,
+    "0.5.0": 12,
 }
 # Formats that PADMÉ-pad the plaintext before encryption (length-hiding).
-_PADDED_FORMATS: Final[frozenset[str]] = frozenset({"0.3.1", "0.4.0"})
+_PADDED_FORMATS: Final[frozenset[str]] = frozenset({"0.3.1", "0.4.0", "0.5.0"})
+MANIFEST_BINDING_FORMATS: Final[frozenset[str]] = frozenset({"0.5.0"})
 TAG_SIZE: Final[int] = 16
 MASTER_KEY_SIZE: Final[int] = 32
 
@@ -54,13 +57,25 @@ def pads_payload(format_version: str) -> bool:
     return format_version in _PADDED_FORMATS
 
 
-def track_aad(format_version: str, track_id: str | None) -> bytes | None:
+def requires_manifest_binding(format_version: str) -> bool:
+    """Whether a format requires the canonical exported-manifest binding."""
+    if format_version not in SUPPORTED_FORMAT_VERSIONS:
+        raise ValueError(f"unsupported format_version: {format_version!r}")
+    return format_version in MANIFEST_BINDING_FORMATS
+
+
+def track_aad(
+    format_version: str,
+    track_id: str | None,
+    *,
+    manifest_binding: str | None = None,
+) -> bytes | None:
     """Associated data authenticated by the AEAD (but not encrypted).
 
     0.2.0 bound no AAD (track context came only from the HKDF key-derivation label).
-    0.3.0, 0.3.1, and 0.4.0 bind ``format_version`` and ``track_id`` so neither a
-    format downgrade (incl. a padded↔unpadded swap) nor a cross-track relabel can
-    pass authentication.
+    0.3.0, 0.3.1, and 0.4.0 bind ``format_version`` and ``track_id``. 0.5.0
+    additionally binds the canonical exported-manifest context digest, so a
+    keyed reader authenticates the metadata it uses to interpret the tracks.
     Returns ``None`` for 0.2.0.
     """
     if format_version == "0.2.0":
@@ -69,6 +84,16 @@ def track_aad(format_version: str, track_id: str | None) -> bytes | None:
         if not track_id:
             raise ValueError(f"track_id is required to build {format_version} associated data")
         return f"ento:{format_version}:track:{track_id}".encode()
+    if format_version == "0.5.0":
+        if not track_id:
+            raise ValueError("track_id is required to build 0.5.0 associated data")
+        if not manifest_binding:
+            raise ValueError("manifest_binding is required for 0.5.0 associated data")
+        if len(manifest_binding) != 64 or any(
+            character not in "0123456789abcdef" for character in manifest_binding
+        ):
+            raise ValueError("manifest_binding must be lowercase SHA-256 hex")
+        return f"ento:{format_version}:manifest:{manifest_binding}:track:{track_id}".encode()
     raise ValueError(f"unsupported format_version: {format_version!r}")
 
 
@@ -121,6 +146,7 @@ def encrypt_payload(
     _nonce: bytes | None = None,
     format_version: str = FORMAT_VERSION,
     track_id: str | None = None,
+    manifest_binding: str | None = None,
 ) -> tuple[bytes, bytes, bytes]:
     """Encrypt plaintext for the ENTO GCM format (version-aware nonce + AAD).
 
@@ -135,7 +161,9 @@ def encrypt_payload(
         plaintext,
         _nonce=_nonce,
         nonce_size=nonce_size_for(format_version),
-        aad=track_aad(format_version, track_id),
+        aad=track_aad(
+            format_version, track_id, manifest_binding=manifest_binding
+        ),
     )
 
 
@@ -147,6 +175,7 @@ def decrypt_payload(
     *,
     format_version: str,
     track_id: str | None = None,
+    manifest_binding: str | None = None,
 ) -> bytes:
     """Decrypt and authenticate a track payload for the ENTO GCM format."""
     if format_version not in SUPPORTED_FORMAT_VERSIONS:
@@ -159,5 +188,7 @@ def decrypt_payload(
         tag,
         ciphertext,
         nonce_size=nonce_size_for(format_version),
-        aad=track_aad(format_version, track_id),
+        aad=track_aad(
+            format_version, track_id, manifest_binding=manifest_binding
+        ),
     )

@@ -38,6 +38,18 @@ def test_claim_ledger_format_version_latest() -> None:
     assert latest in schema["properties"]["format_version"]["enum"]
 
 
+def test_claim_ledger_format_version_next() -> None:
+    root = Path(__file__).resolve().parent.parent
+    ledger = yaml.safe_load(
+        (root / "data" / "claim_ledger.yaml").read_text(encoding="utf-8")
+    )
+    claims = {c["claim_id"]: c for c in ledger["claims"]}
+    from src import crypto
+
+    assert claims["format-version-next"]["value"] == crypto.FORMAT_VERSION_NEXT
+    assert crypto.requires_manifest_binding(crypto.FORMAT_VERSION_NEXT)
+
+
 def test_figure_dpi_matches_figures_module() -> None:
     root = Path(__file__).resolve().parent.parent
     ledger = yaml.safe_load(

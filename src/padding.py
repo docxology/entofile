@@ -1,4 +1,4 @@
-"""PADMÉ length-padding for ENTO formats 0.3.1 and 0.4.0.
+"""PADMÉ length-padding for ENTO formats 0.3.1, 0.4.0, and 0.5.0.
 
 Hides exact plaintext length from a container-bytes observer by padding each track's
 plaintext up to a coarse bucket before AES-GCM encryption, so the on-disk ciphertext
@@ -10,7 +10,7 @@ power-of-two bucketing.
 Wire layout of the padded plaintext (before GCM):
     pad_len(8 bytes, big-endian original length) || payload || zero-fill to padme(8 + len)
 Decrypt recovers the original length from the prefix and slices it back out. The padding
-scheme is selected by ``format_version`` (0.3.1 or 0.4.0), which is bound into the
+scheme is selected by ``format_version`` (0.3.1, 0.4.0, or 0.5.0), which is bound into the
 AEAD associated data, so a downgrade to an unpadded format fails authentication rather
 than mis-stripping.
 """

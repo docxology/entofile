@@ -41,6 +41,8 @@ def test_project_paths_reject_nested_or_non_json_report_names(tmp_path: Path) ->
 def test_structured_json_rejects_duplicate_keys_and_non_object_roots() -> None:
     with pytest.raises(ValueError, match="duplicate JSON key"):
         parse_json_object('{"a": 1, "a": 2}')
+    with pytest.raises(ValueError, match="non-standard JSON constant"):
+        parse_json_object('{"a": NaN}')
     with pytest.raises(ValueError, match="root must be a JSON object"):
         parse_json_object("[1, 2]")
 

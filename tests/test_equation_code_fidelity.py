@@ -8,6 +8,7 @@ formalism fails here rather than silently making the manuscript wrong.
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -24,7 +25,8 @@ from src.crypto import (
 )
 from src.fixtures import load_fixture_tracks
 from src.manifest import manifest_to_json
-from src.models import ObservabilityLevel, PlainTrack
+from src.manifest_binding import canonical_manifest_binding_bytes, compute_manifest_binding
+from src.models import Manifest, ObservabilityLevel, PlainTrack, TrackDescriptor
 from src.observability import filter_manifest
 from src.track import encrypt_track, parse_track_bytes
 
@@ -65,6 +67,58 @@ def test_eq_track_member_byte_layout_matches() -> None:
         enc.tag,
         enc.ciphertext,
     )
+
+
+# ---- eq:manifest_binding — B(M) = SHA256(JSON(canonical projection)) ------------
+
+
+def test_eq_manifest_binding_matches_canonical_projection() -> None:
+    """eq:manifest_binding: the digest is over sorted compact UTF-8 projection."""
+    manifest = Manifest(
+        format_version="0.5.0",
+        created="2026-01-01T00:00:00Z",
+        creator="equation-test",
+        observability_level=ObservabilityLevel.AUDITABLE,
+        tracks=(
+            TrackDescriptor(
+                id="alpha",
+                type="ento:spectrogram",
+                sha256_plaintext="a" * 64,
+                sha256_ciphertext="b" * 64,
+                byte_length=7,
+                observability=3,
+            ),
+        ),
+    )
+    canonical = canonical_manifest_binding_bytes(manifest)
+    assert compute_manifest_binding(manifest) == hashlib.sha256(canonical).hexdigest()
+
+
+# ---- eq:manifest_aad — A_i = "ento:0.5.0:manifest:" || B(M) || ":track:" || i --
+
+
+def test_eq_manifest_aad_matches_track_aad_contract() -> None:
+    """eq:manifest_aad: every 0.5.0 track receives the manifest binding in AAD."""
+    manifest = Manifest(
+        format_version="0.5.0",
+        created="2026-01-01T00:00:00Z",
+        creator="equation-test",
+        observability_level=ObservabilityLevel.AUDITABLE,
+        tracks=(
+            TrackDescriptor(
+                id="alpha",
+                type="ento:spectrogram",
+                sha256_plaintext="a" * 64,
+                sha256_ciphertext="b" * 64,
+                byte_length=7,
+                observability=3,
+            ),
+        ),
+    )
+    binding = compute_manifest_binding(manifest)
+    assert crypto.track_aad(
+        "0.5.0", "alpha", manifest_binding=binding
+    ) == f"ento:0.5.0:manifest:{binding}:track:alpha".encode()
 
 
 # ---- eq:expansion_law — version-aware expansion model ----------------------------

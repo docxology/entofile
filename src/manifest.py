@@ -9,6 +9,7 @@ from typing import Any
 import jsonschema  # type: ignore[import-untyped]  # no bundled stubs; validate() is dynamically typed
 
 from .errors import ManifestError
+from .manifest_binding import validate_manifest_binding
 from .models import Manifest, PlainTrack, TrackDescriptor
 from .ontology import validate_track_resolution
 from .structured_data import parse_json_object
@@ -43,6 +44,8 @@ def validate_manifest_dict(
 ) -> None:
     """Validate manifest dict against JSON Schema."""
     jsonschema.validate(data, load_schema(project_root))
+    if data.get("format_version") == "0.5.0":
+        validate_manifest_binding(Manifest.from_dict(data))
 
 
 def manifest_to_json(manifest: Manifest, *, indent: int = 2) -> str:
@@ -59,7 +62,9 @@ def manifest_from_json(text: str, *, project_root: Path | None = None) -> Manife
     """
     parsed = parse_json_object(text, source="manifest JSON")
     validate_manifest_dict(parsed, project_root)
-    return Manifest.from_dict(parsed)
+    manifest = Manifest.from_dict(parsed)
+    validate_manifest_binding(manifest)
+    return manifest
 
 
 def build_track_descriptor(

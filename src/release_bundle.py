@@ -50,6 +50,9 @@ RELEASE_FILES: tuple[ReleaseFile, ...] = (
     ReleaseFile("docs/public_ci_dry_run.md", "public CI dry-run map"),
     ReleaseFile("docs/provenance_signing.md", "provenance and signing recipe"),
     ReleaseFile("docs/methods.md", "methods and visualization contract"),
+    ReleaseFile("docs/format_0_5_0.md", "opt-in authenticated-manifest format profile"),
+    ReleaseFile("docs/research/agenda.md", "preregistered research agenda"),
+    ReleaseFile("experiment_plan.yaml", "machine-readable research protocol"),
     ReleaseFile("docs/figure_registry.md", "code-derived figure registry"),
     ReleaseFile("docs/output_inventory.md", "output artifact inventory"),
     ReleaseFile(

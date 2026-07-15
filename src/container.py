@@ -23,6 +23,7 @@ from .manifest import (
     validate_manifest_dict,
     validate_plain_tracks,
 )
+from .manifest_binding import compute_manifest_binding
 from .models import (
     EncryptedTrack,
     Manifest,
@@ -75,6 +76,8 @@ def _read_manifest_from_zip(zf: zipfile.ZipFile) -> Manifest:
     # rejects duplicate keys and validates the requested schema before ``from_dict``
     # can coerce values or discard unknown fields.
     manifest = manifest_from_json(raw.decode("utf-8"))
+    if manifest.format_version in crypto.MANIFEST_BINDING_FORMATS and not manifest.tracks:
+        raise ContainerError("0.5.0 containers require at least one track")
     # Manifest-track uniqueness is a READ-path invariant too: a crafted container can
     # list a track id more than once even though the ZIP can hold only one member per
     # name and the encrypted dict is keyed by id. The member-set check uses set() and
@@ -227,10 +230,13 @@ def verify_container(
     - ``"key-authenticated"`` — every track decrypted under AES-256-GCM and any
       plaintext digests matched. This is the only level that resists an adversary
       who controls the container bytes. It authenticates **track plaintext content**
-      (and the track_id, bound via the HKDF key-derivation label) — NOT the unkeyed
-      manifest header fields (format_version, observability_level, creator), which
-      no level authenticates. The level is derived from the decrypt attempt, never
-      read from a manifest field, so header mutation cannot downgrade it.
+      (and the track_id, bound via the HKDF key-derivation label). For 0.5.0, the
+      canonical exported manifest context is also bound into each track tag; for
+      earlier profiles, unkeyed manifest header fields such as format_version,
+      observability_level, and creator remain outside the GCM AAD. External
+      signatures are still required for origin. The level is derived from the
+      decrypt attempt, never read from a manifest field, so header mutation cannot
+      downgrade it.
     - ``"digest-only"`` — no key supplied, but every track carried a ciphertext
       digest and all matched. Detects *accidental* corruption ONLY; an attacker
       can recompute digests (and the unkeyed proof chain), so this is NOT
@@ -265,6 +271,7 @@ def verify_container(
                     master_key,
                     encrypted,
                     format_version=ctx.manifest.format_version,
+                    manifest_binding=ctx.manifest.manifest_binding,
                 )
                 if entry.sha256_plaintext:
                     digest = crypto.sha256_hex(plaintext)
@@ -310,13 +317,11 @@ def _build_manifest(
     creator: str,
     observability_level: ObservabilityLevel,
     format_version: str = FORMAT_VERSION,
+    created: str | None = None,
+    manifest_binding: str | None = None,
 ) -> Manifest:
-    created = (
-        datetime.now(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
+    if created is None:
+        created = _utc_timestamp()
     descriptors = [
         build_track_descriptor(
             plain,
@@ -331,7 +336,74 @@ def _build_manifest(
         creator=creator,
         observability_level=observability_level,
         tracks=tuple(descriptors),
+        manifest_binding=manifest_binding,
     )
+
+
+def _utc_timestamp() -> str:
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+def _prepare_pack(
+    master_key: bytes,
+    tracks: tuple[PlainTrack, ...],
+    *,
+    creator: str,
+    observability_level: ObservabilityLevel,
+    export_level: ObservabilityLevel | None,
+    format_version: str,
+) -> tuple[Manifest, dict[str, EncryptedTrack], ObservabilityLevel]:
+    """Build the manifest/encrypted payload pair shared by both pack facades."""
+    validate_plain_tracks(tracks)
+    if crypto.requires_manifest_binding(format_version) and not tracks:
+        raise ContainerError("0.5.0 containers require at least one track")
+    level = observability_level if export_level is None else export_level
+    validate_export_level(observability_level, level)
+    created = _utc_timestamp()
+    manifest_binding: str | None = None
+
+    if crypto.requires_manifest_binding(format_version):
+        # The binding must cover the manifest view that is actually exported. A
+        # provisional descriptor is enough because the circular ciphertext digest
+        # is excluded from the canonical projection.
+        empty_encrypted = {
+            plain.track_id: EncryptedTrack(plain.track_id, b"", b"", b"")
+            for plain in tracks
+        }
+        template = _build_manifest(
+            tracks,
+            empty_encrypted,
+            creator=creator,
+            observability_level=observability_level,
+            format_version=format_version,
+            created=created,
+        )
+        manifest_binding = compute_manifest_binding(filter_manifest(template, level))
+
+    encrypted = {
+        plain.track_id: track_mod.encrypt_track(
+            master_key,
+            plain,
+            format_version=format_version,
+            manifest_binding=manifest_binding,
+        )
+        for plain in tracks
+    }
+    full_manifest = _build_manifest(
+        tracks,
+        encrypted,
+        creator=creator,
+        observability_level=observability_level,
+        format_version=format_version,
+        created=created,
+        manifest_binding=manifest_binding,
+    )
+    return full_manifest, encrypted, level
 
 
 def _write_container_zip(
@@ -363,29 +435,21 @@ def pack_container(
     """Pack tracks into an ENTO ZIP at destination.
 
     ``format_version`` defaults to the 0.4.0 release-candidate profile (standard
-    nonce, AAD binding, and PADMÉ length padding). Pass a prior supported version
-    explicitly to write compatibility containers."""
-    validate_plain_tracks(tracks)
-    level = observability_level if export_level is None else export_level
-    validate_export_level(observability_level, level)
-    encrypted = {
-        plain.track_id: track_mod.encrypt_track(
-            master_key, plain, format_version=format_version
-        )
-        for plain in tracks
-    }
-    full_manifest = _build_manifest(
+    nonce, AAD binding, and PADMÉ length padding). Pass ``0.5.0`` explicitly for
+    exported-manifest context binding, or a prior supported version for a
+    compatibility container."""
+    full_manifest, encrypted, level = _prepare_pack(
+        master_key,
         tracks,
-        encrypted,
         creator=creator,
         observability_level=observability_level,
+        export_level=export_level,
         format_version=format_version,
     )
-    validate_manifest_dict(full_manifest.to_dict())
     destination.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_STORED) as zf:
         _write_container_zip(zf, full_manifest, encrypted, level)
-    return full_manifest
+    return filter_manifest(full_manifest, level)
 
 
 def unpack_container(
@@ -404,6 +468,7 @@ def unpack_container(
                 master_key,
                 encrypted,
                 format_version=ctx.manifest.format_version,
+                manifest_binding=ctx.manifest.manifest_binding,
             )
             if entry.sha256_plaintext:
                 digest = crypto.sha256_hex(plaintext)
@@ -439,20 +504,12 @@ def pack_container_bytes(
     format_version: str = FORMAT_VERSION,
 ) -> bytes:
     """Pack container to in-memory bytes (for benchmarks)."""
-    validate_plain_tracks(tracks)
-    level = observability_level if export_level is None else export_level
-    validate_export_level(observability_level, level)
-    encrypted = {
-        plain.track_id: track_mod.encrypt_track(
-            master_key, plain, format_version=format_version
-        )
-        for plain in tracks
-    }
-    full_manifest = _build_manifest(
+    full_manifest, encrypted, level = _prepare_pack(
+        master_key,
         tracks,
-        encrypted,
         creator=creator,
         observability_level=observability_level,
+        export_level=export_level,
         format_version=format_version,
     )
     buf = BytesIO()

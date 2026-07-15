@@ -215,13 +215,14 @@ def plot_format_ladder(
     _rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
     """Show the supported ENTO format ladder and what each step hardens."""
-    from .crypto import FORMAT_VERSION, FORMAT_VERSION_LATEST
+    from .crypto import FORMAT_VERSION, FORMAT_VERSION_LATEST, FORMAT_VERSION_NEXT
 
     rows = [
         ("0.2.0", "compat", "16 B nonce\nno AAD\nno padding"),
         ("0.3.0", "compat", "12 B nonce\nformat+track AAD\nno padding"),
         ("0.3.1", "compat", "12 B nonce\nformat+track AAD\nPADME padding"),
         ("0.4.0", "default", "12 B nonce\nformat+track AAD\nPADME padding"),
+        (FORMAT_VERSION_NEXT, "next", "12 B nonce\nmanifest+track AAD\nPADME padding"),
     ]
     colors = color_cycle(len(rows))
     y = list(range(len(rows)))
@@ -275,7 +276,16 @@ def plot_format_compatibility_matrix(
                 1,
                 1 if version == crypto.FORMAT_VERSION else 0,
                 1 if crypto.nonce_size_for(version) == 12 else 0,
-                1 if crypto.track_aad(version, "alpha") is not None else 0,
+                1
+                if crypto.track_aad(
+                    version,
+                    "alpha",
+                    manifest_binding="0" * 64
+                    if crypto.requires_manifest_binding(version)
+                    else None,
+                )
+                is not None
+                else 0,
                 1 if crypto.pads_payload(version) else 0,
             ]
         )

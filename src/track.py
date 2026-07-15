@@ -13,12 +13,13 @@ def encrypt_track(
     track: PlainTrack,
     *,
     format_version: str = FORMAT_VERSION,
+    manifest_binding: str | None = None,
 ) -> EncryptedTrack:
     """Encrypt a plaintext track with per-track derived key.
 
     For 0.3.0+ the track_id and format_version are bound as AEAD associated data;
-    0.3.1 and 0.4.0 additionally PADMÉ-pad the plaintext before encryption
-    (length-hiding)."""
+    0.3.1, 0.4.0, and 0.5.0 additionally PADMÉ-pad the plaintext. Format 0.5.0
+    also requires the exported manifest binding."""
     track_key = crypto.derive_track_key(master_key, track.track_id)
     plaintext = padding.pad_payload(track.payload) if crypto.pads_payload(format_version) else track.payload
     nonce, tag, ciphertext = crypto.encrypt_payload(
@@ -26,6 +27,7 @@ def encrypt_track(
         plaintext,
         format_version=format_version,
         track_id=track.track_id,
+        manifest_binding=manifest_binding,
     )
     return EncryptedTrack(
         track_id=track.track_id,
@@ -40,6 +42,7 @@ def decrypt_track(
     encrypted: EncryptedTrack,
     *,
     format_version: str,
+    manifest_binding: str | None = None,
 ) -> bytes:
     """Decrypt and authenticate a track payload (un-padding padded formats)."""
     track_key = crypto.derive_track_key(master_key, encrypted.track_id)
@@ -50,6 +53,7 @@ def decrypt_track(
         encrypted.ciphertext,
         format_version=format_version,
         track_id=encrypted.track_id,
+        manifest_binding=manifest_binding,
     )
     return padding.unpad_payload(plaintext) if crypto.pads_payload(format_version) else plaintext
 

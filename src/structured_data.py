@@ -22,9 +22,18 @@ def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, obj
     return dict(pairs)
 
 
+def reject_nonstandard_json_constant(value: str) -> None:
+    """Reject NaN/Infinity extensions accepted by Python but not JSON."""
+    raise ValueError(f"non-standard JSON constant: {value}")
+
+
 def parse_json_object(text: str, *, source: str = "JSON") -> dict[str, Any]:
     """Parse one JSON object with duplicate-key and root-type enforcement."""
-    value = json.loads(text, object_pairs_hook=reject_duplicate_json_keys)
+    value = json.loads(
+        text,
+        object_pairs_hook=reject_duplicate_json_keys,
+        parse_constant=reject_nonstandard_json_constant,
+    )
     if not isinstance(value, dict):
         raise ValueError(f"{source} root must be a JSON object")
     return value

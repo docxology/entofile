@@ -111,6 +111,25 @@ def test_live_summary_fails_on_a_real_failing_temp_project(tmp_path: Path) -> No
         assert summary["collected"] >= 1
 
 
+@pytest.mark.skipif(
+    _INSIDE_LIVE_RUN, reason="recursion guard: do not spawn nested live pytest"
+)
+def test_live_summary_kills_timed_out_process_group(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A timeout must terminate pytest descendants instead of hanging on open pipes."""
+    from src import publication
+
+    monkeypatch.setattr(publication, "_LIVE_RUN_TIMEOUT_S", 0.05)
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_slow.py").write_text(
+        "import time\n\n\ndef test_slow():\n    time.sleep(10)\n"
+    )
+    summary = _run_live_test_summary(tmp_path)
+    assert summary["all_passed"] is False
+    assert "subprocess failed" in summary["detail"]
+
+
 def test_certifying_path_runs_live_conformance(tmp_path: Path) -> None:
     """The certifying path re-derives conformance by regenerating + verifying the
     deterministic fixture set this call — a forged conformance_report.json plays

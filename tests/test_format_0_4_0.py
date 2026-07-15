@@ -26,7 +26,9 @@ _TRACK = PlainTrack(
 def test_0_4_0_is_default_and_latest() -> None:
     assert crypto.FORMAT_VERSION == "0.4.0"
     assert crypto.FORMAT_VERSION_LATEST == "0.4.0"
-    assert crypto.SUPPORTED_FORMAT_VERSIONS == ("0.2.0", "0.3.0", "0.3.1", "0.4.0")
+    assert crypto.SUPPORTED_FORMAT_VERSIONS == (
+        "0.2.0", "0.3.0", "0.3.1", "0.4.0", "0.5.0"
+    )
     assert crypto.nonce_size_for("0.4.0") == 12
     assert crypto.pads_payload("0.4.0") is True
     assert crypto.track_aad("0.4.0", "alpha") == b"ento:0.4.0:track:alpha"

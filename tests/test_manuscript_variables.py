@@ -24,6 +24,12 @@ def test_generate_variables_after_analysis(
     assert variables["FORMAT_DEFAULT_HEADER_BYTES"] == "28"
     assert variables["FORMAT_DEFAULT_PADS"] == "yes"
     assert variables["FORMAT_VERSIONS_COMPATIBILITY"] == "0.2.0, 0.3.0 and 0.3.1"
+    assert variables["FORMAT_VERSION_NEXT"] == "0.5.0"
+    assert variables["FORMAT_VERSIONS_FORWARD"] == "0.5.0"
+    assert variables["FORMAT_NEXT_AAD_TEMPLATE"] == (
+        "ento:0.5.0:manifest:{manifest_binding}:track:{track_id}"
+    )
+    assert variables["COUNT_FORWARD_FORMATS"] == "1"
     assert variables["RESULT_BENCHMARK_ROWS"] != "N/A"
     assert variables["RESULT_AVG_UNPACK_SECONDS"] != "N/A"
     assert variables["FIXTURE_EEG_SHA256"] != "N/A"
@@ -39,7 +45,7 @@ def test_generate_variables_after_analysis(
     assert "CONFORMANCE_REPORT_STATUS" in variables
     assert "ARTIFACT_MANIFEST_STATUS" in variables
     assert "RELEASE_MANIFEST_STATUS" in variables
-    assert variables["COUNT_SUPPORTED_FORMATS"] == "4"
+    assert variables["COUNT_SUPPORTED_FORMATS"] == "5"
     assert variables["COUNT_COMPATIBILITY_FORMATS"] == "3"
     assert variables["CONFIG_BENCHMARK_REPETITIONS"] == "3"
     assert variables["CONFIG_BENCHMARK_PILOT_REPETITIONS"] == "3"

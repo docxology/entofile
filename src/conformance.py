@@ -13,6 +13,7 @@ from typing import Any
 from . import crypto
 from .container import unpack_container, verify_container
 from .manifest import build_track_descriptor, manifest_to_json
+from .manifest_binding import compute_manifest_binding
 from .models import EncryptedTrack, Manifest, ObservabilityLevel, PlainTrack
 from .ontology import default_resolution
 from .padding import pad_payload
@@ -314,12 +315,29 @@ def _write_good_container(path: Path, format_version: str) -> None:
         if crypto.pads_payload(format_version)
         else track.payload
     )
+    template = Manifest(
+        format_version=format_version,
+        created=CONFORMANCE_CREATED,
+        creator="entofile-conformance",
+        observability_level=ObservabilityLevel.AUDITABLE,
+        tracks=(
+            build_track_descriptor(
+                track, b"", observability=3
+            ),
+        ),
+    )
+    manifest_binding = (
+        compute_manifest_binding(template)
+        if crypto.requires_manifest_binding(format_version)
+        else None
+    )
     nonce, tag, ciphertext = crypto.encrypt_payload(
         track_key,
         plaintext,
         _nonce=_fixed_nonce(format_version),
         format_version=format_version,
         track_id=track.track_id,
+        manifest_binding=manifest_binding,
     )
     encrypted = EncryptedTrack(
         track_id=track.track_id,
@@ -333,6 +351,7 @@ def _write_good_container(path: Path, format_version: str) -> None:
         creator="entofile-conformance",
         observability_level=ObservabilityLevel.AUDITABLE,
         tracks=(build_track_descriptor(track, encrypted.to_bytes(), observability=3),),
+        manifest_binding=manifest_binding,
     )
     _write_zip(
         path,

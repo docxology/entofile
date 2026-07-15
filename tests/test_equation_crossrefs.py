@@ -63,13 +63,15 @@ def test_formal_section_defines_the_expansion_law() -> None:
 
 
 # The complete set of manuscript equations, each bound to code in
-# tests/test_equation_code_fidelity.py. A 7th equation cannot appear unbound:
+# tests/test_equation_code_fidelity.py. An equation cannot appear unbound:
 # adding one fails this count-guard until it is both fidelity-tested and listed here.
 _BOUND_EQUATIONS = frozenset(
     {
         "container_map",
         "track_key",
         "track_member",
+        "manifest_binding",
+        "manifest_aad",
         "expansion_law",
         "integrity_levels",
         "observability_monotone",

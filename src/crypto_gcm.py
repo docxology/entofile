@@ -2,8 +2,8 @@
 
 Version-aware AEAD core. The nonce length and associated-data are supplied by the
 caller (``src/crypto.py`` derives them from ``format_version``): 0.2.0 uses a
-16-byte nonce and no AAD; 0.3.0+ uses the standard 12-byte GCM nonce and binds
-``format_version`` + ``track_id`` as associated data.
+16-byte nonce and no AAD; 0.3.0-0.4.0 bind ``format_version`` + ``track_id``;
+0.5.0 additionally binds the canonical exported-manifest context.
 """
 
 from __future__ import annotations

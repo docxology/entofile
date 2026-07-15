@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import tempfile
@@ -85,16 +86,31 @@ def _run_live_test_summary(project_root: Path) -> dict[str, Any]:
         ]
         env = {**os.environ, _LIVE_RUN_ENV: "1"}
         try:
-            proc = subprocess.run(
+            proc = subprocess.Popen(
                 cmd,
                 cwd=str(project_root),
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                timeout=_LIVE_RUN_TIMEOUT_S,
                 env=env,
-                check=False,
+                start_new_session=os.name != "nt",
             )
-        except (subprocess.TimeoutExpired, OSError) as exc:
+            try:
+                proc.communicate(timeout=_LIVE_RUN_TIMEOUT_S)
+            except subprocess.TimeoutExpired as exc:
+                if os.name == "nt":
+                    proc.kill()
+                else:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                proc.communicate()
+                return {
+                    "all_passed": False,
+                    "project_coverage": None,
+                    "collected": 0,
+                    "source": "live",
+                    "detail": f"subprocess failed: {exc}",
+                }
+        except (OSError, subprocess.SubprocessError) as exc:
             return {
                 "all_passed": False,
                 "project_coverage": None,

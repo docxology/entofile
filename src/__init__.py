@@ -1,4 +1,4 @@
-"""ENTO reference implementation (default 0.4.0; 0.2.0/0.3.x compatible).
+"""ENTO reference implementation (default 0.4.0; opt-in 0.5.0; 0.2.0/0.3.x compatible).
 
 Public API:
     Container: pack_container, unpack_container, inspect_container, verify_container
@@ -15,6 +15,7 @@ from .container import inspect_container, pack_container, unpack_container, veri
 from .crypto import (
     FORMAT_VERSION,
     FORMAT_VERSION_LATEST,
+    FORMAT_VERSION_NEXT,
     SUPPORTED_FORMAT_VERSIONS,
     decrypt_payload,
     derive_track_key,
@@ -31,6 +32,7 @@ from .errors import (
     ManifestError,
     PipelineError,
 )
+from .manifest_binding import compute_manifest_binding
 from .models import Manifest, ObservabilityLevel, PlainTrack, ProofExport, TrackDescriptor
 from .proof import export_proof, verify_proof_chain, verify_proof_export
 from .security import safe_output_path, validate_track_id, validate_zip_archive
@@ -40,6 +42,7 @@ __version__ = "0.4.0"
 __all__ = [
     "FORMAT_VERSION",
     "FORMAT_VERSION_LATEST",
+    "FORMAT_VERSION_NEXT",
     "SUPPORTED_FORMAT_VERSIONS",
     "ArtifactError",
     "ConfigError",
@@ -54,6 +57,7 @@ __all__ = [
     "PlainTrack",
     "ProofExport",
     "TrackDescriptor",
+    "compute_manifest_binding",
     "decrypt_payload",
     "derive_track_key",
     "encrypt_payload",

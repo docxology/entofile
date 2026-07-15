@@ -254,7 +254,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="entofile",
-        description="ENTO format 0.4.0 container tool",
+        description="ENTO format 0.4.0 container tool with opt-in 0.5.0 profile",
     )
     parser.add_argument(
         "--version",
@@ -290,7 +290,8 @@ def build_parser() -> argparse.ArgumentParser:
         choices=list(crypto.SUPPORTED_FORMAT_VERSIONS),
         help=(
             "ENTO format version: 0.4.0 (default: 12-byte nonce + AAD + PADME length padding), "
-            "or compatibility formats 0.2.0, 0.3.0, 0.3.1"
+            "0.5.0 (opt-in manifest-context AAD), or compatibility formats "
+            "0.2.0, 0.3.0, 0.3.1"
         ),
     )
     pack.set_defaults(func=cmd_pack)
