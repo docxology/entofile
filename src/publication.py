@@ -13,6 +13,7 @@ from typing import Any
 
 from .analysis import validate_generated_outputs
 from .crypto import FORMAT_VERSION, MASTER_KEY_SIZE, NONCE_SIZE, TAG_SIZE
+from .test_results import parse_test_summary
 
 # Env flag set inside the live test subprocess so the meta-test that triggers a live
 # run does not recurse (it skips when this is set). See tests/test_publication_live.py.
@@ -23,7 +24,11 @@ _LIVE_RUN_TIMEOUT_S = 600
 def _read_json(path: Path) -> dict[str, Any]:
     if not path.is_file():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, TypeError, ValueError):
+        return {}
+    return value if isinstance(value, dict) else {}
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
@@ -102,54 +107,7 @@ def _run_live_test_summary(project_root: Path) -> dict[str, Any]:
 
 def _parse_live_results(junit: Path, cov_json: Path, returncode: int) -> dict[str, Any]:
     """Parse junitxml + coverage JSON into a fail-closed summary."""
-    import xml.etree.ElementTree as ET
-
-    if not junit.is_file():
-        return {
-            "all_passed": False,
-            "project_coverage": None,
-            "collected": 0,
-            "source": "live",
-            "detail": "no junitxml produced",
-        }
-    try:
-        root = ET.parse(junit).getroot()
-        suites = [root] if root.tag == "testsuite" else list(root.iter("testsuite"))
-        tests = sum(int(s.get("tests", 0)) for s in suites)
-        failures = sum(int(s.get("failures", 0)) for s in suites)
-        errors = sum(int(s.get("errors", 0)) for s in suites)
-    except (ET.ParseError, ValueError) as exc:
-        return {
-            "all_passed": False,
-            "project_coverage": None,
-            "collected": 0,
-            "source": "live",
-            "detail": f"junitxml parse error: {exc}",
-        }
-
-    coverage: float | None = None
-    if cov_json.is_file():
-        try:
-            coverage = round(
-                float(
-                    json.loads(cov_json.read_text(encoding="utf-8"))["totals"][
-                        "percent_covered"
-                    ]
-                ),
-                2,
-            )
-        except (json.JSONDecodeError, KeyError, ValueError, TypeError):
-            coverage = None
-
-    # Fail-closed conjunction: clean exit AND tests collected AND zero failures/errors.
-    all_passed = returncode == 0 and tests > 0 and failures == 0 and errors == 0
-    return {
-        "all_passed": all_passed,
-        "project_coverage": coverage,
-        "collected": tests,
-        "source": "live",
-        "detail": f"returncode={returncode} tests={tests} failures={failures} errors={errors}",
-    }
+    return parse_test_summary(junit, cov_json, returncode, source="live")
 
 
 def _is_real_pdf(path: Path, *, min_bytes: int = 1024) -> bool:
@@ -369,13 +327,24 @@ def check_publication_readiness(
         from .conformance import run_live_conformance
 
         conformance = run_live_conformance()
-        if bool(conformance.get("ok")) and int(conformance.get("case_count") or 0) >= 1:
+        from .conformance import EXPECTED_CASE_IDS
+
+        observed_case_ids = {
+            str(case.get("case_id"))
+            for case in conformance.get("cases", [])
+            if isinstance(case, dict)
+        }
+        complete = (
+            int(conformance.get("case_count") or 0) == len(EXPECTED_CASE_IDS)
+            and observed_case_ids == EXPECTED_CASE_IDS
+        )
+        if bool(conformance.get("ok")) and complete:
             checks["conformance_live"] = True
         else:
             checks["conformance_live"] = False
             blockers.append(
                 "live conformance verification failed: "
-                f"{conformance.get('failed_cases') or 'no cases ran'}"
+                f"{conformance.get('failed_cases') or 'incomplete case matrix'}"
             )
 
     # Find the combined manuscript PDF by its actual produced name. The renderer names

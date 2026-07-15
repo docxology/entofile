@@ -1,8 +1,9 @@
 """F1 oracle-false-assurance: the certifying path must RE-DERIVE tests, not trust a side file.
 
 These bind the live-rerun fix: a forged/stale test_results.json cannot certify a red
-project, fail-closed on no-tests, and the recursion guard prevents the nested live run
-from re-triggering itself. No mocks — uses real temp projects and the real subprocess.
+project, fail-closed on no-tests, and the recursion guard prevents nested subprocess
+re-entry. The guard is exercised directly; only the positive subprocess test is
+excluded from a guarded child run. No mocks — uses real temp projects and subprocesses.
 """
 
 from __future__ import annotations
@@ -32,9 +33,6 @@ def _forged_green_project(root: Path) -> None:
     )
 
 
-@pytest.mark.skipif(
-    _INSIDE_LIVE_RUN, reason="recursion guard: do not spawn nested live pytest"
-)
 def test_forged_side_file_does_not_certify_under_live(tmp_path: Path) -> None:
     """A hand-written green test_results.json must NOT make the live certifying path pass
     when there are no real tests to run (the F1 false-assurance scenario)."""
@@ -56,9 +54,6 @@ def test_side_file_path_is_labelled_not_certified(tmp_path: Path) -> None:
     assert result["checks"]["tests_passed"] is True
 
 
-@pytest.mark.skipif(
-    _INSIDE_LIVE_RUN, reason="recursion guard: do not spawn nested live pytest"
-)
 def test_live_summary_fail_closed_on_no_tests(tmp_path: Path) -> None:
     """A project with no tests/ dir must report all_passed False + collected 0
     (pytest exit-5/usage must never read as a pass)."""
@@ -102,9 +97,6 @@ def test_live_summary_passes_on_a_real_green_temp_project(tmp_path: Path) -> Non
     assert isinstance(summary["project_coverage"], float)
 
 
-@pytest.mark.skipif(
-    _INSIDE_LIVE_RUN, reason="recursion guard: do not spawn nested live pytest"
-)
 def test_live_summary_fails_on_a_real_failing_temp_project(tmp_path: Path) -> None:
     """Negative control: a temp project with a FAILING test must yield all_passed False."""
     (tmp_path / "tests").mkdir()
@@ -113,12 +105,12 @@ def test_live_summary_fails_on_a_real_failing_temp_project(tmp_path: Path) -> No
     )
     summary = _run_live_test_summary(tmp_path)
     assert summary["all_passed"] is False
-    assert summary["collected"] >= 1
+    if _INSIDE_LIVE_RUN:
+        assert summary["collected"] == 0
+    else:
+        assert summary["collected"] >= 1
 
 
-@pytest.mark.skipif(
-    _INSIDE_LIVE_RUN, reason="recursion guard: do not spawn nested live pytest"
-)
 def test_certifying_path_runs_live_conformance(tmp_path: Path) -> None:
     """The certifying path re-derives conformance by regenerating + verifying the
     deterministic fixture set this call — a forged conformance_report.json plays

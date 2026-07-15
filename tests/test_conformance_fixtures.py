@@ -86,6 +86,18 @@ def test_run_live_conformance_derives_verdict_without_side_file(tmp_path: Path) 
     assert ephemeral["case_count"] == expected_count
 
 
+def test_conformance_rejects_forged_expectations_and_digests(tmp_path: Path) -> None:
+    out = tmp_path / "conformance"
+    manifest_path = generate_conformance_fixtures(out)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["cases"][0]["expected_verify_with_key"] = False
+    manifest["cases"][1]["sha256"] = "0" * 64
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    result = verify_conformance_fixtures(out)
+    assert result["ok"] is False
+    assert result["failed"] >= 1
+
+
 def test_ok_or_error_rejects_nondict_verifier_result() -> None:
     """Cross-vendor regression (ENTO-XV-F2, 2026-06-10): `_ok_or_error` returned
     success for ANY non-dict result. For the `verify_*` axes (the strongest

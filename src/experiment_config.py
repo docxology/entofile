@@ -11,10 +11,13 @@ loader fails closed and names the offending key plus the valid set.
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
+from math import isfinite
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+from .errors import ConfigurationError
 
 _DEFAULT_REPETITIONS = 3
 _DEFAULT_OBS_LEVELS = (0, 1, 2, 3)
@@ -75,8 +78,7 @@ ALLOWED_HEATMAP_CMAPS: frozenset[str] = frozenset(
 )
 
 
-class ConfigError(ValueError):
-    """Raised when ``config.yaml`` contains an unknown or invalid knob."""
+ConfigError = ConfigurationError
 
 
 @dataclass(frozen=True)
@@ -144,12 +146,62 @@ def _reject_unknown_keys(
     section: dict[str, Any], allowed: frozenset[str], where: str
 ) -> None:
     """Fail closed on any key outside ``allowed``, naming the offenders."""
-    unknown = sorted(set(section) - allowed)
+    unknown = sorted(
+        (key for key in section if not isinstance(key, str) or key not in allowed),
+        key=str,
+    )
     if unknown:
         raise ConfigError(
-            f"unknown {where} config key(s): {', '.join(unknown)}. "
+            f"unknown {where} config key(s): {', '.join(map(str, unknown))}. "
             f"Valid keys: {', '.join(sorted(allowed))}."
         )
+
+
+def _mapping(value: object, where: str) -> dict[str, Any]:
+    """Return a config mapping or raise a useful error for malformed YAML."""
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ConfigError(f"{where} must be a mapping")
+    return value
+
+
+def _integer(value: object, default: int, where: str) -> int:
+    candidate = default if value is None else value
+    if isinstance(candidate, bool) or not isinstance(candidate, int):
+        raise ConfigError(f"{where} must be an integer")
+    return candidate
+
+
+def _required_integer(value: object, where: str) -> int:
+    """Validate an integer list item where ``null`` is never a default."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ConfigError(f"{where} must be an integer")
+    return value
+
+
+def _number(value: object, default: float, where: str) -> float:
+    candidate = default if value is None else value
+    if isinstance(candidate, bool) or not isinstance(candidate, (int, float)):
+        raise ConfigError(f"{where} must be a finite number")
+    result = float(candidate)
+    if not isfinite(result):
+        raise ConfigError(f"{where} must be a finite number")
+    return result
+
+
+def _boolean(value: object, default: bool, where: str) -> bool:
+    candidate = default if value is None else value
+    if not isinstance(candidate, bool):
+        raise ConfigError(f"{where} must be true or false")
+    return candidate
+
+
+def _string(value: object, default: str, where: str) -> str:
+    candidate = default if value is None else value
+    if not isinstance(candidate, str):
+        raise ConfigError(f"{where} must be a string")
+    return candidate
 
 
 def load_experiment_config(
@@ -165,39 +217,86 @@ def load_experiment_config(
 
 def experiment_config_from_mapping(raw: dict[str, Any]) -> ExperimentConfig:
     """Build :class:`ExperimentConfig` from a parsed YAML mapping."""
-    exp = raw.get("experiment") or {}
+    if not isinstance(raw, dict):
+        raise ConfigError("top-level config must be a mapping")
+    exp = _mapping(raw.get("experiment"), "experiment")
     _reject_unknown_keys(exp, _ALLOWED_EXPERIMENT_KEYS, "experiment")
-    reps = int(exp.get("benchmark_repetitions", _DEFAULT_REPETITIONS))
-    levels_raw = exp.get("observability_levels", list(_DEFAULT_OBS_LEVELS))
-    levels = tuple(int(v) for v in levels_raw)
-    medium = int(exp.get("medium_track_bytes", _DEFAULT_MEDIUM_BYTES))
-    large = int(exp.get("large_track_bytes", _DEFAULT_LARGE_BYTES))
-    include_mixed = bool(exp.get("include_mixed_container", _DEFAULT_INCLUDE_MIXED))
-    creator = str(exp.get("creator", "entofile"))
-    viz_raw = exp.get("viz") or {}
-    _reject_unknown_keys(viz_raw, _ALLOWED_VIZ_KEYS, "experiment.viz")
-    dpi = int(viz_raw.get("dpi", _DEFAULT_DPI))
-    figsize_raw = viz_raw.get("figsize", list(_DEFAULT_FIGSIZE))
-    figsize = (float(figsize_raw[0]), float(figsize_raw[1]))
-    figure_width_percent = int(
-        viz_raw.get("figure_width_percent", _DEFAULT_FIGURE_WIDTH_PERCENT)
+    reps = _integer(
+        exp.get("benchmark_repetitions"), _DEFAULT_REPETITIONS, "experiment.benchmark_repetitions"
     )
-    font_size = float(viz_raw.get("font_size", _DEFAULT_FONT_SIZE))
-    grid_alpha = float(viz_raw.get("grid_alpha", _DEFAULT_GRID_ALPHA))
-    palette = str(viz_raw.get("palette", _DEFAULT_PALETTE))
+    if reps < 1:
+        raise ConfigError("experiment.benchmark_repetitions must be at least 1")
+    levels_raw = exp.get("observability_levels", list(_DEFAULT_OBS_LEVELS))
+    if not isinstance(levels_raw, (list, tuple)) or not levels_raw:
+        raise ConfigError("experiment.observability_levels must be a non-empty list")
+    levels = tuple(
+        _required_integer(value, "experiment.observability_levels[]") for value in levels_raw
+    )
+    if len(set(levels)) != len(levels) or any(level not in range(4) for level in levels):
+        raise ConfigError("experiment.observability_levels must contain unique values from 0 to 3")
+    medium = _integer(
+        exp.get("medium_track_bytes"), _DEFAULT_MEDIUM_BYTES, "experiment.medium_track_bytes"
+    )
+    large = _integer(
+        exp.get("large_track_bytes"), _DEFAULT_LARGE_BYTES, "experiment.large_track_bytes"
+    )
+    if medium < 1 or large < 0:
+        raise ConfigError("experiment track sizes must be positive (large may be 0 to disable)")
+    include_mixed = _boolean(
+        exp.get("include_mixed_container"),
+        _DEFAULT_INCLUDE_MIXED,
+        "experiment.include_mixed_container",
+    )
+    creator = _string(exp.get("creator"), "entofile", "experiment.creator")
+    viz_raw = _mapping(exp.get("viz"), "experiment.viz")
+    _reject_unknown_keys(viz_raw, _ALLOWED_VIZ_KEYS, "experiment.viz")
+    dpi = _integer(viz_raw.get("dpi"), _DEFAULT_DPI, "experiment.viz.dpi")
+    if dpi < 1:
+        raise ConfigError("experiment.viz.dpi must be at least 1")
+    figsize_raw = viz_raw.get("figsize", list(_DEFAULT_FIGSIZE))
+    if not isinstance(figsize_raw, (list, tuple)) or len(figsize_raw) != 2:
+        raise ConfigError("experiment.viz.figsize must contain exactly two numbers")
+    figsize_values = tuple(
+        _number(value, 0.0, "experiment.viz.figsize[]") for value in figsize_raw
+    )
+    if any(value <= 0 for value in figsize_values):
+        raise ConfigError("experiment.viz.figsize values must be positive")
+    figsize = (figsize_values[0], figsize_values[1])
+    figure_width_percent = _integer(
+        viz_raw.get("figure_width_percent"),
+        _DEFAULT_FIGURE_WIDTH_PERCENT,
+        "experiment.viz.figure_width_percent",
+    )
+    if not 1 <= figure_width_percent <= 100:
+        raise ConfigError("experiment.viz.figure_width_percent must be between 1 and 100")
+    font_size = _number(viz_raw.get("font_size"), _DEFAULT_FONT_SIZE, "experiment.viz.font_size")
+    grid_alpha = _number(viz_raw.get("grid_alpha"), _DEFAULT_GRID_ALPHA, "experiment.viz.grid_alpha")
+    if not 0 <= grid_alpha <= 1:
+        raise ConfigError("experiment.viz.grid_alpha must be between 0 and 1")
+    palette = _string(viz_raw.get("palette"), _DEFAULT_PALETTE, "experiment.viz.palette")
     if palette not in NAMED_PALETTES:
         raise ConfigError(
             f"unknown viz.palette {palette!r}. Valid palettes: {', '.join(sorted(NAMED_PALETTES))}."
         )
-    heatmap_cmap = str(viz_raw.get("heatmap_cmap", _DEFAULT_HEATMAP_CMAP))
+    heatmap_cmap = _string(
+        viz_raw.get("heatmap_cmap"), _DEFAULT_HEATMAP_CMAP, "experiment.viz.heatmap_cmap"
+    )
     if heatmap_cmap not in ALLOWED_HEATMAP_CMAPS:
         raise ConfigError(
             f"unknown viz.heatmap_cmap {heatmap_cmap!r}. Valid colormaps: {', '.join(sorted(ALLOWED_HEATMAP_CMAPS))}."
         )
-    annotate_values = bool(viz_raw.get("annotate_values", _DEFAULT_ANNOTATE_VALUES))
-    line_width = float(viz_raw.get("line_width", _DEFAULT_LINE_WIDTH))
-    marker_size = float(viz_raw.get("marker_size", _DEFAULT_MARKER_SIZE))
-    scatter_size = float(viz_raw.get("scatter_size", _DEFAULT_SCATTER_SIZE))
+    annotate_values = _boolean(
+        viz_raw.get("annotate_values"),
+        _DEFAULT_ANNOTATE_VALUES,
+        "experiment.viz.annotate_values",
+    )
+    line_width = _number(viz_raw.get("line_width"), _DEFAULT_LINE_WIDTH, "experiment.viz.line_width")
+    marker_size = _number(viz_raw.get("marker_size"), _DEFAULT_MARKER_SIZE, "experiment.viz.marker_size")
+    scatter_size = _number(
+        viz_raw.get("scatter_size"), _DEFAULT_SCATTER_SIZE, "experiment.viz.scatter_size"
+    )
+    if line_width <= 0 or marker_size <= 0 or scatter_size <= 0 or font_size <= 0:
+        raise ConfigError("experiment.viz sizes must be positive")
     return ExperimentConfig(
         benchmark_repetitions=reps,
         observability_levels=levels,

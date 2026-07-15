@@ -115,6 +115,40 @@ def test_allowed_cmaps_are_colorblind_safe_set() -> None:
     assert "cividis" in ALLOWED_HEATMAP_CMAPS
 
 
+def test_mistyped_boolean_is_rejected_instead_of_truthiness_coercion(tmp_path: Path) -> None:
+    root = _write_config(tmp_path, {"annotate_values": "false"})
+    with pytest.raises(ConfigError, match="must be true or false"):
+        load_experiment_config(root)
+
+
+def test_malformed_experiment_section_is_rejected(tmp_path: Path) -> None:
+    manuscript = tmp_path / "manuscript"
+    manuscript.mkdir()
+    (manuscript / "config.yaml").write_text("experiment: false\n", encoding="utf-8")
+    with pytest.raises(ConfigError, match="experiment must be a mapping"):
+        load_experiment_config(tmp_path)
+
+
+def test_invalid_observability_level_is_rejected(tmp_path: Path) -> None:
+    manuscript = tmp_path / "manuscript"
+    manuscript.mkdir()
+    (manuscript / "config.yaml").write_text(
+        "experiment:\n  observability_levels: [0, 4]\n", encoding="utf-8"
+    )
+    with pytest.raises(ConfigError, match="unique values from 0 to 3"):
+        load_experiment_config(tmp_path)
+
+
+def test_null_observability_level_is_rejected(tmp_path: Path) -> None:
+    manuscript = tmp_path / "manuscript"
+    manuscript.mkdir()
+    (manuscript / "config.yaml").write_text(
+        "experiment:\n  observability_levels: [null]\n", encoding="utf-8"
+    )
+    with pytest.raises(ConfigError, match="must be an integer"):
+        load_experiment_config(tmp_path)
+
+
 def test_config_toggle_actually_reaches_plotters(tmp_path: Path) -> None:
     """annotate_values=False must suppress annotations (knob is consumed, not cosmetic)."""
     import matplotlib

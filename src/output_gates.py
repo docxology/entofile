@@ -2,27 +2,45 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
 from .figure_registry import FIGURE_SPECS, caption_token, visual_contract_for_spec
+from .structured_data import read_json_object
+
+
+def _read_json_object(path: Path) -> dict[str, Any] | None:
+    """Read a JSON object, returning ``None`` for missing or malformed reports."""
+    try:
+        if not path.is_file() or path.is_symlink():
+            return None
+        return read_json_object(path)
+    except (OSError, TypeError, ValueError):
+        return None
 
 
 def benchmark_artifacts_ok(project_root: Path) -> bool:
     """Benchmark CSV and validation report exist."""
     csv_path = project_root / "output" / "data" / "ento_benchmark_results.csv"
     report_path = project_root / "output" / "reports" / "benchmark_validation.json"
-    return csv_path.is_file() and report_path.is_file()
+    return (
+        csv_path.is_file()
+        and not csv_path.is_symlink()
+        and report_path.is_file()
+        and not report_path.is_symlink()
+    )
 
 
 def benchmark_report_ok(project_root: Path) -> tuple[bool, dict[str, Any]]:
     """Tamper rate and status from benchmark_validation.json."""
     report_path = project_root / "output" / "reports" / "benchmark_validation.json"
-    if not report_path.is_file():
+    report = _read_json_object(report_path)
+    if report is None:
         return False, {}
-    report = json.loads(report_path.read_text(encoding="utf-8"))
-    tamper_rate = float(report.get("tamper_detection_rate", 0.0))
+    try:
+        tamper_rate = float(report.get("tamper_detection_rate", 0.0))
+    except (TypeError, ValueError):
+        return False, report
     ok = report.get("status") == "pass" and tamper_rate == 1.0
     return ok, report
 
@@ -30,15 +48,21 @@ def benchmark_report_ok(project_root: Path) -> tuple[bool, dict[str, Any]]:
 def figures_present_ok(project_root: Path) -> bool:
     """All registered figure PNGs exist on disk."""
     figures_dir = project_root / "output" / "figures"
-    return all((figures_dir / spec.filename).is_file() for spec in FIGURE_SPECS)
+    return all(
+        (figures_dir / spec.filename).is_file()
+        and not (figures_dir / spec.filename).is_symlink()
+        for spec in FIGURE_SPECS
+    )
 
 
 def figure_registry_metadata_ok(project_root: Path) -> bool:
     """Registry JSON must match ``FIGURE_SPECS`` captions and provenance."""
     registry_path = project_root / "output" / "figures" / "figure_registry.json"
-    if not registry_path.is_file():
+    if not registry_path.is_file() or registry_path.is_symlink():
         return False
-    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    registry = _read_json_object(registry_path)
+    if registry is None:
+        return False
     for spec in FIGURE_SPECS:
         entry = registry.get(spec.label)
         if not entry:
@@ -72,7 +96,7 @@ def _report_is_substantive(report: dict[str, Any]) -> bool:
     samples = report.get("samples")
     if not isinstance(samples, list) or len(samples) < 1:
         return False
-    if not all(bool(row.get("ok")) for row in samples):
+    if not all(isinstance(row, dict) and bool(row.get("ok")) for row in samples):
         return False
     negative_control = report.get("negative_control")
     return not (not isinstance(negative_control, dict) or not bool(negative_control.get("rejected")))
@@ -103,18 +127,20 @@ def container_verification_report_ok(project_root: Path, *, live: bool = False) 
 
         return _report_is_substantive(build_container_verification_report(project_root))
     report_path = project_root / "output" / "reports" / "container_verification.json"
-    if not report_path.is_file():
+    if not report_path.is_file() or report_path.is_symlink():
         return False
-    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report = _read_json_object(report_path)
+    if report is None:
+        return False
     return _report_is_substantive(report)
 
 
 def load_container_verification_report(project_root: Path) -> dict[str, Any] | None:
     """Return parsed verification report or None when absent."""
     report_path = project_root / "output" / "reports" / "container_verification.json"
-    if not report_path.is_file():
+    if not report_path.is_file() or report_path.is_symlink():
         return None
-    return json.loads(report_path.read_text(encoding="utf-8"))
+    return _read_json_object(report_path)
 
 
 def validate_all_outputs(

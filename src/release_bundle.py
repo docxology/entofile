@@ -9,10 +9,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from . import crypto
 from .artifact_manifest import compute_sha256
+from .structured_data import atomic_write_text, read_yaml_mapping
 
 
 @dataclass(frozen=True)
@@ -86,6 +85,8 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
     source_dirty_project = bool(_git_text(root, "status", "--porcelain", "--", "."))
     source_dirty_repository = bool(_git_text(root, "status", "--porcelain"))
     release_dir = output_dir or root / "output" / "release"
+    if release_dir.is_symlink():
+        raise OSError(f"refusing to write release bundle through symlink: {release_dir}")
     release_dir.mkdir(parents=True, exist_ok=True)
     config = _load_config(root)
     entries: list[dict[str, Any]] = []
@@ -93,7 +94,7 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
 
     for release_file in RELEASE_FILES:
         path = root / release_file.path
-        if not path.is_file():
+        if not path.is_file() or path.is_symlink():
             if release_file.required:
                 missing.append(release_file.path)
             continue
@@ -108,9 +109,9 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
         )
 
     checksums_path = release_dir / "SHA256SUMS"
-    checksums_path.write_text(
+    atomic_write_text(
+        checksums_path,
         "".join(f"{entry['sha256']}  {entry['path']}\n" for entry in entries),
-        encoding="utf-8",
     )
     manifest_path = release_dir / "release_manifest.json"
     payload: dict[str, Any] = {
@@ -136,18 +137,16 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
             "with the external Sigstore/Cosign process documented in docs/provenance_signing.md."
         ),
     }
-    manifest_path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    atomic_write_text(manifest_path, json.dumps(payload, indent=2, sort_keys=True) + "\n")
     return manifest_path
 
 
 def _load_config(root: Path) -> dict[str, Any]:
     config_path = root / "manuscript" / "config.yaml"
-    if not config_path.is_file():
+    try:
+        return read_yaml_mapping(config_path, required=False)
+    except (OSError, TypeError, ValueError):
         return {}
-    data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
-    return data if isinstance(data, dict) else {}
 
 
 def _git_text(root: Path, *args: str) -> str:

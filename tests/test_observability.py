@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import zipfile
 
+import pytest
+
 from src.container import pack_container
 from src.crypto import generate_master_key
 from src.models import Manifest, ObservabilityLevel, TrackDescriptor
@@ -103,3 +105,16 @@ def test_sealed_container_omits_proof_chain(tmp_path) -> None:
     )
     with zipfile.ZipFile(out, "r") as zf:
         assert "proof/chain.json" not in zf.namelist()
+
+
+def test_pack_rejects_export_level_above_source_observability(tmp_path) -> None:
+    key = generate_master_key()
+    tracks = load_fixture_tracks()
+    with pytest.raises(ValueError, match="cannot expose more metadata"):
+        pack_container(
+            tmp_path / "escalated.ento.zip",
+            key,
+            tracks,
+            observability_level=ObservabilityLevel.SEALED,
+            export_level=ObservabilityLevel.AUDITABLE,
+        )

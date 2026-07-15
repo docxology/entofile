@@ -85,6 +85,19 @@ def test_genkey_force_replaces_and_keeps_0600(tmp_path: Path) -> None:
         assert stat.S_IMODE(os.stat(out).st_mode) == 0o600
 
 
+def test_genkey_force_does_not_follow_symlinks(tmp_path: Path) -> None:
+    import os
+
+    if os.name != "posix":
+        return
+    target = tmp_path / "target"
+    target.write_bytes(b"keep-this-file")
+    link = tmp_path / "master.key"
+    link.symlink_to(target)
+    assert main(["genkey", "-o", str(link), "--force"]) == 1
+    assert target.read_bytes() == b"keep-this-file"
+
+
 def test_genkey_sets_0600_on_create(tmp_path: Path) -> None:
     import os
     import stat

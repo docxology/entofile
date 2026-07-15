@@ -34,7 +34,7 @@ def test_evidence_provenance_contract_covers_all_input_and_output_classes() -> N
         "Manuscript variables": "scripts/z_generate_manuscript_variables.py",
         "Release bundle manifest": "scripts/build_release_bundle.py",
         "Rendered PDF/HTML": "scripts/03_render_pdf.py --project working/entofile",
-        "Test gate": "uv run pytest tests/ --cov=src --cov-fail-under=90 -q",
+        "Test gate": "uv run python scripts/run_tests.py",
     }
     for label, evidence in required.items():
         assert label in text

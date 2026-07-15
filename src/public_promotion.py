@@ -20,6 +20,7 @@ else:
     import tomli as tomllib  # type: ignore[no-redef]
 
 from . import crypto
+from .structured_data import read_json_object, read_toml_mapping, read_yaml_mapping
 
 PLANNED_PUBLIC_HOME = "https://github.com/docxology/entofile"
 PRIVATE_WORKING_HOME = "projects/working/entofile"
@@ -240,23 +241,24 @@ def _read_text(path: Path) -> str:
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
-    if not path.is_file():
+    try:
+        return read_yaml_mapping(path, required=False)
+    except (OSError, TypeError, ValueError, yaml.YAMLError):
         return {}
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return data if isinstance(data, dict) else {}
 
 
 def _read_toml(path: Path) -> dict[str, Any]:
-    if not path.is_file():
+    try:
+        return read_toml_mapping(path, required=False)
+    except (OSError, TypeError, ValueError, tomllib.TOMLDecodeError):
         return {}
-    return tomllib.loads(path.read_text(encoding="utf-8"))
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    if not path.is_file():
+    try:
+        return read_json_object(path, required=False)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
         return {}
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return data if isinstance(data, dict) else {}
 
 
 def _normalise_text(text: str) -> str:

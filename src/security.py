@@ -6,6 +6,8 @@ import re
 import zipfile
 from pathlib import Path
 
+from .errors import ContainerError
+
 # Safe track identifiers: no path separators or parent segments.
 TRACK_ID_PATTERN = re.compile(r"^[a-z0-9._-]+$")
 
@@ -25,7 +27,7 @@ ALLOWED_ZIP_PREFIXES = ("manifest.json", "tracks/", "proof/")
 def validate_track_id(track_id: str) -> None:
     """Reject track IDs that could escape output directories or ZIP layout."""
     if not track_id or ".." in track_id or not TRACK_ID_PATTERN.fullmatch(track_id):
-        raise ValueError(f"invalid track id {track_id!r}: must match [a-z0-9._-]+ with no path segments")
+        raise ContainerError(f"invalid track id {track_id!r}: must match [a-z0-9._-]+ with no path segments")
 
 
 def safe_output_path(output_dir: Path, track_id: str) -> Path:
@@ -34,7 +36,7 @@ def safe_output_path(output_dir: Path, track_id: str) -> Path:
     base = output_dir.resolve()
     target = (base / f"{track_id}.bin").resolve()
     if base not in target.parents and target != base:
-        raise ValueError(f"refusing unsafe output path for track {track_id!r}")
+        raise ContainerError(f"refusing unsafe output path for track {track_id!r}")
     return target
 
 
@@ -54,19 +56,19 @@ def validate_zip_archive(source: Path) -> None:
     """
     size = source.stat().st_size
     if size > MAX_ZIP_BYTES:
-        raise ValueError(f"container exceeds max size ({size} > {MAX_ZIP_BYTES} bytes)")
+        raise ContainerError(f"container exceeds max size ({size} > {MAX_ZIP_BYTES} bytes)")
     with zipfile.ZipFile(source, "r") as zf:
         names = zf.namelist()
         if len(names) > MAX_ZIP_ENTRIES:
-            raise ValueError(f"container has too many ZIP entries ({len(names)})")
+            raise ContainerError(f"container has too many ZIP entries ({len(names)})")
         declared_total = 0
         for name in names:
             info = zf.getinfo(name)
             if _member_uncompressed_size(info) > MAX_MEMBER_UNCOMPRESSED:
-                raise ValueError(f"ZIP member {name!r} exceeds uncompressed size limit")
+                raise ContainerError(f"ZIP member {name!r} exceeds uncompressed size limit")
             declared_total += _member_uncompressed_size(info)
         if declared_total > MAX_TOTAL_UNCOMPRESSED:
-            raise ValueError(
+            raise ContainerError(
                 f"container declares {declared_total} uncompressed bytes (> {MAX_TOTAL_UNCOMPRESSED} aggregate limit)"
             )
 
@@ -88,7 +90,7 @@ def safe_read_member(
     with zf.open(name, "r") as handle:
         data = handle.read(max_bytes + 1)
     if len(data) > max_bytes:
-        raise ValueError(f"ZIP member {name!r} exceeds uncompressed size limit ({max_bytes} bytes)")
+        raise ContainerError(f"ZIP member {name!r} exceeds uncompressed size limit ({max_bytes} bytes)")
     return data
 
 
@@ -108,12 +110,12 @@ def validate_zip_member_names(names: list[str]) -> None:
     # reads to the last physical entry — a parser differential. Reject up front.
     if len(names) != len(set(names)):
         dupes = sorted({name for name in names if names.count(name) > 1})
-        raise ValueError(f"duplicate ZIP members: {dupes}")
+        raise ContainerError(f"duplicate ZIP members: {dupes}")
     for name in names:
         if name.startswith("/") or ".." in name.split("/"):
-            raise ValueError(f"unsafe ZIP member path: {name!r}")
+            raise ContainerError(f"unsafe ZIP member path: {name!r}")
         if not name.startswith(ALLOWED_ZIP_PREFIXES):
-            raise ValueError(f"unexpected ZIP member: {name!r}")
+            raise ContainerError(f"unexpected ZIP member: {name!r}")
 
 
 def assert_zip_members_match_manifest(
@@ -129,6 +131,6 @@ def assert_zip_members_match_manifest(
     extra = actual - expected
     missing = expected - actual
     if extra:
-        raise ValueError(f"unexpected ZIP members: {sorted(extra)}")
+        raise ContainerError(f"unexpected ZIP members: {sorted(extra)}")
     if missing:
-        raise ValueError(f"missing ZIP members: {sorted(missing)}")
+        raise ContainerError(f"missing ZIP members: {sorted(missing)}")

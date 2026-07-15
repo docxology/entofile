@@ -15,8 +15,10 @@ from typing import Literal
 from . import crypto
 from . import track as track_mod
 from .crypto import FORMAT_VERSION
+from .errors import ContainerError, IntegrityError
 from .manifest import (
     build_track_descriptor,
+    manifest_from_json,
     manifest_to_json,
     validate_manifest_dict,
     validate_plain_tracks,
@@ -28,7 +30,7 @@ from .models import (
     PlainTrack,
     ProofExport,
 )
-from .observability import filter_manifest, include_proof_chain
+from .observability import filter_manifest, include_proof_chain, validate_export_level
 from .proof import export_proof, verify_proof_export
 from .security import (
     MAX_MANIFEST_BYTES,
@@ -67,22 +69,12 @@ def _track_ids(manifest: Manifest) -> tuple[str, ...]:
 
 def _read_manifest_from_zip(zf: zipfile.ZipFile) -> Manifest:
     if "manifest.json" not in zf.namelist():
-        raise ValueError("missing manifest.json in container")
+        raise ContainerError("missing manifest.json in container")
     raw = safe_read_member(zf, "manifest.json", max_bytes=MAX_MANIFEST_BYTES)
-    # Parse with a duplicate-key reject hook so "raw" means raw: json.loads otherwise
-    # silently keeps the last value for a repeated object key, so the validated object
-    # would differ from the authenticated bytes (a parse-then-validate divergence one
-    # level below the schema). Reject before anything trusts the parse.
-    parsed = json.loads(
-        raw.decode("utf-8"), object_pairs_hook=_reject_duplicate_json_keys
-    )
-    # Validate the RAW parsed JSON against the schema BEFORE dataclass coercion.
-    # from_dict coerces (byte_length via int(), version/creator via str()) and drops
-    # unknown keys, so validating the coerced projection would launder a JSON-typed
-    # byte_length ("10") or an extra field past the schema's type / additionalProperties
-    # rules. Validate-then-construct, not construct-then-validate-the-projection.
-    validate_manifest_dict(parsed)
-    manifest = Manifest.from_dict(parsed)
+    # Parse and validate the raw JSON before dataclass coercion. The shared parser
+    # rejects duplicate keys and validates the requested schema before ``from_dict``
+    # can coerce values or discard unknown fields.
+    manifest = manifest_from_json(raw.decode("utf-8"))
     # Manifest-track uniqueness is a READ-path invariant too: a crafted container can
     # list a track id more than once even though the ZIP can hold only one member per
     # name and the encrypted dict is keyed by id. The member-set check uses set() and
@@ -92,20 +84,10 @@ def _read_manifest_from_zip(zf: zipfile.ZipFile) -> Manifest:
     ids = [entry.id for entry in manifest.tracks]
     if len(ids) != len(set(ids)):
         dupes = sorted({tid for tid in ids if ids.count(tid) > 1})
-        raise ValueError(f"manifest lists duplicate track ids: {dupes}")
+        raise ContainerError(f"manifest lists duplicate track ids: {dupes}")
     for entry in manifest.tracks:
         validate_track_id(entry.id)
     return manifest
-
-
-def _reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    """``object_pairs_hook`` that rejects duplicate keys instead of last-wins collapse."""
-    seen: set[str] = set()
-    for key, _value in pairs:
-        if key in seen:
-            raise ValueError(f"duplicate JSON key in manifest: {key!r}")
-        seen.add(key)
-    return dict(pairs)
 
 
 def _ciphertext_digests_present(manifest: Manifest) -> bool:
@@ -138,13 +120,13 @@ def _reconcile_byte_length(
     """
     if manifest.observability_level == ObservabilityLevel.SEALED:
         if manifest_byte_length != 0:
-            raise ValueError(
+            raise IntegrityError(
                 f"byte_length mismatch for track {track_id!r}: SEALED redaction requires "
                 f"byte_length 0 (the redaction sentinel), manifest declares {manifest_byte_length}"
             )
         return
     if manifest_byte_length != len(plaintext):
-        raise ValueError(
+        raise IntegrityError(
             f"byte_length mismatch for track {track_id!r}: "
             f"manifest declares {manifest_byte_length}, plaintext is {len(plaintext)} bytes"
         )
@@ -161,7 +143,7 @@ def _verify_ciphertext_hashes(zf: zipfile.ZipFile, manifest: Manifest) -> None:
             continue
         digest = crypto.sha256_hex(raw)
         if digest != entry.sha256_ciphertext:
-            raise ValueError(
+            raise IntegrityError(
                 f"ciphertext digest mismatch for track {entry.id!r}: expected {entry.sha256_ciphertext}, got {digest}"
             )
 
@@ -185,7 +167,7 @@ def _verify_proof_if_present(zf: zipfile.ZipFile, manifest: Manifest) -> bool:
         zf, "manifest.json", max_bytes=MAX_MANIFEST_BYTES
     ).decode("utf-8")
     if not verify_proof_export(proof, manifest_json):
-        raise ValueError("proof chain does not match manifest.json")
+        raise IntegrityError("proof chain does not match manifest.json")
     return True
 
 
@@ -200,7 +182,7 @@ def _apply_integrity_checks(
         if ctx.proof_present:
             _verify_proof_if_present(ctx.zf, ctx.manifest)
         elif require_proof:
-            raise ValueError("proof/chain.json required but absent")
+            raise ContainerError("proof/chain.json required but absent")
 
 
 @contextmanager
@@ -287,7 +269,7 @@ def verify_container(
                 if entry.sha256_plaintext:
                     digest = crypto.sha256_hex(plaintext)
                     if digest != entry.sha256_plaintext:
-                        raise ValueError(
+                        raise IntegrityError(
                             f"plaintext digest mismatch for track {entry.id!r}: "
                             f"expected {entry.sha256_plaintext}, got {digest}"
                         )
@@ -384,6 +366,8 @@ def pack_container(
     nonce, AAD binding, and PADMÉ length padding). Pass a prior supported version
     explicitly to write compatibility containers."""
     validate_plain_tracks(tracks)
+    level = observability_level if export_level is None else export_level
+    validate_export_level(observability_level, level)
     encrypted = {
         plain.track_id: track_mod.encrypt_track(
             master_key, plain, format_version=format_version
@@ -398,7 +382,6 @@ def pack_container(
         format_version=format_version,
     )
     validate_manifest_dict(full_manifest.to_dict())
-    level = observability_level if export_level is None else export_level
     destination.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_STORED) as zf:
         _write_container_zip(zf, full_manifest, encrypted, level)
@@ -425,7 +408,7 @@ def unpack_container(
             if entry.sha256_plaintext:
                 digest = crypto.sha256_hex(plaintext)
                 if digest != entry.sha256_plaintext:
-                    raise ValueError(
+                    raise IntegrityError(
                         f"plaintext digest mismatch for track {entry.id!r}: "
                         f"expected {entry.sha256_plaintext}, got {digest}"
                     )
@@ -457,6 +440,8 @@ def pack_container_bytes(
 ) -> bytes:
     """Pack container to in-memory bytes (for benchmarks)."""
     validate_plain_tracks(tracks)
+    level = observability_level if export_level is None else export_level
+    validate_export_level(observability_level, level)
     encrypted = {
         plain.track_id: track_mod.encrypt_track(
             master_key, plain, format_version=format_version
@@ -470,7 +455,6 @@ def pack_container_bytes(
         observability_level=observability_level,
         format_version=format_version,
     )
-    level = observability_level if export_level is None else export_level
     buf = BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_STORED) as zf:
         _write_container_zip(zf, full_manifest, encrypted, level)

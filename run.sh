@@ -11,18 +11,18 @@ case "$cmd" in
     uv sync --extra dev
     ;;
   lint)
-    uv run ruff check src/ tests/
+    uv run ruff check src/ scripts/ tests/
     ;;
   typecheck)
     uv run mypy src/
     ;;
   test)
-    uv run pytest tests/ --cov=src --cov-fail-under=90 --tb=short
+    uv run python scripts/run_tests.py
     ;;
   gates)
-    uv run ruff check src/ tests/
+    uv run ruff check src/ scripts/ tests/
     uv run mypy src/
-    uv run pytest tests/ --cov=src --cov-fail-under=90 --tb=short
+    uv run python scripts/run_tests.py
     ;;
   analysis)
     uv run python scripts/ento_analysis.py
@@ -44,14 +44,15 @@ case "$cmd" in
     uv run python scripts/check_public_promotion_metadata.py --check
     ;;
   full-pipeline)
-    uv run ruff check src/ tests/
+    uv run ruff check src/ scripts/ tests/
     uv run mypy src/
-    uv run pytest tests/ --cov=src --cov-fail-under=90 --tb=short
+    uv run python scripts/run_tests.py
     uv run python scripts/ento_analysis.py
     uv run python scripts/generate_conformance_fixtures.py
     uv run python scripts/verify_conformance_fixtures.py
     uv run python scripts/check_figure_layout.py
     uv run python scripts/build_release_bundle.py
+    uv run python scripts/check_public_promotion_metadata.py --check
     ;;
   help|*)
     echo "Usage: ./run.sh <command>"

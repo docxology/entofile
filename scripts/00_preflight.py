@@ -20,12 +20,15 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 def _template_root(project_root: Path) -> Path | None:
     """Return the template checkout that provides ``infrastructure/``, or None."""
-    for candidate in (project_root, *project_root.parents):
+    candidates = (
+        project_root,
+        *project_root.parents,
+        project_root.parent / "template",
+        project_root.parent.parent.parent / "template",
+    )
+    for candidate in candidates:
         if (candidate / "infrastructure").is_dir():
             return candidate
-    sibling_template = project_root.parent.parent.parent / "template"
-    if (sibling_template / "infrastructure").is_dir():
-        return sibling_template
     return None
 
 

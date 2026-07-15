@@ -223,6 +223,7 @@ def test_audit_publication_readiness_check_json() -> None:
             sys.executable,
             str(root / "scripts" / "audit_publication_readiness.py"),
             "--check",
+            "--no-live-tests",
         ],
         cwd=root,
         capture_output=True,

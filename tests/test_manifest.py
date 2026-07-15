@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import shutil
 from pathlib import Path
 
 import jsonschema
@@ -75,6 +77,39 @@ def test_schema_rejects_invalid_hash() -> None:
     }
     with pytest.raises(jsonschema.ValidationError, match="not-a-hash"):
         validate_manifest_dict(bad, _project_root())
+
+
+def test_manifest_from_json_validates_before_coercion() -> None:
+    raw = {
+        "format_version": "0.2.0",
+        "created": "2026-01-01T00:00:00Z",
+        "creator": "test",
+        "observability_level": 3,
+        "tracks": [],
+    }
+    raw["unknown"] = True
+    with pytest.raises(jsonschema.ValidationError):
+        manifest_from_json(json.dumps(raw))
+
+
+def test_schema_cache_isolated_by_project_root(tmp_path: Path) -> None:
+    custom_data = tmp_path / "data"
+    custom_data.mkdir()
+    shutil.copy(_project_root() / "data" / "ento_manifest_schema.json", custom_data)
+    schema_path = custom_data / "ento_manifest_schema.json"
+    custom_schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    custom_schema["properties"]["format_version"]["enum"] = ["custom"]
+    schema_path.write_text(json.dumps(custom_schema), encoding="utf-8")
+    manifest = {
+        "format_version": "0.2.0",
+        "created": "2026-01-01T00:00:00Z",
+        "creator": "test",
+        "observability_level": 3,
+        "tracks": [],
+    }
+    with pytest.raises(jsonschema.ValidationError):
+        validate_manifest_dict(manifest, tmp_path)
+    validate_manifest_dict(manifest, _project_root())
 
 
 def test_build_track_descriptor() -> None:

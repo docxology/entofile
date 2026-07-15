@@ -60,6 +60,17 @@ def filter_manifest(manifest: Manifest, level: ObservabilityLevel) -> Manifest:
     return replace(manifest, observability_level=level, tracks=tracks)
 
 
+def validate_export_level(
+    observability_level: ObservabilityLevel,
+    export_level: ObservabilityLevel,
+) -> None:
+    """Reject exports that would expose more metadata than the source permits."""
+    if export_level > observability_level:
+        raise ValueError(
+            "export_level cannot expose more metadata than observability_level"
+        )
+
+
 def include_proof_chain(level: ObservabilityLevel) -> bool:
     """Whether proof export is permitted at this observability level."""
     return level in (ObservabilityLevel.TYPED, ObservabilityLevel.RESOLVED, ObservabilityLevel.AUDITABLE)

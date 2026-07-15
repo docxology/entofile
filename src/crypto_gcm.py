@@ -14,6 +14,8 @@ from typing import Final
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
+from .errors import IntegrityError
+
 NONCE_SIZE: Final[int] = 16
 TAG_SIZE: Final[int] = 16
 
@@ -69,4 +71,4 @@ def decrypt_payload(
     except InvalidTag as exc:
         # Only an AEAD authentication failure is reported as a tag mismatch;
         # other exceptions (e.g. argument-shape bugs) propagate undisguised.
-        raise ValueError("authentication tag mismatch") from exc
+        raise IntegrityError("authentication tag mismatch") from exc

@@ -22,6 +22,15 @@ from .crypto import (
     generate_master_key,
     hkdf_sha256,
 )
+from .errors import (
+    ArtifactError,
+    ConfigurationError,
+    ContainerError,
+    EntofileError,
+    IntegrityError,
+    ManifestError,
+    PipelineError,
+)
 from .models import Manifest, ObservabilityLevel, PlainTrack, ProofExport, TrackDescriptor
 from .proof import export_proof, verify_proof_chain, verify_proof_export
 from .security import safe_output_path, validate_track_id, validate_zip_archive
@@ -32,8 +41,16 @@ __all__ = [
     "FORMAT_VERSION",
     "FORMAT_VERSION_LATEST",
     "SUPPORTED_FORMAT_VERSIONS",
+    "ArtifactError",
+    "ConfigError",
+    "ConfigurationError",
+    "ContainerError",
+    "EntofileError",
+    "IntegrityError",
     "Manifest",
+    "ManifestError",
     "ObservabilityLevel",
+    "PipelineError",
     "PlainTrack",
     "ProofExport",
     "TrackDescriptor",
@@ -53,3 +70,5 @@ __all__ = [
     "verify_proof_chain",
     "verify_proof_export",
 ]
+
+ConfigError = ConfigurationError

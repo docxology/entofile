@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import runpy
 import subprocess
 import sys
 from pathlib import Path
@@ -84,6 +85,17 @@ def test_generate_manuscript_variables_is_standalone_safe(tmp_path: Path) -> Non
     assert "ModuleNotFoundError" not in result.stderr
 
 
+def test_template_discovery_supports_public_sibling_layout(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parent.parent
+    public = tmp_path / "repos" / "public"
+    project = public / "entofile"
+    template = public / "template"
+    (template / "infrastructure").mkdir(parents=True)
+    for script_name in ("00_preflight.py", "z_generate_manuscript_variables.py"):
+        namespace = runpy.run_path(str(root / "scripts" / script_name))
+        assert namespace["_template_root"](project) == template
+
+
 def test_audit_publication_readiness_script() -> None:
     root = Path(__file__).resolve().parent.parent
     result = subprocess.run(
@@ -91,6 +103,7 @@ def test_audit_publication_readiness_script() -> None:
             sys.executable,
             str(root / "scripts" / "audit_publication_readiness.py"),
             "--check",
+            "--no-live-tests",
         ],
         cwd=root,
         capture_output=True,

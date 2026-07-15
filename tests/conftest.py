@@ -36,6 +36,10 @@ def fast_benchmark_project(
     """
     root = tmp_path / "entofile"
     shutil.copytree(project_root / "data" / "fixtures", root / "data" / "fixtures")
+    shutil.copy2(
+        project_root / "data" / "ento_manifest_schema.json",
+        root / "data" / "ento_manifest_schema.json",
+    )
     claim_ledger = project_root / "data" / "claim_ledger.yaml"
     if claim_ledger.is_file():
         (root / "data").mkdir(parents=True, exist_ok=True)

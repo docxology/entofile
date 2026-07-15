@@ -20,6 +20,8 @@ from __future__ import annotations
 import struct
 from typing import Final
 
+from .errors import IntegrityError
+
 _LENGTH_PREFIX: Final[int] = 8  # big-endian uint64 original payload length
 
 
@@ -46,12 +48,22 @@ def pad_payload(payload: bytes) -> bytes:
 def unpad_payload(padded: bytes) -> bytes:
     """Recover the original payload from a padded plaintext.
 
-    Raises ValueError if the prefix is missing or claims more bytes than present
-    (a corrupt/forged padding block)."""
+    Raises ValueError if the prefix is missing, claims more bytes than present, or
+    the block is not the canonical zero-filled PADMÉ encoding. Authentication prevents
+    an outsider from changing these bytes, but canonical decoding keeps malformed
+    authenticated inputs from becoming alternate representations of the format.
+    """
     if len(padded) < _LENGTH_PREFIX:
-        raise ValueError("padded payload too short for length prefix")
+        raise IntegrityError("padded payload too short for length prefix")
     (original_length,) = struct.unpack(">Q", padded[:_LENGTH_PREFIX])
     end = _LENGTH_PREFIX + original_length
     if end > len(padded):
-        raise ValueError("padded payload length prefix exceeds available bytes")
+        raise IntegrityError("padded payload length prefix exceeds available bytes")
+    expected_length = padme(end)
+    if len(padded) != expected_length:
+        raise IntegrityError(
+            f"padded payload has non-canonical length: {len(padded)} != {expected_length}"
+        )
+    if any(padded[end:]):
+        raise IntegrityError("padded payload has non-zero padding bytes")
     return padded[_LENGTH_PREFIX:end]

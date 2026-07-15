@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from .structured_data import atomic_write_json
 
 _IGNORED_OUTPUT_PARTS = frozenset(
     {".checkpoints", ".pipeline", "hitl", "logs", "snapshots", "__pycache__"}
@@ -62,9 +63,15 @@ def write_artifact_manifest(project_root: Path) -> Path:
     timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
     entries: list[dict[str, Any]] = []
 
+    if output_dir.is_symlink():
+        raise OSError(f"refusing to inspect symlinked output directory: {output_dir}")
     if output_dir.exists():
         for path in sorted(output_dir.rglob("*")):
-            if not path.is_file() or _is_ignored_output(path, output_dir):
+            if (
+                not path.is_file()
+                or path.is_symlink()
+                or _is_ignored_output(path, output_dir)
+            ):
                 continue
             if not _is_stable_release_artifact(path, output_dir):
                 continue
@@ -83,21 +90,19 @@ def write_artifact_manifest(project_root: Path) -> Path:
     payload = {"entries": entries, "issues": []}
     _refresh_stage_manifest(stage_dir, payload)
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    atomic_write_json(report_path, payload)
     return report_path
 
 
 def _refresh_stage_manifest(stage_dir: Path, payload: dict[str, Any]) -> None:
     """Replace stale template stage manifests with the standalone project manifest."""
+    if stage_dir.is_symlink():
+        raise OSError(f"refusing to replace symlinked stage directory: {stage_dir}")
     stage_dir.mkdir(parents=True, exist_ok=True)
     for old_manifest in stage_dir.glob("stage-*.json"):
         old_manifest.unlink()
     stage_path = stage_dir / "stage-99-standalone-project-outputs.json"
-    stage_path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    atomic_write_json(stage_path, payload)
 
 
 def _is_ignored_output(path: Path, output_dir: Path) -> bool:

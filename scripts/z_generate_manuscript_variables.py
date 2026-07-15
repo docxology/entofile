@@ -19,12 +19,15 @@ def _template_root(project_root: Path) -> Path | None:
     ``github.com/docxology/entofile`` does not ship. Returning None lets ``main``
     fail with a clear message instead of a raw ModuleNotFoundError.
     """
-    for candidate in (project_root, *project_root.parents):
+    candidates = (
+        project_root,
+        *project_root.parents,
+        project_root.parent / "template",
+        project_root.parent.parent.parent / "template",
+    )
+    for candidate in candidates:
         if (candidate / "infrastructure").is_dir():
             return candidate
-    sibling_template = project_root.parent.parent.parent / "template"
-    if (sibling_template / "infrastructure").is_dir():
-        return sibling_template
     return None
 
 
@@ -49,6 +52,7 @@ def main() -> int:
     from infrastructure.rendering.manuscript_injection import (
         write_resolved_manuscript_tree,
     )
+
     from src.artifact_manifest import write_artifact_manifest
     from src.manuscript_variables import generate_variables, save_variables
 

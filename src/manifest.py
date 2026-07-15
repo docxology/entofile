@@ -8,10 +8,12 @@ from typing import Any
 
 import jsonschema  # type: ignore[import-untyped]  # no bundled stubs; validate() is dynamically typed
 
+from .errors import ManifestError
 from .models import Manifest, PlainTrack, TrackDescriptor
 from .ontology import validate_track_resolution
+from .structured_data import parse_json_object
 
-_SCHEMA_CACHE: dict[str, Any] | None = None
+_SCHEMA_CACHE: dict[Path, dict[str, Any]] = {}
 
 
 def schema_path(project_root: Path | None = None) -> Path:
@@ -21,13 +23,19 @@ def schema_path(project_root: Path | None = None) -> Path:
 
 
 def load_schema(project_root: Path | None = None) -> dict[str, Any]:
-    """Load and cache manifest JSON Schema."""
-    global _SCHEMA_CACHE
-    if _SCHEMA_CACHE is None:
-        _SCHEMA_CACHE = json.loads(
-            schema_path(project_root).read_text(encoding="utf-8")
-        )
-    return _SCHEMA_CACHE
+    """Load and cache the manifest schema for the requested project root.
+
+    The cache is keyed by the resolved schema path. A single process can validate
+    containers from multiple checkouts, so a process-global single-schema cache would
+    otherwise validate a later project against whichever checkout was loaded first.
+    """
+    path = schema_path(project_root).resolve()
+    if path not in _SCHEMA_CACHE:
+        loaded = parse_json_object(path.read_text(encoding="utf-8"), source=str(path))
+        if not isinstance(loaded, dict):
+            raise ManifestError(f"manifest schema must be a JSON object: {path}")
+        _SCHEMA_CACHE[path] = loaded
+    return _SCHEMA_CACHE[path]
 
 
 def validate_manifest_dict(
@@ -42,9 +50,16 @@ def manifest_to_json(manifest: Manifest, *, indent: int = 2) -> str:
     return json.dumps(manifest.to_dict(), indent=indent, sort_keys=True) + "\n"
 
 
-def manifest_from_json(text: str) -> Manifest:
-    """Parse manifest JSON."""
-    return Manifest.from_dict(json.loads(text))
+def manifest_from_json(text: str, *, project_root: Path | None = None) -> Manifest:
+    """Parse and validate manifest JSON before constructing the typed model.
+
+    Validation must happen on the parsed JSON object, before ``Manifest.from_dict``
+    can coerce values such as ``byte_length`` or discard unknown fields. Duplicate
+    object keys are rejected to avoid parser last-wins ambiguity.
+    """
+    parsed = parse_json_object(text, source="manifest JSON")
+    validate_manifest_dict(parsed, project_root)
+    return Manifest.from_dict(parsed)
 
 
 def build_track_descriptor(
@@ -87,7 +102,7 @@ def validate_plain_tracks(tracks: tuple[PlainTrack, ...]) -> None:
     ids = [track.track_id for track in tracks]
     if len(ids) != len(set(ids)):
         dupes = sorted({tid for tid in ids if ids.count(tid) > 1})
-        raise ValueError(f"duplicate track ids: {dupes}")
+        raise ManifestError(f"duplicate track ids: {dupes}")
     for track in tracks:
         validate_track_id(track.track_id)
         validate_track_resolution(track)

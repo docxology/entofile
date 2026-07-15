@@ -8,7 +8,7 @@ wheel installs cleanly into a fresh virtualenv.  These tests are marked
 from __future__ import annotations
 
 import subprocess
-import venv
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -32,6 +32,11 @@ def test_uv_build_produces_wheel_and_sdist(tmp_path: Path) -> None:
     assert len(wheels) == 1, f"Expected 1 wheel, found {len(wheels)}"
     assert len(sdists) == 1, f"Expected 1 sdist, found {len(sdists)}"
 
+    with zipfile.ZipFile(wheels[0]) as archive:
+        names = set(archive.namelist())
+    assert "src/__init__.py" in names
+    assert not any(name.startswith(("build/", "tests/")) for name in names)
+
 
 @pytest.mark.slow
 def test_wheel_installs_and_imports(tmp_path: Path) -> None:
@@ -50,11 +55,18 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
     wheel_path = wheels[0]
 
     venv_dir = tmp_path / "test_venv"
-    venv.create(venv_dir, with_pip=True)
+    venv_result = subprocess.run(
+        ["uv", "venv", str(venv_dir)],
+        capture_output=True,
+        text=True,
+        cwd=str(_PROJECT_ROOT),
+        timeout=120,
+    )
+    assert venv_result.returncode == 0, venv_result.stderr
 
     python = venv_dir / "bin" / "python"
     install_result = subprocess.run(
-        [str(python), "-m", "pip", "install", str(wheel_path)],
+        ["uv", "pip", "install", "--python", str(python), str(wheel_path)],
         capture_output=True,
         text=True,
         timeout=120,
@@ -80,7 +92,7 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
 
 @pytest.mark.slow
 def test_pyproject_version_matches_release_label() -> None:
-    """The pyproject.toml version should match the CITATION.cff version."""
+    """The package patch version should normalize the paper release label."""
     import tomllib
 
     pyproject = _PROJECT_ROOT / "pyproject.toml"
@@ -97,6 +109,7 @@ def test_pyproject_version_matches_release_label() -> None:
             break
 
     assert cff_version is not None, "CITATION.cff version not found"
-    assert pp_version == cff_version, (
-        f"pyproject.toml version '{pp_version}' != CITATION.cff version '{cff_version}'"
+    assert cff_version == ".".join(pp_version.split(".")[:2]), (
+        "pyproject.toml package version must preserve the CITATION.cff major/minor "
+        f"release label: '{pp_version}' vs '{cff_version}'"
     )

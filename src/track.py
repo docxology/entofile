@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from . import crypto, padding
 from .crypto import FORMAT_VERSION
+from .errors import IntegrityError
 from .models import EncryptedTrack, PlainTrack
 
 
@@ -63,7 +64,7 @@ def parse_track_bytes(
     nonce_size = crypto.nonce_size_for(format_version)
     min_size = nonce_size + crypto.TAG_SIZE
     if len(data) < min_size:
-        raise ValueError("track payload too short")
+        raise IntegrityError("track payload too short")
     nonce = data[:nonce_size]
     tag = data[nonce_size : nonce_size + crypto.TAG_SIZE]
     ciphertext = data[nonce_size + crypto.TAG_SIZE :]

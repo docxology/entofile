@@ -49,6 +49,15 @@ def test_unpad_rejects_corrupt_length_prefix() -> None:
         padding.unpad_payload(b"\x00\x00\x00\x00\x00\x00\x00\xff" + b"only-a-few")
 
 
+def test_unpad_rejects_noncanonical_padding() -> None:
+    corrupted = bytearray(padding.pad_payload(b"abc"))
+    corrupted[-1] = 1
+    with pytest.raises(ValueError, match="non-zero padding"):
+        padding.unpad_payload(bytes(corrupted))
+    with pytest.raises(ValueError, match="non-canonical length"):
+        padding.unpad_payload(padding.pad_payload(b"abc") + b"\0")
+
+
 # --- format metadata --------------------------------------------------------
 
 

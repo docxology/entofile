@@ -105,7 +105,13 @@ def cmd_genkey(args: argparse.Namespace) -> int:
     # an explicit --force to replace one. Create exclusive + 0600 atomically (O_EXCL)
     # so there is no window where the secret exists at the default umask, and (without
     # --force) no TOCTOU between an exists() check and the write.
-    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | (0 if args.force else os.O_EXCL)
+    flags = (
+        os.O_WRONLY
+        | os.O_CREAT
+        | os.O_TRUNC
+        | (0 if args.force else os.O_EXCL)
+        | getattr(os, "O_NOFOLLOW", 0)
+    )
     try:
         fd = os.open(args.output, flags, 0o600)
     except FileExistsError:
@@ -116,11 +122,18 @@ def cmd_genkey(args: argparse.Namespace) -> int:
         if args.force:
             # O_EXCL was not used, so an existing file kept its old mode — enforce 0600.
             os.fchmod(fd, 0o600)
-        with os.fdopen(fd, "wb") as handle:
-            handle.write(key)
     except OSError:
         os.close(fd)
         raise
+    try:
+        handle = os.fdopen(fd, "wb")
+    except OSError:
+        os.close(fd)
+        raise
+    # The context manager owns the descriptor after fdopen succeeds. In particular,
+    # do not close ``fd`` again in an exception handler after ``handle`` closes it.
+    with handle:
+        handle.write(key)
     print(str(args.output))
     _set_result(args, output=str(args.output), key_bytes=crypto.MASTER_KEY_SIZE)
     return 0

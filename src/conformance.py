@@ -88,6 +88,9 @@ BAD_CASES: tuple[ConformanceCase, ...] = (
     ),
 )
 
+EXPECTED_CASES: tuple[ConformanceCase, ...] = GOOD_CASES + BAD_CASES
+EXPECTED_CASE_IDS = frozenset(case.case_id for case in EXPECTED_CASES)
+
 
 def generate_conformance_fixtures(output_dir: Path) -> Path:
     """Generate deterministic conformance fixtures and manifest under ``output_dir``."""
@@ -137,24 +140,91 @@ def verify_conformance_fixtures(
     """
     manifest_path = fixture_dir / "conformance_manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    key = bytes.fromhex(manifest["key_hex"])
+    if not isinstance(manifest, dict):
+        raise ValueError("conformance manifest must be a JSON object")
+    if manifest.get("schema_version") != "1":
+        raise ValueError("unsupported conformance manifest schema_version")
+    if manifest.get("key_hex") != CONFORMANCE_KEY.hex():
+        raise ValueError("conformance manifest key does not match the fixed vector key")
+    raw_cases = manifest.get("cases")
+    if not isinstance(raw_cases, list):
+        raise ValueError("conformance manifest cases must be a list")
+
+    canonical = {case.case_id: case for case in EXPECTED_CASES}
+    case_ids_raw = [case.get("case_id") for case in raw_cases if isinstance(case, dict)]
+    if (
+        len(case_ids_raw) != len(raw_cases)
+        or any(not isinstance(case_id, str) for case_id in case_ids_raw)
+        or len(set(case_ids_raw)) != len(case_ids_raw)
+    ):
+        raise ValueError("conformance manifest case IDs must be unique objects")
+    case_ids = [case_id for case_id in case_ids_raw if isinstance(case_id, str)]
+    if set(case_ids) != EXPECTED_CASE_IDS:
+        missing = sorted(EXPECTED_CASE_IDS - set(case_ids))
+        extra = sorted(set(case_ids) - EXPECTED_CASE_IDS)
+        raise ValueError(f"conformance case matrix mismatch: missing={missing}, extra={extra}")
+
+    # The manifest is an index, not the source of truth for expected outcomes. Bind
+    # every entry to the code-defined matrix and to the bytes it claims to describe;
+    # otherwise a broken generator and verifier could agree on a forged self-produced
+    # expectation file.
+    structural_errors: list[str] = []
+    for entry in raw_cases:
+        assert isinstance(entry, dict)
+        expected_case = canonical[entry["case_id"]]
+        for field, expected_value in (
+            ("path", expected_case.filename),
+            ("category", expected_case.category),
+            ("format_version", expected_case.format_version),
+            ("expected_verify_with_key", expected_case.expected_verify_with_key),
+            ("expected_verify_without_key", expected_case.expected_verify_without_key),
+            ("expected_unpack", expected_case.expected_unpack),
+            ("description", expected_case.description),
+        ):
+            if entry.get(field) != expected_value:
+                structural_errors.append(f"{expected_case.case_id}: {field} mismatch")
+        relative = Path(str(entry.get("path", "")))
+        if relative.is_absolute() or relative.name != relative.as_posix() or ".." in relative.parts:
+            structural_errors.append(f"{expected_case.case_id}: unsafe fixture path")
+            continue
+        container = fixture_dir / relative
+        if not container.is_file():
+            structural_errors.append(f"{expected_case.case_id}: fixture is missing")
+            continue
+        if entry.get("size_bytes") != container.stat().st_size:
+            structural_errors.append(f"{expected_case.case_id}: size digest metadata mismatch")
+        if entry.get("sha256") != crypto.sha256_hex(container.read_bytes()):
+            structural_errors.append(f"{expected_case.case_id}: SHA-256 metadata mismatch")
+    if structural_errors:
+        return {
+            "ok": False,
+            "schema_version": "1",
+            "fixture_dir": str(fixture_dir),
+            "case_count": len(raw_cases),
+            "passed": 0,
+            "failed": len(structural_errors),
+            "failed_cases": structural_errors,
+            "cases": [],
+        }
+
+    key = CONFORMANCE_KEY
     results: list[dict[str, Any]] = []
-    for case in manifest["cases"]:
+    for case in raw_cases:
         container = fixture_dir / case["path"]
         actual, errors = _evaluate_case(container, key)
-        expected = {
+        expected_outcome = {
             "verify_with_key": bool(case["expected_verify_with_key"]),
             "verify_without_key": bool(case["expected_verify_without_key"]),
             "unpack": bool(case["expected_unpack"]),
         }
-        case_ok = actual == expected
+        case_ok = actual == expected_outcome
         results.append(
             {
                 "case_id": case["case_id"],
                 "path": case["path"],
                 "category": case["category"],
                 "format_version": case["format_version"],
-                "expected": expected,
+                "expected": expected_outcome,
                 "actual": actual,
                 "errors": errors,
                 "ok": case_ok,

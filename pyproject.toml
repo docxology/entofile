@@ -36,6 +36,8 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["src*"]
+exclude = ["build*", "tests*"]
 
 [tool.setuptools.package-dir]
 "" = "."

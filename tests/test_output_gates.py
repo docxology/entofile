@@ -55,6 +55,18 @@ def test_benchmark_report_ok_passes(tmp_path: Path) -> None:
     assert report["tamper_detection_rate"] == 1.0
 
 
+def test_malformed_reports_fail_closed(tmp_path: Path) -> None:
+    _write_minimal_outputs(tmp_path)
+    (tmp_path / "output" / "reports" / "benchmark_validation.json").write_text(
+        "not-json", encoding="utf-8"
+    )
+    (tmp_path / "output" / "figures" / "figure_registry.json").write_text(
+        "not-json", encoding="utf-8"
+    )
+    assert benchmark_report_ok(tmp_path) == (False, {})
+    assert validate_all_outputs(tmp_path)["registry_provenance_ok"] is False
+
+
 def test_container_verification_report_ok_requires_file(tmp_path: Path) -> None:
     assert container_verification_report_ok(tmp_path) is False
     _write_minimal_outputs(tmp_path)
