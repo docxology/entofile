@@ -3,7 +3,7 @@ project: entofile
 task: ENTO stable 0.4.0 plus opt-in 0.5.0 authenticated manifest context
 effort: E4
 phase: build
-progress: current 0.5.0 implementation validated; landing and certifying publication retry pending
+progress: current 0.5.0 implementation landed; certifying publication retry blocked by shared-host timeout
 mode: algorithm
 started: 2026-05-28
 updated: 2026-07-15
@@ -515,18 +515,18 @@ independent implementation result.
 
 ### Current-cycle verification record
 
-The current working tree has passed 448 tests at 90.38 percent coverage,
-Ruff, mypy, fresh analysis with 2,400 rows and tamper rate 1.0, conformance
-8/8, figure layout 21/21, manuscript hydration, package build/install/import
-smoke, equation-fidelity, no-mock, and repository consistency checks. The
-display-only local publication gate is green. The certifying live publication
-gate was also attempted, but its pytest child exceeded the 600-second bound
-under shared-host contention and failed closed; this is an infrastructure
-verification blocker, not evidence of a test failure. No certifying live-gate
-pass or clean-head release readiness is claimed until that command is rerun.
-The live public endpoint probe returned HTTP 200 for GitHub, DOI, and Zenodo;
-the metadata checker correctly reports source-dirty blockers while this tree is
-uncommitted. Final clean status and main/origin parity remain landing checks.
+Commits c3e74e4 and 0515b5d landed on `main` and were pushed without force.
+The landed head passed 448 tests at 90.38 percent coverage, Ruff, mypy, fresh
+analysis with 2,400 rows and tamper rate 1.0, conformance 8/8, figure layout
+21/21, manuscript hydration, package build/install/import smoke,
+equation-fidelity, no-mock, and repository consistency checks. The display-only
+local publication gate is green, and a clean-head release bundle plus the live
+public endpoint probe report release-ready with HTTP 200 for GitHub, DOI, and
+Zenodo. The certifying live publication gate was attempted, but its pytest child
+exceeded the 600-second bound under shared-host contention and failed closed;
+this is an infrastructure verification blocker, not evidence of a test failure.
+The independent live `run_tests.py` gate remains green. No certifying live-gate
+pass is claimed until that command is rerun under adequate host capacity.
 
 ## Current cycle — 2026-07-15 — opt-in 0.5.0 profile
 
@@ -609,7 +609,7 @@ land the result on synchronized `main` without force-pushing.
   of origin, and no independent interoperability claim is made prematurely.
 - [x] ISC-40 anti-criterion: no stale 0.2.0/0.4.0 default wording remains in active
   format guidance, and no generated report substitutes for its owning command.
-- [ ] ISC-41 anti-criterion: no mixed unreviewed staging, force-push, or dirty-head
+- [x] ISC-41 anti-criterion: no mixed unreviewed staging, force-push, or dirty-head
   release certification is accepted.
 
 ### Test Strategy
@@ -633,7 +633,7 @@ land the result on synchronized `main` without force-pushing.
 | conditional schema + fail-closed readers | implemented | `data/ento_manifest_schema.json`, `src/manifest.py` |
 | vectors and negative controls | implemented | `tests/test_format_0_5_0.py` |
 | format/manuscript/research documentation | implemented | `docs/`, `manuscript/`, `experiment_plan.yaml` |
-| regenerated release evidence and synchronized landing | pending | gate sequence below |
+| regenerated release evidence and synchronized landing | landed | gate sequence below; live certification retry remains |
 
 ### Decisions
 
