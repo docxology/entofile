@@ -3,7 +3,7 @@ project: entofile
 task: ENTO 0.5.0 default migration with 0.2.0-0.4.0 compatibility
 effort: E4
 phase: verify
-progress: 0.5.0 default migration implemented; full regenerated evidence green; final endpoint and clean-head parity pending
+progress: 0.5.0 default migration implemented; full regenerated evidence, live endpoints, and clean-head parity green
 mode: algorithm
 started: 2026-05-28
 updated: 2026-07-15
@@ -814,6 +814,24 @@ The cross-vendor Cato audit was attempted but skipped because the configured
 `CrossVendorAudit.ts` infrastructure was unavailable. The repository-grounded
 RedTeam pass remains the evidence used for this cycle; no cross-vendor assurance
 or independent-language interoperability claim is inferred from that fallback.
+
+### Final evidence — 2026-07-15
+
+- Cache-free test gate: **455 passed**, **90.28% coverage**; Ruff and mypy pass.
+- Fresh analysis: **2,400 rows**, tamper-detection rate **1.0**, registry and
+  container outputs valid.
+- Conformance: **8/8**; figure layout QA: **21/21**; research agenda YAML
+  contract and template-compatible design overlay pass.
+- Manuscript: combined PDF and HTML regenerated; PDF validation, 44-page
+  transmission bookends, Markdown, figure, evidence, and artifact validation
+  all pass.
+- Certifying publication gate: `ok: true`, `tests_source: live`, no blockers.
+- Live public endpoint probe: GitHub, Zenodo, and DOI each returned HTTP 200;
+  metadata checks, stale-format scan, and machine-path scan are clean.
+- Clean release bundle: default wire format `0.5.0`, paper label `0.5`, both
+  source-dirty fields `false`, release readiness `true`.
+- Git: pushed `main` without force; final verification must retain
+  `main...origin/main = 0/0` and an empty worktree.
 
 ### Decision record
 
