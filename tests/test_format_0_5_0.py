@@ -1,4 +1,4 @@
-"""Tests for the opt-in 0.5.0 authenticated-manifest-context profile."""
+"""Tests for the current 0.5.0 authenticated-manifest-context profile."""
 
 from __future__ import annotations
 
@@ -43,7 +43,8 @@ def _vector_manifest() -> Manifest:
 def test_0_5_0_profile_contract_and_vector() -> None:
     manifest = _vector_manifest()
     binding = compute_manifest_binding(manifest)
-    assert crypto.FORMAT_VERSION == "0.4.0"
+    assert crypto.FORMAT_VERSION == "0.5.0"
+    assert crypto.FORMAT_VERSION_LATEST == "0.5.0"
     assert crypto.FORMAT_VERSION_NEXT == "0.5.0"
     assert crypto.requires_manifest_binding("0.5.0") is True
     assert crypto.nonce_size_for("0.5.0") == 12

@@ -14,7 +14,7 @@ from matplotlib.patches import Patch
 from matplotlib.ticker import MaxNLocator
 
 from .benchmark_filters import is_tamper_detected
-from .crypto import NONCE_SIZE, TAG_SIZE
+from .crypto import FORMAT_VERSION, NONCE_SIZE, TAG_SIZE
 from .figure_registry import (
     FigureSpec,
     filter_rows_for_spec,
@@ -215,14 +215,14 @@ def plot_format_ladder(
     _rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
     """Show the supported ENTO format ladder and what each step hardens."""
-    from .crypto import FORMAT_VERSION, FORMAT_VERSION_LATEST, FORMAT_VERSION_NEXT
+    from .crypto import FORMAT_VERSION, FORMAT_VERSION_LATEST
 
     rows = [
         ("0.2.0", "compat", "16 B nonce\nno AAD\nno padding"),
         ("0.3.0", "compat", "12 B nonce\nformat+track AAD\nno padding"),
         ("0.3.1", "compat", "12 B nonce\nformat+track AAD\nPADME padding"),
-        ("0.4.0", "default", "12 B nonce\nformat+track AAD\nPADME padding"),
-        (FORMAT_VERSION_NEXT, "next", "12 B nonce\nmanifest+track AAD\nPADME padding"),
+        ("0.4.0", "compat", "12 B nonce\nformat+track AAD\nPADME padding"),
+        (FORMAT_VERSION, "default", "12 B nonce\nmanifest+track AAD\nPADME padding"),
     ]
     colors = color_cycle(len(rows))
     y = list(range(len(rows)))
@@ -751,7 +751,7 @@ def plot_expansion_law(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -
     """Measured expansion ratio vs the version-aware expansion model.
 
     Overlays per-track measured ``expansion_ratio`` (markers) on the analytic
-    ``expansion_ratio_model``. For default 0.4.0 the body is PADME bucketed, so
+    ``expansion_ratio_model``. For default 0.5.0 the body is PADME bucketed, so
     the curve is a step profile rather than the old unpadded ``1 + H/n`` line.
     """
     from .benchmark_stats import (
@@ -770,7 +770,7 @@ def plot_expansion_law(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -
     measured = [float(row["expansion_ratio"]) for row in ordered]
     track_ids = [row["track_id"] for row in ordered]
 
-    format_version = ordered[0].get("format_version", "0.4.0")
+    format_version = ordered[0].get("format_version", FORMAT_VERSION)
     # Integer model curve across the observed plaintext range.
     lo, hi = min(sizes), max(sizes)
     span = hi - lo or hi

@@ -2,7 +2,7 @@
 
 0.3.0 is the hardened successor to the published 0.2.0 baseline: it uses the
 standard 96-bit GCM nonce and binds (format_version, track_id) as associated data
-so a format downgrade or cross-track relabel fails authentication. 0.4.0 is the
+so a format downgrade or cross-track relabel fails authentication. 0.5.0 is the
 current default write format; 0.2.0 remains a readable/writable compatibility
 format. No mocks: real containers.
 """

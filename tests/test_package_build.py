@@ -78,7 +78,7 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
             str(python),
             "-c",
             "from src.crypto import FORMAT_VERSION; "
-            "assert FORMAT_VERSION == '0.4.0'; "
+            "assert FORMAT_VERSION == '0.5.0'; "
             "print('import ok')",
         ],
         capture_output=True,

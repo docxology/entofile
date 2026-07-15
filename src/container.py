@@ -434,10 +434,10 @@ def pack_container(
 ) -> Manifest:
     """Pack tracks into an ENTO ZIP at destination.
 
-    ``format_version`` defaults to the 0.4.0 release-candidate profile (standard
-    nonce, AAD binding, and PADMÉ length padding). Pass ``0.5.0`` explicitly for
-    exported-manifest context binding, or a prior supported version for a
-    compatibility container."""
+    ``format_version`` defaults to the 0.5.0 profile (standard nonce, AAD binding,
+    PADMÉ length padding, and exported-manifest context binding). Pass ``0.4.0``
+    explicitly for the previous compatibility profile, or another supported
+    version for a legacy container."""
     full_manifest, encrypted, level = _prepare_pack(
         master_key,
         tracks,

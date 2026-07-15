@@ -50,14 +50,14 @@ def test_eq_track_key_derivation_matches_formula() -> None:
 
 
 def test_eq_track_member_byte_layout_matches() -> None:
-    """eq:track_member: default 0.4.0 parses as nonce(12) || tag(16) ||
+    """eq:track_member: the compatibility 0.4.0 profile parses as nonce(12) || tag(16) ||
     ciphertext, where ciphertext length is the PADME-padded plaintext length."""
     master = generate_master_key()
     plain = PlainTrack(
         track_id="t", track_type="ento:timeseries.eeg", payload=b"x" * 200
     )
-    enc = encrypt_track(master, plain)
-    assert len(enc.nonce) == crypto.nonce_size_for(FORMAT_VERSION) == 12
+    enc = encrypt_track(master, plain, format_version="0.4.0")
+    assert len(enc.nonce) == crypto.nonce_size_for("0.4.0") == 12
     assert len(enc.tag) == TAG_SIZE == 16
     assert len(enc.ciphertext) == padding.padme(len(plain.payload) + 8)
     # Round-trip through the concatenated wire layout in eq:track_member order.
@@ -125,7 +125,7 @@ def test_eq_manifest_aad_matches_track_aad_contract() -> None:
 
 
 def test_eq_expansion_law_total_bytes_equals_model() -> None:
-    """eq:expansion_law: default 0.4.0 stored member size is header plus PADME
+    """eq:expansion_law: the 0.4.0 compatibility stored member size is header plus PADME
     padded plaintext, and the ratio equals expansion_ratio_model(n)."""
     assert TRACK_HEADER_BYTES == crypto.nonce_size_for(FORMAT_VERSION) + TAG_SIZE == 28
     master = generate_master_key()
@@ -133,10 +133,11 @@ def test_eq_expansion_law_total_bytes_equals_model() -> None:
         enc = encrypt_track(
             master,
             PlainTrack(track_id="t", track_type="ento:spectrogram", payload=b"z" * n),
+            format_version="0.4.0",
         )
         total = len(enc.nonce) + len(enc.tag) + len(enc.ciphertext)
         assert total == TRACK_HEADER_BYTES + padding.padme(n + 8)
-        assert (total / n) == pytest.approx(expansion_ratio_model(n))
+        assert (total / n) == pytest.approx(expansion_ratio_model(n, format_version="0.4.0"))
 
 
 # ---- eq:integrity_levels — the three-way integrity function -----------------------

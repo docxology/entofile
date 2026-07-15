@@ -1,4 +1,4 @@
-"""Citation scholarship gates for the 0.4 manuscript.
+"""Citation scholarship gates for the 0.5 manuscript.
 
 These tests keep load-bearing security and related-work claims attached to
 primary sources, and prevent RFC 8785 from drifting into an implementation

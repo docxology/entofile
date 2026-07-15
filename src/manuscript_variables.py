@@ -26,6 +26,7 @@ from .crypto import (
     FORMAT_VERSION,
     FORMAT_VERSION_LATEST,
     FORMAT_VERSION_NEXT,
+    FORMAT_VERSION_PREVIOUS,
     MASTER_KEY_SIZE,
     SUPPORTED_FORMAT_VERSIONS,
     TAG_SIZE,
@@ -232,10 +233,10 @@ def generate_variables(
         return ", ".join(versions[:-1]) + f" and {versions[-1]}"
 
     sorted_versions = tuple(sorted(SUPPORTED_FORMAT_VERSIONS, key=_semver_key))
-    compatibility_versions = tuple(
-        v for v in sorted_versions if v not in (FORMAT_VERSION, FORMAT_VERSION_NEXT)
-    )
-    forward_versions = tuple(v for v in sorted_versions if v == FORMAT_VERSION_NEXT)
+    compatibility_versions = tuple(v for v in sorted_versions if v != FORMAT_VERSION)
+    # FORMAT_VERSION_NEXT is a compatibility alias retained for older consumers;
+    # there is no unimplemented forward profile in the current release.
+    forward_versions: tuple[str, ...] = ()
     hardened_versions = tuple(v for v in sorted_versions if v != "0.2.0")
     hardened_join = _join_versions(hardened_versions)
     compatibility_join = _join_versions(compatibility_versions)
@@ -254,16 +255,31 @@ def generate_variables(
         if hardened_versions
         else "N/A",
         "FORMAT_VERSION_LATEST": FORMAT_VERSION_LATEST,
+        "FORMAT_VERSION_PREVIOUS": FORMAT_VERSION_PREVIOUS,
         "FORMAT_VERSION_NEXT": FORMAT_VERSION_NEXT,
+        # Canonical current-profile names; retain the NEXT aliases below for
+        # manuscript consumers that adopted the pre-default 0.5.0 vocabulary.
+        "FORMAT_AAD_TEMPLATE": (
+            f"ento:{FORMAT_VERSION}:manifest:{{manifest_binding}}:track:{{track_id}}"
+        ),
+        "FORMAT_BINDING_DESCRIPTION": (
+            "canonical SHA-256 of the exported manifest context in every track tag"
+        ),
         "FORMAT_NEXT_AAD_TEMPLATE": (
-            f"ento:{FORMAT_VERSION_NEXT}:manifest:{{manifest_binding}}:track:{{track_id}}"
+            f"ento:{FORMAT_VERSION}:manifest:{{manifest_binding}}:track:{{track_id}}"
         ),
         "FORMAT_NEXT_BINDING_DESCRIPTION": (
             "canonical SHA-256 of the exported manifest context in every track tag"
         ),
         "FORMAT_VERSIONS_HARDENED": hardened_join,
         "FORMAT_VERSIONS_COMPATIBILITY": compatibility_join,
-        "FORMAT_VERSIONS_FORWARD": _join_versions(forward_versions),
+        # This is a structural state, not a missing metric. Use descriptive
+        # prose rather than a sentinel that the publication gate would reject.
+        "FORMAT_VERSIONS_FORWARD": (
+            _join_versions(forward_versions)
+            if forward_versions
+            else "not applicable (current profile)"
+        ),
         "FORMAT_VERSIONS_SUPPORTED": ", ".join(SUPPORTED_FORMAT_VERSIONS),
         "NONCE_BYTES_HARDENED": str(hardened_nonce),
         "FORMAT_DEFAULT_HEADER_BYTES": str(default_header_bytes),

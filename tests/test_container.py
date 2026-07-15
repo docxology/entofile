@@ -33,14 +33,14 @@ def test_inspect_without_key(tmp_path: Path) -> None:
     out = tmp_path / "sample.ento.zip"
     pack_container(out, key, tracks)
     manifest = inspect_container(out)
-    assert manifest.format_version == FORMAT_VERSION == "0.4.0"
+    assert manifest.format_version == FORMAT_VERSION == "0.5.0"
 
 
 def test_unpack_rejects_forged_plaintext_hash(tmp_path: Path) -> None:
     key = generate_master_key()
     tracks = load_fixture_tracks()
     out = tmp_path / "sample.ento.zip"
-    pack_container(out, key, tracks)
+    pack_container(out, key, tracks, format_version="0.4.0")
     tampered = tmp_path / "tampered.ento.zip"
     with zipfile.ZipFile(out, "r") as zin, zipfile.ZipFile(tampered, "w") as zout:
         for name in zin.namelist():

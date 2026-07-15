@@ -60,7 +60,11 @@ def test_report_negative_control_rejects_bad_container(tmp_path: Path) -> None:
     bench.mkdir(parents=True)
     sample = bench / "medium_3.ento.zip"
     pack_container(
-        sample, key, tracks, observability_level=ObservabilityLevel.AUDITABLE
+        sample,
+        key,
+        tracks,
+        observability_level=ObservabilityLevel.AUDITABLE,
+        format_version="0.4.0",
     )
     control = _negative_control([sample])
     assert control["available"] is True

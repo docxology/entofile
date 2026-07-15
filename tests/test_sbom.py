@@ -15,7 +15,7 @@ def test_release_label_reads_manuscript_config() -> None:
     """The SBOM application version is paper.version from manuscript/config.yaml —
     the same label CITATION.cff pins — never a hardcoded literal."""
     label = release_label(PROJECT_ROOT)
-    assert label == "0.4"
+    assert label == "0.5"
 
 
 def test_release_label_fails_closed_without_config(tmp_path: Path) -> None:

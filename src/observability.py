@@ -39,7 +39,7 @@ def _redact_track(track: TrackDescriptor, level: ObservabilityLevel) -> TrackDes
     # AES-GCM is length-preserving and the container is ZIP_STORED, so plaintext length
     # is still recoverable from the on-disk track member size by anyone holding the bytes.
     # SEALED hides type/digests/declared-length, not length itself. Default format
-    # 0.4.0 mitigates exact-length leakage with PADMÉ padding, but bucket size remains visible.
+    # 0.5.0 mitigates exact-length leakage with PADMÉ padding, but bucket size remains visible.
     # See docs/entofile-threat-model.md.
     return TrackDescriptor(
         id=track.id,

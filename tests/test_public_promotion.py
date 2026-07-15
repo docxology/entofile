@@ -33,39 +33,39 @@ def _write_public_promotion_surfaces(
         "write format.\n"
         if stale_security
         else (
-            "The 0.4 paper release candidate documents ENTO format `0.4.0` as the "
-            "default wire format. Formats `0.2.0`, `0.3.0`, and `0.3.1` remain "
+            "The 0.5 release documents ENTO format `0.5.0` as the "
+            "default wire format. Formats `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0` remain "
             "compatibility formats.\n"
         )
     )
     (root / "SECURITY.md").write_text(security_scope, encoding="utf-8")
     (root / "docs" / "operator_checklist.md").write_text(
-        "Pack with the current default wire format `0.4.0`; use `0.2.0` only for legacy compatibility.\n",
+        "Pack with the current default wire format `0.5.0`; use `0.4.0` or older versions only for compatibility.\n",
         encoding="utf-8",
     )
     (root / "docs" / "entofile-threat-model.md").write_text(
-        "Default writes use `0.4.0`; `0.2.0`, `0.3.0`, and `0.3.1` are compatibility formats.\n",
+        "Default writes use `0.5.0`; `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0` are compatibility formats.\n",
         encoding="utf-8",
     )
     (root / "tests" / "test_format_0_3_0.py").write_text(
-        '"""0.4.0 is the current default write format; 0.2.0 is compatibility."""\n',
+        '"""0.5.0 is the current default write format; 0.2.0 is compatibility."""\n',
         encoding="utf-8",
     )
     for rel in ("docs/security.md", "docs/architecture.md", "docs/format_migration.md"):
         (root / rel).write_text(
-            "Default ENTO wire format `0.4.0`; compatibility `0.2.0`, `0.3.0`, `0.3.1`.\n",
+            "Default ENTO wire format `0.5.0`; compatibility `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`.\n",
             encoding="utf-8",
         )
     (root / "ISA.md").write_text(
-        "Historical note: current release guidance uses default wire format `0.4.0`.\n",
+        "Historical note: current release guidance uses default wire format `0.5.0`.\n",
         encoding="utf-8",
     )
     (root / "CONTRIBUTING.md").write_text(
-        "Default writes use format `0.4.0`; prior formats remain compatibility formats.\n",
+        "Default writes use format `0.5.0`; prior formats remain compatibility formats.\n",
         encoding="utf-8",
     )
     (root / ".github" / "ISSUE_TEMPLATE" / "bug_report.yml").write_text(
-        'options:\n  - "0.4.0"\n  - "0.2.0"\n',
+        'options:\n  - "0.5.0"\n  - "0.4.0"\n',
         encoding="utf-8",
     )
     (root / "output" / "data" / "transmission_manifest.json").write_text(
@@ -82,7 +82,7 @@ def _write_complete_public_promotion_fixture(root: Path) -> None:
         """
 paper:
   title: "ENTO title"
-  version: "0.4"
+  version: "0.5"
 authors:
   - name: "Daniel Ari Friedman"
     email: "daniel@activeinference.institute"
@@ -101,11 +101,11 @@ license = { file = "LICENSE" }
         encoding="utf-8",
     )
     (root / "CITATION.cff").write_text(
-        'title: "ENTO title"\nversion: "0.4"\ndoi: "10.5281/zenodo.20396329"\nrepository-code: "https://github.com/docxology/entofile"\n',
+        'title: "ENTO title"\nversion: "0.5"\ndoi: "10.5281/zenodo.20396329"\nrepository-code: "https://github.com/docxology/entofile"\n',
         encoding="utf-8",
     )
     (root / "README.md").write_text(
-        "Planned public home: https://github.com/docxology/entofile; projects/working/entofile. Default `0.4.0`.\n",
+        "Planned public home: https://github.com/docxology/entofile; projects/working/entofile. Default `0.5.0`.\n",
         encoding="utf-8",
     )
     (root / "output" / "release" / "release_manifest.json").write_text(
@@ -113,7 +113,7 @@ license = { file = "LICENSE" }
             {
                 "ok": True,
                 "planned_public_home": "https://github.com/docxology/entofile",
-                "release_label": "0.4",
+                "release_label": "0.5",
                 "doi": "10.5281/zenodo.20396329",
                 "wire_format_default": crypto.FORMAT_VERSION,
                 "supported_wire_formats": list(crypto.SUPPORTED_FORMAT_VERSIONS),
@@ -153,7 +153,7 @@ def test_public_promotion_metadata_current_tree() -> None:
     assert report["ok"] is True
     assert report["failures"] == []
     assert report["release_ready"] is False
-    assert report["release_label"] == "0.4"
+    assert report["release_label"] == "0.5"
     assert report["checks"]["release_manifest_default_format"] is True
     assert report["checks"]["security_policy_current_default_format"] is True
     assert report["checks"]["transmission_hash_current_or_pending"] is True
@@ -172,7 +172,7 @@ def test_public_promotion_metadata_reports_mismatch(tmp_path: Path) -> None:
         """
 paper:
   title: "ENTO title"
-  version: "0.4"
+  version: "0.5"
 authors:
   - name: "Daniel Ari Friedman"
     email: "daniel@activeinference.institute"
@@ -191,7 +191,7 @@ license = { file = "LICENSE" }
         encoding="utf-8",
     )
     (tmp_path / "CITATION.cff").write_text(
-        'title: "ENTO title"\nversion: "0.4"\ndoi: "bad"\nrepository-code: "https://github.com/docxology/entofile"\n',
+        'title: "ENTO title"\nversion: "0.5"\ndoi: "bad"\nrepository-code: "https://github.com/docxology/entofile"\n',
         encoding="utf-8",
     )
     (tmp_path / "README.md").write_text(
@@ -203,7 +203,7 @@ license = { file = "LICENSE" }
             {
                 "ok": True,
                 "planned_public_home": "https://github.com/docxology/entofile",
-                "release_label": "0.4",
+                "release_label": "0.5",
                 "doi": "10.5281/zenodo.20396329",
                 "wire_format_default": crypto.FORMAT_VERSION,
                 "supported_wire_formats": list(crypto.SUPPORTED_FORMAT_VERSIONS),
@@ -245,7 +245,7 @@ def test_public_promotion_metadata_reports_stale_security_default(
         """
 paper:
   title: "ENTO title"
-  version: "0.4"
+  version: "0.5"
 authors:
   - name: "Daniel Ari Friedman"
     email: "daniel@activeinference.institute"
@@ -264,11 +264,11 @@ license = { file = "LICENSE" }
         encoding="utf-8",
     )
     (tmp_path / "CITATION.cff").write_text(
-        'title: "ENTO title"\nversion: "0.4"\ndoi: "10.5281/zenodo.20396329"\nrepository-code: "https://github.com/docxology/entofile"\n',
+        'title: "ENTO title"\nversion: "0.5"\ndoi: "10.5281/zenodo.20396329"\nrepository-code: "https://github.com/docxology/entofile"\n',
         encoding="utf-8",
     )
     (tmp_path / "README.md").write_text(
-        "Planned public home: https://github.com/docxology/entofile; projects/working/entofile. Default `0.4.0`.\n",
+        "Planned public home: https://github.com/docxology/entofile; projects/working/entofile. Default `0.5.0`.\n",
         encoding="utf-8",
     )
     (tmp_path / "output" / "release" / "release_manifest.json").write_text(
@@ -276,7 +276,7 @@ license = { file = "LICENSE" }
             {
                 "ok": True,
                 "planned_public_home": "https://github.com/docxology/entofile",
-                "release_label": "0.4",
+                "release_label": "0.5",
                 "doi": "10.5281/zenodo.20396329",
                 "wire_format_default": crypto.FORMAT_VERSION,
                 "supported_wire_formats": list(crypto.SUPPORTED_FORMAT_VERSIONS),
@@ -503,8 +503,9 @@ def test_machine_path_scan_self_allowlist_is_minimal_and_complete() -> None:
 def test_stale_phrase_scan_covers_review_ledger_and_spec_pointer() -> None:
     """Regression (2026-06-10): REVIEW.md and entofile.md carried stale
     0.2.0-default wording that the scan missed — both files were unscanned AND
-    the exact sentences matched no phrase. Pin both closures: the surfaces are
-    scanned, and the historical sentences now fire."""
+    the exact sentences matched no phrase. The 0.5.0 migration also guards
+    against relabeling the 0.4.0 compatibility profile as the default. Pin
+    both closures: the surfaces are scanned, and historical sentences fire."""
 
     from src.public_promotion import (
         PUBLIC_DEFAULT_FORMAT_SURFACES,
@@ -521,6 +522,7 @@ def test_stale_phrase_scan_covers_review_ledger_and_spec_pointer() -> None:
             "change the default write format."
         ),
         "entofile.md": "The normative ENTO format **0.2.0** specification lives in README.",
+        "migration.md": "Default writes use `0.4.0` until the next release.",
     }
     hits = _stale_default_phrase_hits(historical)
     assert "REVIEW.md" in hits

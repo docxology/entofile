@@ -9,12 +9,15 @@ from typing import Final
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-# 0.4.0 remains the stable paper-0.4 default. 0.5.0 is an opt-in forward
-# profile: it keeps the 0.4.0 binary track layout while adding a canonical
-# exported-manifest binding to each track's AEAD associated data.
-FORMAT_VERSION: Final[str] = "0.4.0"
-FORMAT_VERSION_LATEST: Final[str] = "0.4.0"
-FORMAT_VERSION_NEXT: Final[str] = "0.5.0"
+# 0.5.0 is the current default profile. It keeps the 0.4.0 binary track layout
+# while adding a canonical exported-manifest binding to each track's AEAD AAD.
+# 0.4.0 remains an explicit compatibility profile, alongside the older formats.
+FORMAT_VERSION: Final[str] = "0.5.0"
+FORMAT_VERSION_LATEST: Final[str] = "0.5.0"
+FORMAT_VERSION_PREVIOUS: Final[str] = "0.4.0"
+# Kept as a source-compatible alias for clients that consumed the pre-0.5
+# forward-profile constant. There is no unimplemented forward profile in 0.5.0.
+FORMAT_VERSION_NEXT: Final[str] = FORMAT_VERSION
 SUPPORTED_FORMAT_VERSIONS: Final[tuple[str, ...]] = (
     "0.2.0",
     "0.3.0",
@@ -23,7 +26,7 @@ SUPPORTED_FORMAT_VERSIONS: Final[tuple[str, ...]] = (
     "0.5.0",
 )
 
-# Default 0.4.0 nonce size. Per-format sizes live in _NONCE_SIZE_BY_FORMAT so
+# Default 0.5.0 nonce size. Per-format sizes live in _NONCE_SIZE_BY_FORMAT so
 # legacy containers parse with their original nonce length.
 NONCE_SIZE: Final[int] = 12
 _NONCE_SIZE_BY_FORMAT: Final[dict[str, int]] = {

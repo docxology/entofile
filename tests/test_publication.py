@@ -77,7 +77,7 @@ def test_publication_readiness_after_pipeline() -> None:
     root = Path(__file__).resolve().parent.parent
     result = check_publication_readiness(root)
     assert "ok" in result
-    assert result["release"] == "0.4"
+    assert result["release"] == "0.5"
     assert result["format_version"] == crypto.FORMAT_VERSION
     if not result["ok"]:
         assert result["blockers"], "expected blocker messages when not ok"
@@ -230,7 +230,7 @@ def test_audit_publication_readiness_check_json() -> None:
         text=True,
     )
     payload = json.loads(result.stdout)
-    assert payload["release"] == "0.4"
+    assert payload["release"] == "0.5"
     assert "checks" in payload
     assert "blockers" in payload
     assert isinstance(payload["ok"], bool)

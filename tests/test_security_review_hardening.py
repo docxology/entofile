@@ -26,7 +26,7 @@ from src.security import safe_read_member
 def _build_container() -> bytes:
     key = crypto.generate_master_key()
     track = PlainTrack(track_id="alpha", track_type="ento:blockchain.proof", payload=b"SECRET-RESEARCH-DATA")
-    return key, container.pack_container_bytes(key, (track,))
+    return key, container.pack_container_bytes(key, (track,), format_version="0.4.0")
 
 
 def _adversary_rewrite(blob: bytes, *, blank_digests: bool, corrupt_ciphertext: bool) -> bytes:

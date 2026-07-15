@@ -1,4 +1,4 @@
-"""Documentation consistency gates for the 0.4 manuscript RC.
+"""Documentation consistency gates for the 0.5 manuscript release.
 
 These tests pin RedTeam documentation failures that can otherwise render cleanly:
 stale figure counts, stale manifest enum prose, future-public wording drift, and

@@ -268,7 +268,7 @@ def test_keyed_verify_rejects_lying_byte_length(tmp_path: Path) -> None:
     key = generate_master_key()
     tracks = load_fixture_tracks()
     src = tmp_path / "real.zip"
-    pack_container(src, key, tracks, observability_level=ObservabilityLevel.AUDITABLE)
+    pack_container(src, key, tracks, observability_level=ObservabilityLevel.AUDITABLE, format_version="0.4.0")
     with zipfile.ZipFile(src) as zf:
         man = json.loads(zf.read("manifest.json"))
         members = {n: zf.read(n) for n in zf.namelist()}
@@ -292,7 +292,7 @@ def test_keyed_verify_rejects_sealed_header_byte_length_bypass(tmp_path: Path) -
     key = generate_master_key()
     tracks = load_fixture_tracks()
     src = tmp_path / "auditable.zip"
-    pack_container(src, key, tracks, observability_level=ObservabilityLevel.AUDITABLE)
+    pack_container(src, key, tracks, observability_level=ObservabilityLevel.AUDITABLE, format_version="0.4.0")
     with zipfile.ZipFile(src) as zf:
         man = json.loads(zf.read("manifest.json"))
         members = {n: zf.read(n) for n in zf.namelist()}

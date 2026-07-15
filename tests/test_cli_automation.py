@@ -99,7 +99,7 @@ def test_cli_telemetry_jsonl_success_and_failure(tmp_path: Path) -> None:
         if line.strip()
     ]
     assert [event["command"] for event in events] == ["genkey", "pack", "verify", "verify"]
-    assert events[1]["format_version"] == "0.4.0"
+    assert events[1]["format_version"] == "0.5.0"
     assert events[2]["integrity"] == "key-authenticated"
     assert events[-1]["ok"] is False
     assert key.read_bytes().hex() not in telemetry.read_text(encoding="utf-8")

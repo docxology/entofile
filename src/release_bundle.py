@@ -59,7 +59,8 @@ RELEASE_FILES: tuple[ReleaseFile, ...] = (
         "docs/research/reproducible_figures_crypto_vectors.md",
         "figure and crypto verification research notes",
     ),
-    ReleaseFile("docs/redteam_publish_0.4.md", "RedTeam release ledger"),
+    ReleaseFile("docs/redteam_publish_0.4.md", "Historical RedTeam release ledger"),
+    ReleaseFile("docs/redteam_publish_0.5.md", "Current RedTeam migration ledger"),
     ReleaseFile(
         "docs/redteam_claim_scholarship_audit_0.4.md",
         "RedTeam claim and scholarship audit",

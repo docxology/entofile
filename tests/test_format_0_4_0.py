@@ -1,6 +1,6 @@
-"""ENTO format 0.4.0 default profile.
+"""ENTO format 0.4.0 compatibility profile.
 
-0.4.0 is the paper-0.4 release-candidate wire default: 12-byte GCM nonce,
+0.4.0 is the previous paper-0.4 wire profile: 12-byte GCM nonce,
 associated-data binding of (format_version, track_id), and PADME payload padding.
 Legacy 0.2.0/0.3.0/0.3.1 remain readable/writable compatibility formats.
 """
@@ -23,9 +23,10 @@ _TRACK = PlainTrack(
 )
 
 
-def test_0_4_0_is_default_and_latest() -> None:
-    assert crypto.FORMAT_VERSION == "0.4.0"
-    assert crypto.FORMAT_VERSION_LATEST == "0.4.0"
+def test_0_4_0_is_explicit_compatibility_profile() -> None:
+    assert crypto.FORMAT_VERSION == "0.5.0"
+    assert crypto.FORMAT_VERSION_LATEST == "0.5.0"
+    assert crypto.FORMAT_VERSION_PREVIOUS == "0.4.0"
     assert crypto.SUPPORTED_FORMAT_VERSIONS == (
         "0.2.0", "0.3.0", "0.3.1", "0.4.0", "0.5.0"
     )
@@ -61,10 +62,10 @@ def test_0_4_0_aead_deterministic_vector() -> None:
     )
 
 
-def test_pack_default_writes_0_4_0_and_round_trips(tmp_path: Path) -> None:
+def test_explicit_0_4_0_writes_and_round_trips(tmp_path: Path) -> None:
     key = crypto.generate_master_key()
     out = tmp_path / "default.ento.zip"
-    manifest = container.pack_container(out, key, (_TRACK,))
+    manifest = container.pack_container(out, key, (_TRACK,), format_version="0.4.0")
     assert manifest.format_version == "0.4.0"
     inspected = container.inspect_container(out)
     assert inspected.format_version == "0.4.0"

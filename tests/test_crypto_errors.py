@@ -15,12 +15,12 @@ def test_derive_track_key_bad_length() -> None:
 def test_encrypt_bad_nonce_length() -> None:
     key = derive_track_key(generate_master_key(), "t")
     with pytest.raises(ValueError, match="nonce"):
-        encrypt_payload(key, b"x", _nonce=b"short", track_id="t")
+        encrypt_payload(key, b"x", _nonce=b"short", format_version="0.4.0", track_id="t")
 
 
 def test_encrypt_rejects_bad_track_key_length() -> None:
     with pytest.raises(ValueError, match="track key must be 32 bytes"):
-        encrypt_payload(b"too-short", b"x", track_id="t")
+        encrypt_payload(b"too-short", b"x", format_version="0.4.0", track_id="t")
 
 
 def test_decrypt_rejects_bad_track_key_and_tag_length() -> None:

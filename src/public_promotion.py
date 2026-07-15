@@ -31,7 +31,7 @@ PUBLIC_ENDPOINTS = {
     "zenodo": PLANNED_ZENODO_RECORD,
     "doi": PLANNED_DOI_URL,
 }
-PUBLIC_ENDPOINT_USER_AGENT = "entofile-release-check/0.4"
+PUBLIC_ENDPOINT_USER_AGENT = "entofile-release-check/0.5"
 CORE_CURRENT_DEFAULT_DOCS = (
     "SECURITY.md",
     "docs/operator_checklist.md",
@@ -69,6 +69,16 @@ STALE_DEFAULT_FORMAT_PHRASES = (
     "default format version: 0.2.0",
     "format **0.2.0** specification",
     "does not change the default write format",
+    # 0.5.0 migration guard: a current surface must not quietly regress to
+    # describing the 0.4.0 compatibility profile as the writer default.
+    "default writes use `0.4.0`",
+    "default writes use 0.4.0",
+    "default wire format `0.4.0`",
+    "default wire format 0.4.0",
+    "stable default `0.4.0`",
+    "stable default 0.4.0",
+    "default format `0.4.0`",
+    "default format 0.4.0",
 )
 
 # Public-release leak scan. A clone of github.com/docxology/entofile sits at an

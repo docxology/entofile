@@ -170,8 +170,8 @@ def test_fingerprint_matches_live_csv_variable_when_present() -> None:
     if not vars_path.is_file():
         pytest.skip("manuscript_variables.json not generated in this environment")
     variables = json.loads(vars_path.read_text(encoding="utf-8"))
-    if variables.get("FORMAT_VERSION") != "0.4.0":
-        pytest.skip("manuscript variables predate default 0.4.0")
+    if variables.get("FORMAT_VERSION") != "0.5.0":
+        pytest.skip("manuscript variables predate the current default 0.5.0")
     stored = variables.get("BENCHMARK_DATA_FINGERPRINT")
     if stored is None:
         pytest.skip("BENCHMARK_DATA_FINGERPRINT not present (stale variables file)")

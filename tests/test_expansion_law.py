@@ -23,7 +23,7 @@ def test_header_constant_matches_crypto() -> None:
 
 
 def test_expansion_model_closed_form() -> None:
-    # Default 0.4.0: nonce(12) + tag(16) + PADME(length-prefix + plaintext).
+    # Current default 0.5.0: nonce(12) + tag(16) + PADME(length-prefix + plaintext).
     for n in (32, 42, 64):
         expected = (28 + padding.padme(n + 8)) / n
         assert expansion_ratio_model(n) == pytest.approx(expected)

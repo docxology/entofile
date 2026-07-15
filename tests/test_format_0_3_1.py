@@ -2,7 +2,7 @@
 
 0.3.1 hides exact plaintext length: the on-disk ciphertext size reveals only a PADMÉ
 bucket, not the byte count. Closes the length side-channel Forge flagged for SEALED.
-0.4.0 is now default; 0.3.1 remains a readable/writable compatibility format.
+0.5.0 is now default; 0.3.1 remains a readable/writable compatibility format.
 No mocks: real containers.
 """
 

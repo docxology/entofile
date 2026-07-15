@@ -42,11 +42,11 @@ def test_gcm_tag_mismatch_fails_closed() -> None:
 def test_facade_uses_gcm_for_v02() -> None:
     key = bytes.fromhex("603deb1015ca71be2b73aef0857d77811f352c073b6108d71d59185466726408")
     nonce, tag, ciphertext = encrypt_payload(
-        key, b"test", format_version=FORMAT_VERSION, track_id="alpha"
+        key, b"test", format_version="0.4.0", track_id="alpha"
     )
     assert (
         decrypt_payload(
-            key, nonce, tag, ciphertext, format_version=FORMAT_VERSION, track_id="alpha"
+            key, nonce, tag, ciphertext, format_version="0.4.0", track_id="alpha"
         )
         == b"test"
     )
@@ -57,10 +57,10 @@ def test_deterministic_nonce_reproduces_ciphertext() -> None:
     plaintext = b"same plaintext bytes"
     nonce = bytes(nonce_size_for(FORMAT_VERSION))
     _, tag_a, ct_a = encrypt_payload(
-        key, plaintext, _nonce=nonce, format_version=FORMAT_VERSION, track_id="alpha"
+        key, plaintext, _nonce=nonce, format_version="0.4.0", track_id="alpha"
     )
     _, tag_b, ct_b = encrypt_payload(
-        key, plaintext, _nonce=nonce, format_version=FORMAT_VERSION, track_id="alpha"
+        key, plaintext, _nonce=nonce, format_version="0.4.0", track_id="alpha"
     )
     assert ct_a == ct_b
     assert tag_a == tag_b
