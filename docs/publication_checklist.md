@@ -12,7 +12,7 @@ until promotion, the source and render path remain `projects/working/entofile`.
 From the project root:
 
 ```bash
-uv run pytest tests/ --cov=src --cov-fail-under=90 -q
+uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/build_dashboard.py
 uv run python scripts/generate_api_docs.py

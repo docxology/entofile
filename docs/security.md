@@ -46,6 +46,11 @@ Benchmark temp keys under `output/data/_bench_tmp/` are disposable pipeline arti
 
 Default `pack` writes `0.4.0`. Select a compatibility format with `pack --format 0.2.0|0.3.0|0.3.1` or `pack_container(..., format_version=...)`. Verify/unpack dispatch on the manifest's `format_version`, so existing 0.2.0/0.3.0/0.3.1 containers keep working unchanged.
 
+The source `observability_level` is an upper bound on an export: `export_level`
+may reduce metadata exposure, but cannot raise it. The pack APIs reject an attempted
+SEALED-to-AUDITABLE (or equivalent) escalation instead of leaking fields retained in
+the in-memory full manifest.
+
 Facade: `src/crypto.py` — `encrypt_payload` / `decrypt_payload` dispatch on
 `format_version` and reject unsupported versions. Per-track keys are
 HKDF-SHA256 derived with `info = "ento:track:<id>"` via the vetted
@@ -107,6 +112,14 @@ Track IDs must match `^[a-z0-9._-]+$`. CLI `unpack` resolves outputs under `--ou
 bounds the real decompressed stream — a highly compressible member cannot fan out past the cap.
 This is the ZIP/data-amplification class captured by CWE-409 [@cwe409].
 `validate_zip_archive` additionally rejects declared per-member and aggregate overflow up front.
+
+For padded formats, decoding also requires the canonical PADMÉ bucket and zero-filled
+tail. GCM authenticates the padding bytes, but canonical decoding prevents a validly
+authenticated producer from creating alternate encodings that the reader would accept.
+
+Conformance verification binds each manifest entry to the code-defined version/attack
+matrix and recomputes the fixture size and SHA-256. The manifest is an index, not an
+authority for its own expected outcomes.
 
 ## Observability and leakage
 

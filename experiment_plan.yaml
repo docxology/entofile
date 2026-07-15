@@ -1,3 +1,14 @@
+protocol_version: 1
+status: planned
+principal_investigator: DAF
+agenda: docs/research/agenda.md
+pre_registration:
+  required_before_data_collection: true
+  hypothesis_minimum: 3
+  record_protocol_deviations: true
+  preserve_raw_inputs: true
+  stopping_rule: "Stop the claim when a negative control fires or an unexplained divergence remains."
+
 conditions:
   - name: small_tracks
     role: reference
@@ -8,10 +19,66 @@ conditions:
   - name: observability_sweep
     role: variant
     description: "Export manifest at observability levels 0–3."
+  - name: large_tracks
+    role: stress
+    description: "Opt-in tracks used only by bounded-memory and streaming experiments."
+
 metrics:
   primary:
     name: pack_throughput_mib_s
     direction: maximize
+  required_secondary:
+    - unpack_throughput_mib_s
+    - peak_resident_memory_bytes
+    - exact_length_distinguishability
+    - tamper_detection_rate
+    - conformance_outcome_parity
+    - artifact_checksum_parity
+
+controls:
+  - fixed_master_key_for_deterministic_vectors
+  - fixed_fixture_bytes
+  - known_good_and_known_bad_cases
+  - independent_implementation_when_claiming_interoperability
+  - negative_control_for_each_security_gate
+
+research_questions:
+  - id: RQ-1
+    title: independent_conformance
+    hypotheses: [H1-A, H1-B, H1-C]
+    falsification: "Any unexplained byte or verdict divergence."
+    stopping_rule: "Do not claim interoperability while a divergence is unexplained."
+  - id: RQ-2
+    title: streaming_safety
+    hypotheses: [H2-A, H2-B, H2-C]
+    falsification: "Any unauthenticated plaintext release or cleanup failure."
+    stopping_rule: "Stop immediately on a verify-before-release violation."
+  - id: RQ-3
+    title: leakage_and_observability
+    hypotheses: [H3-A, H3-B, H3-C]
+    falsification: "Any documented privacy claim contradicted by archive-only observation."
+    stopping_rule: "Downgrade the claim to the measured leakage boundary."
+  - id: RQ-4
+    title: cryptographic_interoperability
+    hypotheses: [H4-A, H4-B, H4-C]
+    falsification: "Any vector, nonce, downgrade, or canonical-padding mismatch."
+    stopping_rule: "Freeze profile claims until the mismatch is resolved."
+  - id: RQ-5
+    title: custody_and_recovery_boundary
+    hypotheses: [H5-A, H5-B, H5-C]
+    falsification: "Any unlogged key access, unrecoverable rotation, or unsafe cleanup path."
+    stopping_rule: "Keep custody outside the reference implementation until controls pass."
+  - id: RQ-6
+    title: supply_chain_and_release_provenance
+    hypotheses: [H6-A, H6-B, H6-C]
+    falsification: "Any unexplained checksum or provenance verification failure."
+    stopping_rule: "Do not claim reproducible release artifacts until clean-clone parity passes."
+  - id: RQ-7
+    title: related_format_interoperability
+    hypotheses: [H7-A, H7-B, H7-C]
+    falsification: "Any unreported data, digest, or metadata loss in a round trip."
+    stopping_rule: "Document the loss boundary before adding an extension."
+
 protocol: "Pack and unpack fixture tracks with fixed master key and three repetitions per size class."
 expected_figures:
   - fig:throughput_benchmark

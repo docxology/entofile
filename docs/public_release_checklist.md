@@ -16,7 +16,7 @@ Target public home: `https://github.com/docxology/entofile`.
 ## Validation
 
 ```bash
-uv run pytest tests/ --cov=src --cov-fail-under=90 -q
+uv run python scripts/run_tests.py
 grep -r "unittest.mock\\|MagicMock\\|@patch" tests/ || echo "Clean"
 uv run python scripts/ento_analysis.py
 uv run python scripts/build_dashboard.py

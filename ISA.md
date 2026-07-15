@@ -1,12 +1,12 @@
 ---
 project: entofile
-task: Historical deep security review/hardening + presentation-quality improvement of the ENTO 0.2.0 reference implementation
+task: ENTO 0.4.0 main synchronization, hardening, and research agenda
 effort: E4
-phase: complete
-progress: 18/18 + R2(0.3.0+RedTeam) + R3(0.3.1 PADMÉ) + R4(manuscript) + R5(title/acronym/author/figures/captions/prose) + R6(viz-depth/config-surface/formalisms/tests) + R7(E5: eq↔code fidelity + determinism contract) + R8(E5: dispersion statistics layer + CI figure + run-robust prose) + R9(no-hardcoded-vars audit) + R10(E5 deep core review: 4 real defects fixed — proof/dup-id/schema-launder/dup-json-key) + R11(E5 deep review #2: byte_length reconciliation + CLI/dashboard/report hardening — 5 fixes) + R12(RedTeam VectorSpecialists: Phase-1A oracle attack found ORACLE-INCOMPLETE — 3 gate false-assurance gaps closed) + R13(E5 RedTeam re-audit: live test re-derivation closes test_results F1 + sentinel-escape + PDF-name + stale-evidence — 4 oracle fixes) + R14(0.4.0 cross-vendor: SEALED byte_length sentinel + live container gate + PADMÉ honesty) + R15(project-wide deep review: negative-control craft-failure fail-closed + reproducible mypy gate + SBOM version-of-record + stale-default docs/CODEOWNERS + oracle tightening)
+phase: build
+progress: 18/18 historical + current-cycle ISC-1..ISC-12
 mode: algorithm
 started: 2026-05-28
-updated: 2026-06-10T-round15
+updated: 2026-07-15
 ---
 
 # ISA — entofile historical 0.2.0 hardening log
@@ -182,6 +182,47 @@ overclaims — with zero wire-format change and the full gate green.
     enum (test); refreshed REVIEW.md ledger; publication-readiness audit → ok:true, 0 blockers. 182 tests / 92.86%.
 
 ## Verification
+
+### Round 16 (2026-07-14) — E5 multi-agent first-principles red-team and gate hardening
+
+Scope: independent security, architecture, test-oracle, operations, and implementation
+reviews against the current 0.4.0 surface. The installed PAI algorithm source was
+unavailable in this environment; the review used the repository's existing ISA contract,
+parallel specialist passes, reproduction-first tests, and current static/test evidence.
+
+- **D1 (HIGH, confidentiality):** `pack_container` accepted an `export_level` higher
+  than its source `observability_level`; filtering the full in-memory manifest could
+  therefore publish hashes/resolution metadata the caller had declared unavailable.
+  Both file and byte pack paths now reject escalation through a shared observability
+  policy helper.
+- **D2 (MED, format canonicality):** `unpad_payload` accepted noncanonical lengths and
+  nonzero tails. It now requires the exact PADMÉ bucket and zero-filled tail, with
+  negative tests; authenticated legacy/current round trips remain unchanged.
+- **D3 (MED, reusable API):** manifest JSON parsing was public but did not validate
+  before model coercion, and the schema cache ignored `project_root`. Parsing now rejects
+  duplicate keys and validates raw JSON; schema cache entries are keyed by resolved schema
+  path, preserving multi-checkout composability.
+- **D4 (MED, configuration/operations):** YAML booleans/numbers were truthiness/coercion
+  parsed and malformed JSON reports could raise out of output gates. Config parsing now
+  validates mapping, type, finite-number, range, and enum constraints; report gates and
+  publication reads fail closed on malformed JSON. `genkey --force` refuses symlinks and
+  no longer double-closes descriptors after write failure.
+- **D5 (HIGH, conformance oracle):** the verifier trusted its generated manifest for the
+  expected outcomes and ignored fixture hashes, so a broken generator and verifier could
+  agree on a forged matrix. Verification now binds the exact code-defined good/bad case
+  set, fixed key, filenames, outcomes, descriptions, sizes, and SHA-256 bytes. Publication
+  requires the complete matrix, not merely one case.
+- **D6 (CI evidence):** CI and `run.sh` now lint scripts, set a job timeout, run figure QA
+  and release bundling, and build/install the wheel before invoking the console script.
+  Core benchmark-statistics tests no longer skip when ignored generated CSVs are absent.
+- **D7 (MED, integration):** manuscript hydration and preflight now discover the documented
+  `public/entofile` plus `public/template` sibling layout, while preserving clear standalone
+  failure behavior. This closes a workspace-layout-specific integration failure.
+- **Gate:** focused adversarial suite **56 passed**; full live suite **416 passed / 90.77%**;
+  `ruff check src/ scripts/ tests/` and `mypy src/` are clean. Conformance is **7/7**,
+  figure layout is **21/21**, the clean wheel contains only the intended `src` package,
+  template output validation is green with 43-page bookends, and
+  `audit_publication_readiness.py --check` is **ok:true with 0 blockers**.
 
 ### Round 15 (2026-06-10) — project-wide deep review ("Deeply review … and make all improvements and additions project-wide")
 
@@ -386,3 +427,93 @@ Baseline → final: **142 tests / 92.05%** → **153 tests / 92.41%** (full `pyt
 **Cross-vendor (Forge GPT-5.4, read-only):** CONCERNS → 3 findings all fixed: (1) HIGH CLI call-site fail-open (`cmd_verify` now `require_integrity=not --allow-unverified`), (2) `proof_consistent` presence-alias removed, (3) stale "HMAC" doc lines corrected. Forge independently confirmed HKDF byte-identity, GCM-authenticates-every-track, and `safe_read_member` bound.
 
 **Advisor (Inference.ts):** wire-freeze + document = correct; flagged the key-present downgrade question (verified closed above) and label precision (docstring/threat-model now scope `key-authenticated` to plaintext + track_id, not header fields). Noted `--auto-state` loaded a stale unrelated session — artifacts above are the real tokens for this work.
+
+---
+
+## Current cycle — 2026-07-15
+
+The historical rounds above remain immutable evidence. This section is the active
+0.4.0 synchronization and research contract. The current worktree started with
+main equal to origin/main, but with an intentional hardening batch awaiting review,
+static cleanup, and landing. No wire compatibility change is authorized.
+
+### Current goal
+
+Reconcile the local main checkout with origin/main, finish and test the shared
+paths, structured-data, error, and test-result boundaries, refresh the project
+ledger, and land only regenerated evidence. Advance the research agenda without
+turning design hypotheses into interoperability or security claims.
+
+### Criteria and anti-criteria
+
+- [ ] ISC-19: main synchronization is fast-forward-only and final main...origin/main is 0/0.
+- [ ] ISC-20: the complete Ruff command is clean.
+- [ ] ISC-21: the complete mypy command is clean.
+- [ ] ISC-22: the live test gate passes with coverage at or above 90 percent.
+- [ ] ISC-23: fresh analysis reports tamper detection 1.0 and validates all outputs.
+- [ ] ISC-24: freshly generated conformance fixtures verify 7/7.
+- [ ] ISC-25: figure layout QA verifies every registered figure.
+- [ ] ISC-26: the release manifest is regenerated and has no required missing entries.
+- [ ] ISC-27: public error imports, the ConfigError alias, multi-root paths, and structured readers are covered by tests.
+- [ ] ISC-28: ISA, TODO, tasks.yaml, docs, experiment_plan.yaml, and release metadata describe the same current state.
+- [ ] ISC-29: every research question has three competing hypotheses, a control, metrics, falsification, and stopping rules.
+- [ ] ISC-30 anti-criterion: no local metadata is presented as proof that public endpoints are live.
+- [ ] ISC-31 anti-criterion: no force-push, wire-format mutation, unreviewed mixed staging, or side-file-only certification.
+
+### Canonical gate sequence
+
+The certifying sequence is: lint; mypy; scripts/run_tests.py; fresh analysis;
+conformance generation and verification; figure layout; manuscript variables;
+SBOM and release bundle; no-mock and unresolved-token checks; certifying
+publication readiness; separate live public endpoint probe; documentation and
+ledger consistency; diff check; clean status; and main/origin parity.
+
+Generated reports are evidence, not inputs to skip the generating command. A
+report is fresh only when the command that owns it completed successfully in the
+current checkout. Local readiness is therefore distinct from external public-
+promotion readiness, which requires endpoint evidence recorded separately.
+
+### Architecture contract
+
+- ProjectPaths is the single path value for project roots, output roots, reports,
+  conformance fixtures, release artifacts, and manuscript integration.
+- Structured readers reject duplicate JSON keys, non-mapping roots, missing required
+  files, and symlinked inputs; atomic writers refuse symlink replacement.
+- Domain exceptions are exported from src, retain ValueError compatibility where
+  existing callers depend on it, and distinguish policy, integrity, configuration,
+  pipeline, and artifact failures.
+- Facades and existing 0.2.0–0.4.0 vectors remain stable. Larger container,
+  publication, conformance, and figure splits require seam tests before migration.
+
+### Research contract
+
+The source of truth is experiment_plan.yaml plus docs/research/agenda.md. The
+agenda covers independent conformance and schema negotiation; bounded-memory
+streaming; observability leakage; cryptographic vectors and padding; KMS/HSM
+custody; signed manifests, SBOM, provenance, and reproducible builds; and related
+ecosystem exports. Each cycle must state sample or repetition rationale, controls,
+exact metrics, falsification criteria, stopping rules, and limits on what results
+prove. No related-format export may be described as equivalent without an
+independent implementation result.
+
+### Current-cycle decisions
+
+- The repo-specific Python/uv workflow overrides generic language defaults because
+  it is part of the project contract.
+- Direct synchronization is authorized, but only with fetch, review, fast-forward,
+  conflict-aware replay, validation, commit, push, and final parity checks; force
+  push is prohibited.
+- All existing local hunks are presumed intentional only until every hunk is
+  reviewed and classified. Implementation, tests, and ledger changes are staged
+  as separate review groups.
+- The requested Forge cross-vendor pass was unavailable because the environment
+  reported codex CLI not found at ~/.bun/bin/codex. Inline RedTeam review and
+  repository evidence are the substitution; no cross-vendor pass is claimed.
+- Public endpoint failure remains an explicit blocker and is never inferred away
+  from local metadata or a cached release report.
+
+### Current-cycle verification record
+
+Static gates and focused boundary tests are complete. The full generated-artifact,
+publication, endpoint, commit, and parity results are appended only after their
+commands run on the final current head.

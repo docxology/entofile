@@ -9,7 +9,7 @@ No `unittest.mock`, `MagicMock`, or `@patch`. Tests exercise real crypto, real t
 90% minimum on project-root `src/`. Run from the project root (`projects/working/entofile` in the private checkout):
 
 ```bash
-uv run pytest tests/ --cov=src --cov-fail-under=90
+uv run python scripts/run_tests.py
 ```
 
 ## Test modules
@@ -32,3 +32,8 @@ uv run pytest tests/ --cov=src --cov-fail-under=90
 ## Negative controls
 
 Security tests include forged manifest hashes, tampered tags, invalid schema digests, and proof export mismatch cases added during RedTeam hardening.
+
+Generated outputs are not required for core statistics tests: tests use deterministic
+in-memory rows so an ignored or stale `output/` tree cannot turn a broken assertion into
+a skip. Publication conformance checks require the complete code-defined case matrix,
+not merely one passing fixture.

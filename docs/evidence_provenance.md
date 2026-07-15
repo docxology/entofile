@@ -24,7 +24,7 @@ execution path and is signposted to its input class.
 | Manuscript variables | Generated injection output | `scripts/z_generate_manuscript_variables.py` / `src/manuscript_variables.py` | `uv run python scripts/z_generate_manuscript_variables.py` | Volatile metrics, paths, counts, and statuses are injected rather than hand-maintained. |
 | Release bundle manifest | Real local release inventory | `scripts/build_release_bundle.py` / `src/release_bundle.py` | `uv run python scripts/build_release_bundle.py` | Local checksum inventory for external signing; it is not itself a public signature or SLSA provenance. |
 | Rendered PDF/HTML | Template-rendered output | `<template-checkout>/scripts/03_render_pdf.py --project working/entofile` | `uv run python scripts/04_validate_output.py --project working/entofile` from the template root | Final reader artifacts generated from the working project and validated by the template output gate. |
-| Test gate | Real execution, zero mocks | `uv run pytest tests/ --cov=src --cov-fail-under=90 -q` | `grep -r "unittest.mock\\|MagicMock\\|@patch" tests/ || echo "Clean"` | Tests use real temp files, ZIPs, crypto, subprocesses, fixtures, and generated reports; mocks remain disallowed. |
+| Test gate | Real execution, zero mocks | `uv run python scripts/run_tests.py` | `grep -r "unittest.mock\\|MagicMock\\|@patch" tests/ || echo "Clean"` | Tests use real temp files, ZIPs, crypto, subprocesses, fixtures, and generated reports; mocks remain disallowed. |
 
 ## Scholarship lane
 

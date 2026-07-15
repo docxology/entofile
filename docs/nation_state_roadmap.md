@@ -74,7 +74,7 @@ operator telemetry easy to route:
 ## 0.4 RC release checklist
 
 ```bash
-uv run pytest tests/ --cov=src --cov-fail-under=90 -q
+uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/export_sbom.py
 uv run python scripts/z_generate_manuscript_variables.py

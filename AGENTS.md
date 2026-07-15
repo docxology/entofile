@@ -7,6 +7,9 @@ Active private project implementing **ENTO** (`format_version` **0.4.0**, AES-25
 | Module | Role |
 | --- | --- |
 | `src/crypto.py` | Facade: HKDF, version-dispatched encrypt/decrypt, nonce/AAD/padding policy |
+| `src/errors.py` | Stable domain error hierarchy and compatibility exception boundaries |
+| `src/paths.py` | Shared `ProjectPaths` output/data/release path contract |
+| `src/structured_data.py` | Fail-closed JSON/YAML/TOML readers and atomic report writers |
 | `src/crypto_gcm.py` | AES-256-GCM write path (`cryptography`); version-aware nonce + AAD |
 | `src/padding.py` | PADMÉ length-padding for formats 0.3.1 and 0.4.0 (length-hiding) |
 | `src/security.py` | Track ID policy, ZIP limits (+ dup-member reject), safe output paths |
@@ -24,10 +27,12 @@ Active private project implementing **ENTO** (`format_version` **0.4.0**, AES-25
 | `src/figure_registry.py` | Code-derived figures, `FIG_CAPTION_*` tokens |
 | `src/analysis.py` | Pipeline orchestration; `validate_generated_outputs` |
 | `src/publication.py` | `check_publication_readiness` |
+| `src/test_results.py` | Fail-closed JUnit XML and coverage summary parser |
 
 ## Pipeline
 
 ```bash
+uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/generate_conformance_fixtures.py
 uv run python scripts/verify_conformance_fixtures.py

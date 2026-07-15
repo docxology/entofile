@@ -28,6 +28,7 @@ Rendered deliverables remain under project-root `output/` for the standalone
 ## Regeneration
 
 ```bash
+uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/generate_conformance_fixtures.py
 uv run python scripts/verify_conformance_fixtures.py

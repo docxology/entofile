@@ -1,6 +1,6 @@
 # docs/ — entofile Agent Hub
 
-Operational documentation for `projects/working/entofile/`. Pipeline gates do not parse these files; they prevent agent and contributor drift. The planned public home after release readiness is `https://github.com/docxology/entofile`; this working tree remains the current source of truth.
+Operational documentation for the ENTO project. Pipeline gates do not parse these files; they prevent agent and contributor drift. The public home is `https://github.com/docxology/entofile`; this working tree remains the source of truth until local and external release evidence are recorded.
 
 ## File inventory
 
@@ -20,6 +20,7 @@ Operational documentation for `projects/working/entofile/`. Pipeline gates do no
 | `faq.md` | Common questions |
 | `troubleshooting.md` | Failure recipes |
 | `research/related_formats.md` | Related work notes |
+| `research/agenda.md` | Preregistered research questions, hypotheses, metrics, and stopping rules |
 | `methods.md` | Crypto and benchmark methods |
 | `figure_registry.md` | Figure pipeline, registry, and visual evidence contract |
 | `security.md` | Key handling, verify CLI, ZIP limits |
@@ -38,7 +39,7 @@ Operational documentation for `projects/working/entofile/`. Pipeline gates do no
 ## Verification
 
 ```bash
-uv run pytest tests/ --cov=src --cov-fail-under=90 -q
+uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/z_generate_manuscript_variables.py
 ```

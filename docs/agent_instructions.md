@@ -15,10 +15,18 @@ Read this before modifying `src/`, `tests/`, or `manuscript/`.
 9. **Security module** — path policy lives in `src/security.py`; do not duplicate track-id regex elsewhere.
 10. **Proof export** — call `export_proof` on the **exported** manifest view, not the internal auditable manifest.
 
+## Current release-evidence contract
+
+- `scripts/run_tests.py` is the canonical test gate and writes the fail-closed test-result sidecar.
+- Certifying publication checks must rerun live gates; side-file metadata is diagnostic evidence, not certification.
+- Regenerate analysis, conformance, figure-layout, manuscript-variable, SBOM, and release artifacts before release claims.
+- Local publication readiness and external public-endpoint readiness are separate states and must be reported separately.
+- `experiment_plan.yaml` and [`research/agenda.md`](research/agenda.md) are the research source of truth: every cycle has at least three competing hypotheses, a control, exact metrics, falsification criteria, and a stopping rule.
+
 ## Verification checklist
 
 ```bash
-uv run pytest tests/ --cov=src --cov-fail-under=90 -q
+uv run python scripts/run_tests.py
 grep -r "unittest.mock\|MagicMock\|@patch" tests/ || echo "Clean"
 uv run python scripts/ento_analysis.py
 uv run python scripts/z_generate_manuscript_variables.py

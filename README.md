@@ -10,7 +10,7 @@ Requires [`uv`](https://docs.astral.sh/uv/); project dependencies resolve automa
 
 ```bash
 # From this project root — these run on a standalone clone:
-uv run pytest tests/ --cov=src --cov-fail-under=90
+uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/check_figure_layout.py
 ```
@@ -27,4 +27,4 @@ uv run python scripts/z_generate_manuscript_variables.py
 Public home: [github.com/docxology/entofile](https://github.com/docxology/entofile).
 Development source: `projects/working/entofile` (within the maintainer's monorepo).
 
-See [AGENTS.md](AGENTS.md) for module map, [docs/architecture.md](docs/architecture.md) for the format specification, [docs/operator_checklist.md](docs/operator_checklist.md) for safe operations, [docs/evidence_provenance.md](docs/evidence_provenance.md) for the no-mock evidence boundary, [docs/figure_registry.md](docs/figure_registry.md) for the code-derived visual evidence contract, [SECURITY.md](SECURITY.md) for vulnerability reporting, [CITATION.cff](CITATION.cff) for citation metadata, and [TODO.md](TODO.md) for upcoming minor, medium, and large roadmap items.
+See [AGENTS.md](AGENTS.md) for module map, [docs/architecture.md](docs/architecture.md) for the format specification, [docs/operator_checklist.md](docs/operator_checklist.md) for safe operations, [docs/evidence_provenance.md](docs/evidence_provenance.md) for the no-mock evidence boundary, [docs/figure_registry.md](docs/figure_registry.md) for the code-derived visual evidence contract, [docs/research/agenda.md](docs/research/agenda.md) for the preregistered research agenda, [SECURITY.md](SECURITY.md) for vulnerability reporting, [CITATION.cff](CITATION.cff) for citation metadata, and [TODO.md](TODO.md) for upcoming minor, medium, and large roadmap items.

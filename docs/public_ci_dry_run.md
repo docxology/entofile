@@ -22,7 +22,7 @@ artifacts, or mutate Zenodo.
 
 | Local command | Future CI job | Purpose | Publish side effect |
 | --- | --- | --- | --- |
-| `uv run pytest tests/ --cov=src --cov-fail-under=90 -q` | `test` | Certify live project tests and coverage from source. | None |
+| `uv run python scripts/run_tests.py` | `test` | Certify live project tests and coverage from source, writing the structured sidecar. | None |
 | `uvx ruff check src/ tests/ scripts/` | `lint` | Lint gate. | None |
 | `uv run --extra dev mypy src/` | `lint` | Type gate — MUST use the dev extra so stub packages (`types-PyYAML`, `types-jsonschema`) are installed; a stub-less invocation errors out early and silently shrinks the checked surface (this hid 13 real errors until 2026-06-10). | None |
 | `grep -r "unittest.mock\\|MagicMock\\|@patch" tests/` | `test` | Preserve the no-mock evidence boundary. | None |
@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv run pytest tests/ --cov=src --cov-fail-under=90 -q
+      - run: uv run python scripts/run_tests.py
       - run: grep -r "unittest.mock\\|MagicMock\\|@patch" tests/ || echo "Clean"
       - run: uv run python scripts/ento_analysis.py
       - run: uv run python scripts/export_sbom.py
@@ -73,4 +73,3 @@ jobs:
 The live endpoint command remains a separate manual or protected job until the
 public home, DOI, and Zenodo record are expected to resolve. Artifact signing
 also stays outside this dry run; see [`provenance_signing.md`](provenance_signing.md).
-

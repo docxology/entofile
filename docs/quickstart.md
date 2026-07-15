@@ -12,7 +12,7 @@ candidate; compatibility `0.2.0`/`0.3.0`/`0.3.1` containers remain supported via
 ## Tests
 
 ```bash
-uv run pytest tests/ --cov=src --cov-fail-under=90 -v
+uv run python scripts/run_tests.py
 ```
 
 ## Analysis

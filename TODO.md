@@ -9,6 +9,18 @@ calls for a breaking release:
 - Compatibility formats `0.2.0`, `0.3.0`, and `0.3.1` remain readable/writable.
 - Paper/manuscript release label `0.4` is distinct from ENTO wire-format string `0.4.0`.
 
+## Current cycle — 2026-07-15
+
+- Finish the current shared-boundary hardening batch, review every local hunk, and
+  land implementation/tests separately from ledger updates on main.
+- Regenerate every certifying artifact from the final head. A local readiness pass
+  is not an external public-promotion pass.
+- Keep the canonical gate sequence and evidence rules in
+  [ISA.md](ISA.md#current-cycle--2026-07-15) and the pipeline instructions.
+- Execute research only through the preregistered protocol in
+  [experiment_plan.yaml](experiment_plan.yaml) and
+  [docs/research/agenda.md](docs/research/agenda.md).
+
 ## Minor Updates
 
 - Keep figure captions compact after dense benchmark refreshes; prefer injected
@@ -67,6 +79,18 @@ calls for a breaking release:
   Added package build smoke tests. Documented template rendering integration in
   `docs/rendering_pipeline.md`. All 13 public-promotion tests pass. Release
   manifest `ok: true` with zero missing required files.
+- 2026-07-14 deep red-team pass: export-level confidentiality escalation rejected;
+  PADMÉ decoding canonicalized; project-root schema cache and public manifest parsing
+  hardened; malformed config/report inputs fail closed; conformance verifier binds its
+  complete case matrix plus fixture hashes; CI now covers scripts, figure QA, release
+  bundling, package installation, and has a timeout. Template discovery now supports
+  the documented public sibling checkout layout and the full render/validation path
+  passes with 43-page transmission bookends.
+- 2026-07-15 current-cycle pass: shared ProjectPaths, structured-data boundaries,
+  fail-closed test-result parsing, exported domain errors with ConfigError
+  compatibility, and the preregistered research agenda were added and covered by
+  focused tests. Final full-gate and main parity evidence belongs in ISA.md after
+  the landing commit.
 
 ## Medium Improvements
 
@@ -89,6 +113,24 @@ calls for a breaking release:
 - Prepare the final public `docxology/entofile` repository cutover by reviewing
   license ownership, citation metadata, release artifacts, conformance fixtures,
   security disclosure, and repository settings immediately before promotion.
+
+## Research agenda
+
+The backlog is machine-readable in `experiment_plan.yaml` and explained in
+`docs/research/agenda.md`. Its current questions are:
+
+- RQ-1: independent-language vectors and schema negotiation.
+- RQ-2: bounded-memory streaming pack/unpack with verify-before-release.
+- RQ-3: observability and metadata leakage across formats and levels.
+- RQ-4: cryptographic interoperability, nonce discipline, and canonical padding.
+- RQ-5: KMS/HSM custody, rotation, recovery, and audit boundaries.
+- RQ-6: signed release manifests, SBOMs, provenance, and reproducible builds.
+- RQ-7: exports to related research-container ecosystems without equivalence claims.
+
+Every question requires three competing hypotheses, a control or baseline, exact
+metrics, a repetition rationale, falsification criteria, and a stopping rule.
+Results remain bounded by the protocol and cannot certify an external ecosystem
+or public endpoint without independent evidence.
 
 ## Maintenance Rule
 

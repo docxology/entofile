@@ -3,7 +3,7 @@
 ## Tests fail on coverage
 
 ```bash
-uv run pytest tests/ --cov=src --cov-report=term-missing
+uv run python scripts/run_tests.py
 ```
 
 Target: ≥90% on `src/`.

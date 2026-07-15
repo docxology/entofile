@@ -88,7 +88,7 @@ tasks:
   deps: []
   tags:
   - future
-  notes: ''
+  notes: 'Design is preregistered as RQ-5 and RQ-6 in experiment_plan.yaml; implementation remains gated on custody, recovery, audit, and provenance evidence.'
 - id: ef-8
   title: Public repo cutover validation (license/citation/security/settings)
   status: in_progress
@@ -100,7 +100,7 @@ tasks:
   - ef-6
   tags:
   - release
-  notes: 'Local cutover validation is current but external cutover remains open. Evidence on 2026-06-09: uv run python scripts/ento_analysis.py returned ok=true with tamper_detection_rate=1.0; conformance fixture generation/verification passed 7/7 cases; figure layout passed 21/21 figures; manuscript variables and release bundle regenerated; uv run python scripts/check_public_promotion_metadata.py --check returned ok=true; template render generated output/pdf/entofile_combined.pdf (3.29 MB) and output/web/index.html; template Stage 04 validation passed all checks and refreshed validation_report.json; uv run python scripts/audit_publication_readiness.py --check returned ok=true with live tests_source and no blockers; uv run pytest --cov=src --cov-report=term-missing -q passed with 375 passed and 92.25% coverage. Boundary: uv run python scripts/check_public_promotion_metadata.py --live-public-endpoints reports release_ready=false because planned GitHub/DOI/Zenodo endpoints return 404 and the local source tree is dirty, so public endpoint cutover is not complete.'
+  notes: 'Local readiness and external public-promotion readiness are separate. The current cycle must rerun all live gates, record endpoint probes separately, and keep this task open while endpoint or clean-tree evidence is absent.'
 - id: ef-9
   title: Publish package (PyPI)
   status: todo
@@ -125,7 +125,7 @@ tasks:
   tags:
   - conformance
   - future
-  notes: 'TODO Large Initiatives: independent-implementation conformance.'
+  notes: 'Implement RQ-1 from experiment_plan.yaml: independent-language vectors, schema negotiation, malformed JSON edges, controls, falsification, and stopping rule.'
 - id: ef-11
   title: Evaluate streaming pack/unpack for large multimodal tracks (keep verify-before-release)
   status: todo
@@ -137,7 +137,7 @@ tasks:
   - ef-1
   tags:
   - future
-  notes: TODO Large Initiatives, streaming bullet.
+  notes: 'Implement RQ-2 from experiment_plan.yaml with bounded-memory and verify-before-release measurements.'
 - id: ef-12
   title: 'Public CI dry-run doc: map local release scripts → GitHub Actions (no publish)'
   status: done
@@ -198,3 +198,43 @@ tasks:
   - ef-6
   tags: []
   notes: ''
+- id: ef-16
+  title: Current-cycle shared-boundary hardening and gate reconciliation
+  status: in_progress
+  start: '2026-07-15'
+  end: '2026-07-17'
+  progress: 70
+  milestone: false
+  deps:
+  - ef-1
+  tags:
+  - hardening
+  - architecture
+  notes: 'ProjectPaths, structured readers, fail-closed test-result parsing, exported errors, compatibility tests, static gates, and generated-artifact verification. Land only after full live gates.'
+- id: ef-17
+  title: Refresh ISA, taskboard, documentation, and research protocol
+  status: in_progress
+  start: '2026-07-15'
+  end: '2026-07-17'
+  progress: 70
+  milestone: false
+  deps:
+  - ef-16
+  tags:
+  - docs
+  - research
+  notes: 'Current state is encoded in ISA.md, TODO.md, docs/research/agenda.md, and experiment_plan.yaml; final evidence is appended after final-head verification.'
+- id: ef-18
+  title: Research execution gate and independent validation backlog
+  status: todo
+  start: '2026-07-18'
+  end: '2026-08-28'
+  progress: 0
+  milestone: false
+  deps:
+  - ef-10
+  - ef-11
+  tags:
+  - research
+  - future
+  notes: 'Execute RQ-1 through RQ-7 only with three competing hypotheses, controls, exact metrics, falsification criteria, repetition rationale, stopping rules, and bounded claims.'

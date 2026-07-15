@@ -11,6 +11,13 @@ everything else is an explicit operator command.
 | `ento_analysis.py` | `src.analysis.main` | Benchmarks, figures, validation reports |
 | `build_dashboard.py` | `src.dashboard.run_dashboard_build` | Dashboard HTML |
 
+The reproducible test gate is explicit and writes the contextual
+`output/reports/test_results.json` sidecar used by manuscript variable generation:
+
+```bash
+uv run python scripts/run_tests.py
+```
+
 ## Manuscript / rendering
 
 | Script | Delegates to | Purpose |
@@ -42,3 +49,7 @@ everything else is an explicit operator command.
 | `build_release_bundle.py` | `src.release_bundle` | Release manifest + checksum list for `output/release/` |
 | `export_sbom.py` | `src.sbom.build_cyclonedx_skeleton` | CycloneDX SBOM (optional release gate) |
 | `check_public_promotion_metadata.py` | `src.public_promotion` | Public-promotion metadata consistency |
+
+## Research source of truth
+
+The machine-readable research protocol is [`../experiment_plan.yaml`](../experiment_plan.yaml), and its human-readable agenda is [`../docs/research/agenda.md`](../docs/research/agenda.md). Research changes must preserve the preregistration contract: three competing hypotheses per question, a control or baseline, exact metrics, falsification criteria, sample-size or repetition rationale, stopping rules, and explicit limits on interpretation.
