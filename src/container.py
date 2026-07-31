@@ -8,6 +8,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from hmac import compare_digest
 from io import BytesIO
 from pathlib import Path
 from typing import Literal
@@ -145,7 +146,7 @@ def _verify_ciphertext_hashes(zf: zipfile.ZipFile, manifest: Manifest) -> None:
         if not entry.sha256_ciphertext:
             continue
         digest = crypto.sha256_hex(raw)
-        if digest != entry.sha256_ciphertext:
+        if not compare_digest(digest, entry.sha256_ciphertext):
             raise IntegrityError(
                 f"ciphertext digest mismatch for track {entry.id!r}: expected {entry.sha256_ciphertext}, got {digest}"
             )
@@ -275,7 +276,7 @@ def verify_container(
                 )
                 if entry.sha256_plaintext:
                     digest = crypto.sha256_hex(plaintext)
-                    if digest != entry.sha256_plaintext:
+                    if not compare_digest(digest, entry.sha256_plaintext):
                         raise IntegrityError(
                             f"plaintext digest mismatch for track {entry.id!r}: "
                             f"expected {entry.sha256_plaintext}, got {digest}"
@@ -472,7 +473,7 @@ def unpack_container(
             )
             if entry.sha256_plaintext:
                 digest = crypto.sha256_hex(plaintext)
-                if digest != entry.sha256_plaintext:
+                if not compare_digest(digest, entry.sha256_plaintext):
                     raise IntegrityError(
                         f"plaintext digest mismatch for track {entry.id!r}: "
                         f"expected {entry.sha256_plaintext}, got {digest}"

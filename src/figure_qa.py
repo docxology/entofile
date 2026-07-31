@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from itertools import combinations
 from pathlib import Path
 from typing import Any
@@ -170,3 +171,80 @@ def _bbox_tuple(box: Bbox) -> tuple[float, float, float, float]:
 def _shorten(text: str, *, limit: int = 80) -> str:
     compact = " ".join(text.split())
     return compact if len(compact) <= limit else compact[: limit - 3] + "..."
+
+
+def pixel_digest(path: Path, *, downsample: int = 1) -> dict[str, Any]:
+    """Compute a structured pixel summary for a rendered figure PNG.
+
+    Returns dimension, mean-per-channel, and a short content hash for
+    drift-detection against a reference. When *downsample* > 1 the image
+    is decimated before hashing (drift-tolerant mode).
+    """
+    from PIL import Image
+
+    img = Image.open(path).convert("RGB")
+    w, h = img.size
+    if downsample > 1:
+        img = img.resize((max(1, w // downsample), max(1, h // downsample)))
+    pixels = list(img.getdata())
+    channels = len(pixels[0]) if pixels else 3
+    means = tuple(
+        round(sum(p[c] for p in pixels) / len(pixels), 1) if pixels else 0.0
+        for c in range(channels)
+    )
+    content_hash = hashlib.sha256(
+        img.tobytes() if downsample == 1 else path.read_bytes()
+    ).hexdigest()[:16]
+    return {
+        "path": str(path),
+        "width": w,
+        "height": h,
+        "channels": channels,
+        "mean_per_channel": means,
+        "digest": content_hash,
+        "downsample": downsample,
+    }
+
+
+def compare_figure_pixels(
+    path: Path,
+    reference: dict[str, Any],
+    *,
+    max_dimension_drift_px: int = 0,
+    max_mean_drift: float = 5.0,
+) -> dict[str, Any]:
+    """Compare a rendered figure against a reference pixel digest.
+
+    Returns ``ok``, ``drifts``, and ``digest``.  Drift fields are
+    ``None`` when the check passes.  Default tolerance values permit
+    minor style/anti-aliasing changes while flagging obvious breakage.
+    """
+    digest = pixel_digest(path)
+    drifts: dict[str, Any] = {}
+    dim_drift = max(
+        abs(digest["width"] - reference["width"]),
+        abs(digest["height"] - reference["height"]),
+    )
+    if dim_drift > max_dimension_drift_px:
+        drifts["dimensions"] = {
+            "expected": (reference["width"], reference["height"]),
+            "actual": (digest["width"], digest["height"]),
+            "drift_px": dim_drift,
+        }
+    mean_drifts = {}
+    for c in range(min(len(digest["mean_per_channel"]), len(reference["mean_per_channel"]))):
+        drift = abs(digest["mean_per_channel"][c] - reference["mean_per_channel"][c])
+        if drift > max_mean_drift:
+            mean_drifts[f"channel_{c}"] = {
+                "expected": reference["mean_per_channel"][c],
+                "actual": digest["mean_per_channel"][c],
+                "drift": drift,
+            }
+    if mean_drifts:
+        drifts["mean_per_channel"] = mean_drifts
+    return {
+        "ok": not drifts,
+        "drifts": drifts,
+        "digest": digest["digest"],
+        "reference_digest": reference.get("digest"),
+    }

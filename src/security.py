@@ -67,9 +67,9 @@ def validate_zip_archive(source: Path) -> None:
             if _member_uncompressed_size(info) > MAX_MEMBER_UNCOMPRESSED:
                 raise ContainerError(f"ZIP member {name!r} exceeds uncompressed size limit")
             declared_total += _member_uncompressed_size(info)
-        if declared_total > MAX_TOTAL_UNCOMPRESSED:
+        if declared_total >= MAX_TOTAL_UNCOMPRESSED:
             raise ContainerError(
-                f"container declares {declared_total} uncompressed bytes (> {MAX_TOTAL_UNCOMPRESSED} aggregate limit)"
+                f"container declares {declared_total} uncompressed bytes (>={MAX_TOTAL_UNCOMPRESSED} aggregate limit)"
             )
 
 
