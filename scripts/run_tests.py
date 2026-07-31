@@ -30,6 +30,55 @@ def _stream_text(stream: str | bytes | None) -> str:
     return stream
 
 
+# Live-tree tests that bind generated artifacts. On a fresh standalone clone
+# these fail until the artifact pipeline has been run once; a first-time
+# contributor running the documented test command otherwise sees unexplained
+# red. The preflight below prints the why + fix to stderr (never stdout, which
+# must stay pure JSON for the runner contract).
+_ARTIFACT_BOUND_TESTS = (
+    "tests/test_claim_ledger_security.py::test_container_verification_report_claim",
+    "tests/test_public_promotion.py::test_public_promotion_metadata_current_tree",
+    "tests/test_public_promotion.py::test_public_promotion_script_check",
+    "tests/test_public_promotion.py::test_public_promotion_script_release_mode_blocks_unpublished_endpoints",
+)
+_ARTIFACT_TARGETS = (
+    "output/reports/container_verification.json",
+    "output/release/release_manifest.json",
+    "output/data/transmission_manifest.json",
+    "output/reports/conformance_report.json",
+)
+
+
+def _missing_artifact_preflight(root: Path) -> list[str]:
+    """Return generated outputs whose absence makes artifact-bound tests fail."""
+    return [
+        rel
+        for rel in _ARTIFACT_TARGETS
+        if not (root / rel).is_file()
+    ]
+
+
+def _notify_missing_artifacts(root: Path) -> None:
+    """Print a stderr notice when artifact-bound tests will fail on this tree."""
+    missing = _missing_artifact_preflight(root)
+    if not missing:
+        return
+    missing_text = ", ".join(missing)
+    bound = ", ".join(_ARTIFACT_BOUND_TESTS)
+    sys.stderr.write(
+        "\n[entofile] NOTE: generated artifacts are missing from this checkout:\n"
+        f"[entofile]   {missing_text}\n"
+        "[entofile] The following artifact-bound tests will FAIL until the pipeline is run:\n"
+        f"[entofile]   {bound}\n"
+        "[entofile] Regenerate them once from the project root:\n"
+        "[entofile]   uv run python scripts/ento_analysis.py\n"
+        "[entofile]   uv run python scripts/generate_conformance_fixtures.py && "
+        "uv run python scripts/verify_conformance_fixtures.py\n"
+        "[entofile]   uv run python scripts/build_release_bundle.py\n"
+        "[entofile] (see TODO.md 'Live-tree artifact state (2026-07-31)')\n\n"
+    )
+
+
 def _bounded_tail(stream: str | bytes | None) -> str:
     text = _stream_text(stream).strip()
     if len(text) <= _DIAGNOSTIC_TAIL_CHARACTERS:
@@ -217,6 +266,7 @@ def main() -> int:
         parser.error("--timeout must be positive")
 
     root = args.project_root.resolve()
+    _notify_missing_artifacts(root)
     report_path = root / "output" / "reports" / "test_results.json"
     with tempfile.TemporaryDirectory() as temp_dir:
         temp = Path(temp_dir)

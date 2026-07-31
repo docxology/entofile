@@ -39,6 +39,61 @@ def _runner_command(root: Path, *, timeout: float) -> list[str]:
     ]
 
 
+def test_runner_notifies_missing_artifacts_on_stderr(tmp_path: Path) -> None:
+    """A tree without generated artifacts gets an explanatory stderr notice
+    (never a stdout polluter — stdout stays pure JSON for the runner contract)."""
+    _write_temp_project(
+        tmp_path,
+        "from src.sample import identity\n\n\ndef test_identity():\n"
+        "    assert identity('ento') == 'ento'\n",
+    )
+
+    completed = subprocess.run(
+        _runner_command(tmp_path, timeout=10.0),
+        capture_output=True,
+        text=True,
+        timeout=15.0,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "NOTE: generated artifacts are missing" in completed.stderr
+    assert "output/reports/container_verification.json" in completed.stderr
+    assert "test_container_verification_report_claim" in completed.stderr
+    # stdout must remain a single JSON document (runner contract).
+    json.loads(completed.stdout)
+
+
+def test_runner_stays_silent_when_artifacts_present(tmp_path: Path) -> None:
+    """Once the required generated outputs exist, the notice is suppressed."""
+    _write_temp_project(
+        tmp_path,
+        "from src.sample import identity\n\n\ndef test_identity():\n"
+        "    assert identity('ento') == 'ento'\n",
+    )
+    for rel in (
+        "output/reports/container_verification.json",
+        "output/release/release_manifest.json",
+        "output/data/transmission_manifest.json",
+        "output/reports/conformance_report.json",
+    ):
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}", encoding="utf-8")
+
+    completed = subprocess.run(
+        _runner_command(tmp_path, timeout=10.0),
+        capture_output=True,
+        text=True,
+        timeout=15.0,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "NOTE: generated artifacts are missing" not in completed.stderr
+    json.loads(completed.stdout)
+
+
 def _report(root: Path) -> dict[str, object]:
     path = root / "output" / "reports" / "test_results.json"
     return json.loads(path.read_text(encoding="utf-8"))
