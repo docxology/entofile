@@ -185,12 +185,15 @@ def test_todo_batch_docs_are_indexed_and_todo_updated() -> None:
     ):
         assert rel in docs_readme
     assert "operator_checklist.md" in readme
-    assert "Completed in TODO pass" in todo
-    assert "--json-output" in todo
-    assert "--telemetry-jsonl" in todo
-    assert "benchmark_expanded.yaml" in todo
-    assert "figure_layout_report.json" in todo
-    assert "public-promotion metadata checker" in todo
+    # The 2026-07-31 TODO cleanup (948e2a9) intentionally stripped the completed-batch
+    # ledger ("Completed in TODO pass", the --json-output/--telemetry-jsonl sidecars,
+    # benchmark_expanded.yaml, figure_layout_report.json, the promotion-metadata
+    # checker) as that work shipped. The durable contract is that the batch docs are
+    # indexed above AND that TODO remains a live roadmap pointing operators at the
+    # scripts that regenerate the artifacts those docs reference.
+    assert "Live-tree artifact state" in todo
+    assert "scripts/ento_analysis.py" in todo
+    assert "scripts/check_public_promotion_metadata.py" in todo
 
 
 def test_public_cutover_scaffolding_is_indexed() -> None:
@@ -202,7 +205,10 @@ def test_public_cutover_scaffolding_is_indexed() -> None:
         assert rel in docs_readme
     assert "SECURITY.md" in readme
     assert "CITATION.cff" in readme
-    assert "public-cutover scaffolding" in todo
+    # The public-cutover scaffolding shipped (the repo is live, so there is no longer
+    # a TODO "public-cutover scaffolding" item); require that TODO is the maintained
+    # roadmap rather than pinning that removed backlog entry.
+    assert "## Maintenance Rule" in todo
 
 
 def test_public_repo_settings_scaffold_exists() -> None:
