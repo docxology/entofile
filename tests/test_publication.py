@@ -269,6 +269,6 @@ def test_publication_readiness_blockers_and_evidence(tmp_path: Path) -> None:
     from src.publication import check_publication_readiness
 
     res = check_publication_readiness(tmp_path, live_tests=False)
-    assert res["ready"] is False
+    assert res["ok"] is False
     assert isinstance(res["blockers"], list)
     assert len(res["blockers"]) >= 1
