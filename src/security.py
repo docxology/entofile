@@ -41,6 +41,7 @@ def safe_output_path(output_dir: Path, track_id: str) -> Path:
 
 
 def _member_uncompressed_size(info: zipfile.ZipInfo) -> int:
+    """Safely extract uncompressed member byte size from ZipInfo."""
     return info.file_size
 
 

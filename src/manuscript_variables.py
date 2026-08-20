@@ -81,6 +81,7 @@ def benchmark_rows_per_repetition(cfg: ExperimentConfig) -> int:
 
 
 def _load_config(project_root: Path) -> dict[str, Any]:
+    """Load configuration dictionary from manuscript/config.yaml."""
     path = project_root / "manuscript" / "config.yaml"
     if not path.exists():
         return {}
@@ -88,16 +89,19 @@ def _load_config(project_root: Path) -> dict[str, Any]:
 
 
 def _load_benchmark_rows(project_root: Path) -> list[dict[str, str]]:
+    """Load rows from output/data/ento_benchmark_results.csv."""
     return load_benchmark_csv(benchmark_csv_path(project_root))
 
 
 def _sha256_file(path: Path) -> str:
+    """Return lowercase hex SHA-256 digest of file."""
     if not path.is_file():
         return "N/A"
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _list_output_files(project_root: Path, subdir: str, pattern: str = "*") -> str:
+    """List matching files in output subdirectory as comma-separated string."""
     directory = project_root / "output" / subdir
     if not directory.is_dir():
         return "N/A"
@@ -106,6 +110,7 @@ def _list_output_files(project_root: Path, subdir: str, pattern: str = "*") -> s
 
 
 def _json_status(path: Path, *, ok_field: str = "ok") -> str:
+    """Read a JSON report and return pass, fail, missing, or status value."""
     if not path.is_file():
         return "missing"
     try:
@@ -119,6 +124,7 @@ def _json_status(path: Path, *, ok_field: str = "ok") -> str:
 
 
 def _no_mock_status(project_root: Path) -> str:
+    """Verify test results and no-mock adherence."""
     tests_root = project_root / "tests"
     if not tests_root.is_dir():
         return "tests directory missing"
@@ -137,6 +143,7 @@ def generate_variables(
     require_analysis_outputs: bool = False,
     config: ExperimentConfig | None = None,
 ) -> dict[str, str]:
+    """Generate all {{TOKEN}} variables required for manuscript hydration."""
     cfg = config or load_experiment_config(project_root)
     manuscript_config = _load_config(project_root)
     rows = _load_benchmark_rows(project_root)
@@ -221,9 +228,11 @@ def generate_variables(
     # ordered by SEMANTIC version (parse to int tuple) so "first"/"latest" stay
     # correct even past 0.3.10 — a plain string sort would mis-order 0.3.10 < 0.3.2.
     def _semver_key(v: str) -> tuple[int, ...]:
-        return tuple(int(part) for part in v.split("."))
+        """Convert semver string to integer tuple for sorting."""
+        return tuple(int(p) for p in v.split("."))
 
     def _join_versions(versions: tuple[str, ...]) -> str:
+        """Format a list of version strings into English list."""
         if not versions:
             return "N/A"
         if len(versions) == 1:
@@ -447,6 +456,7 @@ def generate_variables(
 
 
 def save_variables(variables: dict[str, str], output_path: Path) -> Path:
+    """Save manuscript variables map as JSON."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(variables, indent=2) + "\n", encoding="utf-8")
     return output_path

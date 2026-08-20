@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -43,6 +43,7 @@ def bind_viz(viz: VizConfig) -> None:
 
 
 def active_viz() -> VizConfig:
+    """Return currently active VizConfig settings."""
     if _active is None:
         from .experiment_config import VizConfig
 
@@ -61,6 +62,7 @@ def heatmap_cmap() -> str:
 
 
 def markersize() -> float:
+    """Configured point/marker size for line plots."""
     return active_viz().marker_size
 
 
@@ -71,6 +73,7 @@ def line_width() -> float:
 
 
 def scatter_size() -> float:
+    """Configured marker area for scatter plots."""
     return active_viz().scatter_size
 
 
@@ -80,6 +83,7 @@ def annotate_enabled() -> bool:
 
 
 def figsize_for(key: str) -> tuple[float, float]:
+    """Resolve figure dimensions from preset key or default."""
     viz = active_viz()
     if key == "single":
         return viz.figsize
@@ -87,6 +91,7 @@ def figsize_for(key: str) -> tuple[float, float]:
 
 
 def color_cycle(n: int) -> list[str]:
+    """Return n colors cycling through the active palette."""
     if n <= 0:
         return []
     palette = active_palette()
@@ -94,6 +99,7 @@ def color_cycle(n: int) -> list[str]:
 
 
 def apply_rcparams() -> None:
+    """Apply active style parameters to matplotlib global rcParams."""
     viz = active_viz()
     plt.rcParams.update(
         {
@@ -117,12 +123,14 @@ def apply_rcparams() -> None:
 
 
 def style_axes(ax: Axes) -> None:
+    """Apply standard background, grid, and spine styling to axes."""
     ax.grid(True, alpha=active_viz().grid_alpha)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
 
 def save_figure(fig: Figure, output_path: Path, *, reserve_top: bool = False) -> Path:
+    """Save matplotlib figure to output path with proper margins and tight layout."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     # ``reserve_top`` leaves headroom for a figure-level suptitle (e.g. the overview panel)
     # so tight_layout does not collide title text with the top row of axes.
@@ -136,6 +144,7 @@ def save_figure(fig: Figure, output_path: Path, *, reserve_top: bool = False) ->
 
 
 def open_figure(figsize_key: str = "single") -> tuple[Figure, Axes]:
+    """Create a single-panel figure and axes with standard style."""
     apply_rcparams()
     fig, ax = plt.subplots(figsize=figsize_for(figsize_key))
     style_axes(ax)
@@ -143,6 +152,7 @@ def open_figure(figsize_key: str = "single") -> tuple[Figure, Axes]:
 
 
 def open_panel(nrows: int = 2, ncols: int = 2) -> tuple[Figure, list[Axes]]:
+    """Create a multi-panel grid figure and flattened axes list."""
     apply_rcparams()
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize_for("panel"))
     flat = list(axes.flatten()) if hasattr(axes, "flatten") else [axes]
@@ -151,7 +161,14 @@ def open_panel(nrows: int = 2, ncols: int = 2) -> tuple[Figure, list[Axes]]:
     return fig, flat
 
 
-def annotate_bar_values(ax: Axes, bars, values: Sequence[float], *, fmt: str) -> None:
+def annotate_bar_values(
+    ax: Axes,
+    bars: Any,
+    values: Sequence[float],
+    *,
+    fmt: str,
+) -> None:
+    """Annotate bar plot patches with their numeric values."""
     if not annotate_enabled():
         return
     label_size = max(active_viz().font_size - 1, 8)
@@ -167,6 +184,7 @@ def annotate_bar_values(ax: Axes, bars, values: Sequence[float], *, fmt: str) ->
 
 
 def format_mib_s_axis(ax: Axes, axis: str = "y") -> None:
+    """Ensure throughput axis has consistent '(MiB/s)' label."""
     target = ax.yaxis if axis == "y" else ax.xaxis
     target.set_label_text(
         target.get_label().get_text() + " (MiB/s)"

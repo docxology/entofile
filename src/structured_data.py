@@ -29,11 +29,14 @@ def reject_nonstandard_json_constant(value: str) -> None:
 
 def parse_json_object(text: str, *, source: str = "JSON") -> dict[str, Any]:
     """Parse one JSON object with duplicate-key and root-type enforcement."""
-    value = json.loads(
-        text,
-        object_pairs_hook=reject_duplicate_json_keys,
-        parse_constant=reject_nonstandard_json_constant,
-    )
+    try:
+        value = json.loads(
+            text,
+            object_pairs_hook=reject_duplicate_json_keys,
+            parse_constant=reject_nonstandard_json_constant,
+        )
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise ValueError(f"{source} decode error: {exc}") from exc
     if not isinstance(value, dict):
         raise ValueError(f"{source} root must be a JSON object")
     return value

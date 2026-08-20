@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 def build_api_reference_markdown(project_root: Path | None = None) -> str:
+    """Build API reference markdown documenting core modules under src/."""
     root = project_root or Path(__file__).resolve().parent.parent
     return (
         "# entofile API reference\n\n"
@@ -20,6 +21,7 @@ def build_api_reference_markdown(project_root: Path | None = None) -> str:
 
 
 def run_api_doc_generation(project_root: Path | None = None) -> Path:
+    """Generate and write API reference document to output/docs/api_reference.md."""
     root = project_root or Path(__file__).resolve().parent.parent
     out = root / "output" / "docs" / "api_reference.md"
     out.parent.mkdir(parents=True, exist_ok=True)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable
 from math import ceil
 from statistics import mean
 from typing import TYPE_CHECKING
@@ -64,6 +65,7 @@ def _sparse_repetition_ticks(n: int, *, max_ticks: int = 8) -> list[int]:
 
 
 def _empty_title(ax: Axes, spec: FigureSpec, headline: str) -> None:
+    """Set standard placeholder text and title on an empty Axes."""
     ax.set_title(plot_title(headline, spec))
     ax.text(
         0.5,
@@ -76,6 +78,7 @@ def _empty_title(ax: Axes, spec: FigureSpec, headline: str) -> None:
 
 
 def plot_throughput(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -> None:
+    """Plot pack throughput across track repetitions."""
     medium_rows = filter_rows_for_spec(rows, spec)
     sizes = [int(row["plaintext_bytes"]) for row in medium_rows]
     rates = [float(row["pack_throughput_mib_s"]) for row in medium_rows]
@@ -114,6 +117,7 @@ def plot_throughput(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -> N
 
 
 def plot_expansion(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -> None:
+    """Plot ciphertext expansion ratio per track type."""
     subset = filter_rows_for_spec(rows, spec)
     ordered = sorted(subset, key=lambda row: row["track_id"])
     labels = [row["track_id"] for row in ordered]
@@ -130,6 +134,7 @@ def plot_expansion(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -> No
 
 
 def plot_observability(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -> None:
+    """Plot exported manifest size across observability levels."""
     subset = filter_rows_for_spec(rows, spec)
     ordered = sorted(subset, key=lambda row: int(row["observability_level"]))
     levels = [int(row["observability_level"]) for row in ordered]
@@ -165,6 +170,7 @@ def plot_observability(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -
 
 
 def plot_tamper(rows: list[dict[str, str]], ax: Axes, _spec: FigureSpec) -> None:
+    """Plot tamper detection count comparing detected vs total trials."""
     detected = sum(1 for row in rows if is_tamper_detected(row))
     total = len(rows)
     missed = total - detected
@@ -518,6 +524,7 @@ def plot_security_control_matrix(
 
 
 def plot_unpack_latency(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -> None:
+    """Plot pack vs unpack latency."""
     subset = filter_rows_for_spec(rows, spec)
     headline = "Mean pack vs unpack latency (medium tracks)"
     if not subset:
@@ -544,6 +551,7 @@ def plot_unpack_latency(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) 
 def plot_throughput_by_observability(
     rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
+    """Plot pack throughput grouped by observability level."""
     subset = filter_rows_for_spec(rows, spec)
     by_level: dict[int, list[float]] = defaultdict(list)
     for row in subset:
@@ -585,6 +593,7 @@ def plot_throughput_by_observability(
 def plot_expansion_heatmap(
     rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
+    """Plot 2D heatmap of ciphertext expansion vs size and observability level."""
     from .benchmark_stats import base_condition
 
     subset = filter_rows_for_spec(rows, spec)
@@ -643,6 +652,7 @@ def plot_expansion_heatmap(
 def plot_manifest_multitrack(
     rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
+    """Plot multitrack manifest size scaling."""
     subset = filter_rows_for_spec(rows, spec)
     tracks = sorted({r["track_id"] for r in subset})
     headline = "Manifest footprint across fixture tracks"
@@ -678,6 +688,7 @@ def plot_manifest_multitrack(
 def plot_crypto_overhead(
     rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
+    """Plot cryptographic overhead bytes broken down by metadata, nonce, and tag."""
     subset = filter_rows_for_spec(rows, spec)
     ordered = sorted(subset, key=lambda row: row["track_id"])
     headline = "Ciphertext composition"
@@ -721,6 +732,7 @@ def plot_crypto_overhead(
 def plot_observability_tradeoff(
     rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
+    """Plot throughput and manifest size tradeoff across observability levels."""
     subset = filter_rows_for_spec(rows, spec)
     headline = "Manifest size vs pack throughput (medium tracks)"
     if not subset:
@@ -1001,6 +1013,7 @@ def plot_determinism_cv(
 def plot_benchmark_overview(
     rows: list[dict[str, str]], fig: Figure, axes: list[Axes]
 ) -> None:
+    """Plot composite 4-panel benchmark overview."""
     specs = [
         spec_by_label("fig:throughput_benchmark"),
         spec_by_label("fig:expansion_ratio"),
@@ -1018,10 +1031,11 @@ def render_to_path(
     rows: list[dict[str, str]],
     output_path: Path,
     spec: FigureSpec,
-    plotter,
+    plotter: Callable[[list[dict[str, str]], Axes, FigureSpec], None],
     *,
     panel: bool = False,
 ) -> Path:
+    """Render a figure specification to an output image path using the provided plotter."""
     if panel:
         fig, axes = open_panel()
         plot_benchmark_overview(rows, fig, axes)

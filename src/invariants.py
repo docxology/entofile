@@ -15,6 +15,7 @@ from .models import ObservabilityLevel
 
 @dataclass
 class InvariantResult:
+    """Evaluation result for one ENTO container invariant check."""
     name: str
     kind: str
     actual: Any
@@ -41,6 +42,7 @@ class InvariantResult:
 
 
 def round_trip_invariants(project_root: Path) -> list[InvariantResult]:
+    """Execute round-trip encryption/decryption invariants on sample tracks."""
     key = generate_master_key()
     tracks = load_fixture_tracks(project_root)
     out = project_root / "output" / "data" / "_invariant.ento.zip"
@@ -73,4 +75,5 @@ def round_trip_invariants(project_root: Path) -> list[InvariantResult]:
 
 
 def all_invariants(project_root: Path) -> list[InvariantResult]:
+    """Evaluate all registered format and round-trip invariants."""
     return round_trip_invariants(project_root)

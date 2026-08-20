@@ -83,6 +83,8 @@ ConfigError = ConfigurationError
 
 @dataclass(frozen=True)
 class VizConfig:
+    """Visualization aesthetic and layout parameters."""
+
     dpi: int = _DEFAULT_DPI
     figsize: tuple[float, float] = _DEFAULT_FIGSIZE
     figure_width_percent: int = _DEFAULT_FIGURE_WIDTH_PERCENT
@@ -103,6 +105,8 @@ class VizConfig:
 
 @dataclass(frozen=True)
 class ExperimentConfig:
+    """Benchmark experiment execution parameters and matrix dimensions."""
+
     benchmark_repetitions: int = _DEFAULT_REPETITIONS
     observability_levels: tuple[int, ...] = _DEFAULT_OBS_LEVELS
     medium_track_bytes: int = _DEFAULT_MEDIUM_BYTES
@@ -167,6 +171,7 @@ def _mapping(value: object, where: str) -> dict[str, Any]:
 
 
 def _integer(value: object, default: int, where: str) -> int:
+    """Validate and coerce integer config knob."""
     candidate = default if value is None else value
     if isinstance(candidate, bool) or not isinstance(candidate, int):
         raise ConfigError(f"{where} must be an integer")
@@ -181,6 +186,7 @@ def _required_integer(value: object, where: str) -> int:
 
 
 def _number(value: object, default: float, where: str) -> float:
+    """Validate and coerce finite float config knob."""
     candidate = default if value is None else value
     if isinstance(candidate, bool) or not isinstance(candidate, (int, float)):
         raise ConfigError(f"{where} must be a finite number")
@@ -191,6 +197,7 @@ def _number(value: object, default: float, where: str) -> float:
 
 
 def _boolean(value: object, default: bool, where: str) -> bool:
+    """Validate and coerce boolean config knob."""
     candidate = default if value is None else value
     if not isinstance(candidate, bool):
         raise ConfigError(f"{where} must be true or false")
@@ -198,6 +205,7 @@ def _boolean(value: object, default: bool, where: str) -> bool:
 
 
 def _string(value: object, default: str, where: str) -> str:
+    """Validate and coerce string config knob."""
     candidate = default if value is None else value
     if not isinstance(candidate, str):
         raise ConfigError(f"{where} must be a string")
@@ -207,6 +215,7 @@ def _string(value: object, default: str, where: str) -> str:
 def load_experiment_config(
     project_root: Path | None = None, *, config_path: Path | None = None
 ) -> ExperimentConfig:
+    """Load benchmark experiment configuration from YAML or return defaults."""
     root = project_root or Path(__file__).resolve().parent.parent
     config_path = config_path or root / "manuscript" / "config.yaml"
     if not config_path.exists():

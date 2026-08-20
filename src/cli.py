@@ -34,10 +34,12 @@ from .telemetry import (
 
 
 def _set_result(args: argparse.Namespace, **fields: Any) -> None:
+    """Store structured outcome fields on argparse Namespace for sidecars."""
     args._ento_result_fields = {k: v for k, v in fields.items() if v is not None}
 
 
 def _result_fields(args: argparse.Namespace) -> dict[str, Any]:
+    """Retrieve structured outcome fields stored on argparse Namespace."""
     return dict(getattr(args, "_ento_result_fields", {}) or {})
 
 
@@ -48,6 +50,7 @@ def _write_sidecars(
     exit_code: int,
     error: object | None = None,
 ) -> None:
+    """Write optional JSON and JSONL telemetry sidecars for CLI command execution."""
     command = str(getattr(args, "command", "unknown"))
     fields = _result_fields(args)
     payload: dict[str, Any] = {
@@ -78,6 +81,7 @@ def _write_sidecars(
 
 
 def _add_common_output_args(parser: argparse.ArgumentParser) -> None:
+    """Register common --json-output and --telemetry-jsonl flags on a subcommand parser."""
     parser.add_argument(
         "--json-output",
         type=Path,
@@ -91,6 +95,7 @@ def _add_common_output_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _load_key(path: Path) -> bytes:
+    """Read a 32-byte binary master key from file."""
     data = path.read_bytes()
     if len(data) != crypto.MASTER_KEY_SIZE:
         raise ValueError("key file must be 32 bytes")
@@ -98,6 +103,7 @@ def _load_key(path: Path) -> bytes:
 
 
 def cmd_genkey(args: argparse.Namespace) -> int:
+    """CLI subcommand handler for generating a fresh master key."""
     key = crypto.generate_master_key()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     # Refuse to clobber an existing key: overwriting a live master key permanently
@@ -140,6 +146,7 @@ def cmd_genkey(args: argparse.Namespace) -> int:
 
 
 def cmd_pack(args: argparse.Namespace) -> int:
+    """CLI subcommand handler for packing tracks into an ENTO container."""
     key = _load_key(args.key)
     fixtures = load_fixture_tracks(fixtures_path=args.fixtures, require_all=True)
     level = ObservabilityLevel(args.observability)
@@ -164,6 +171,7 @@ def cmd_pack(args: argparse.Namespace) -> int:
 
 
 def cmd_unpack(args: argparse.Namespace) -> int:
+    """CLI subcommand handler for unpacking an ENTO container."""
     key = _load_key(args.key)
     _, payloads = unpack_container(args.input, key)
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -184,6 +192,7 @@ def cmd_unpack(args: argparse.Namespace) -> int:
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
+    """CLI subcommand handler for verifying container integrity."""
     key = _load_key(args.key) if args.key else None
     # Fail closed by default: a container whose integrity is "unverified" (no key
     # and no ciphertext digests — a stripped/forged or sealed manifest) returns
@@ -220,6 +229,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
 
 
 def cmd_inspect(args: argparse.Namespace) -> int:
+    """CLI subcommand handler for printing manifest JSON."""
     manifest = inspect_container(args.input)
     print(manifest_to_json(manifest))
     _set_result(
@@ -233,6 +243,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
 
 def cmd_proof(args: argparse.Namespace) -> int:
+    """CLI subcommand handler for exporting proof chain JSON."""
     manifest = inspect_container(args.input)
     proof = export_proof(manifest)
     text = json.dumps(proof.to_dict(), indent=2) + "\n"
@@ -249,6 +260,7 @@ def cmd_proof(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line argument parser for entofile."""
     from . import __version__ as ento_version
     from .crypto import FORMAT_VERSION as _fmt_version
 
@@ -343,6 +355,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _cmd_types(_args: argparse.Namespace) -> int:
+    """CLI subcommand handler for listing registered track ontology types."""
     from .ontology import registered_types
 
     uris = registered_types()
@@ -353,6 +366,7 @@ def _cmd_types(_args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Main CLI entry point for entofile."""
     parser = build_parser()
     args = parser.parse_args(argv)
     try:

@@ -68,3 +68,22 @@ def test_structured_reader_rejects_symlinked_required_json(tmp_path: Path) -> No
 
     with pytest.raises(FileNotFoundError):
         read_json_object(link)
+
+
+def test_structured_reader_optional_and_malformed(tmp_path: Path) -> None:
+    missing = tmp_path / "missing.json"
+    assert read_json_object(missing, required=False) == {}
+    missing_yaml = tmp_path / "missing.yaml"
+    assert read_yaml_mapping(missing_yaml, required=False) == {}
+    missing_toml = tmp_path / "missing.toml"
+    assert read_toml_mapping(missing_toml, required=False) == {}
+
+    bad_yaml = tmp_path / "bad.yaml"
+    bad_yaml.write_text("[1, 2, 3]\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="YAML mapping"):
+        read_yaml_mapping(bad_yaml)
+
+    from src.structured_data import atomic_write_text
+
+    atomic_write_text(tmp_path / "test.txt", "content")
+    assert (tmp_path / "test.txt").read_text() == "content"

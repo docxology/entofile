@@ -15,6 +15,7 @@ from .invariants import all_invariants
 
 
 def build_dashboard_payload(project_root: Path) -> dict[str, object]:
+    """Build summary dictionary of experiment config, invariant checks, and benchmark status."""
     cfg = load_experiment_config(project_root)
     invariants = all_invariants(project_root)
     rows = load_benchmark_csv(benchmark_csv_path(project_root))
@@ -38,6 +39,7 @@ def build_dashboard_payload(project_root: Path) -> dict[str, object]:
 
 
 def _figure_gallery_html(project_root: Path) -> str:
+    """Build inline HTML figure gallery embedding generated benchmark PNGs as base64."""
     figures_dir = project_root / "output" / "figures"
     blocks: list[str] = []
     for spec in sorted(FIGURE_SPECS, key=lambda s: (s.manuscript_section, s.label)):
@@ -63,6 +65,7 @@ def _figure_gallery_html(project_root: Path) -> str:
 
 
 def render_dashboard_html(project_root: Path, output_path: Path | None = None) -> Path:
+    """Render standalone HTML dashboard summarizing invariants and benchmark figures."""
     payload = build_dashboard_payload(project_root)
     out = output_path or project_root / "output" / "web" / "dashboard.html"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -85,5 +88,6 @@ def render_dashboard_html(project_root: Path, output_path: Path | None = None) -
 
 
 def run_dashboard_build(project_root: Path | None = None) -> Path:
+    """Orchestrate full dashboard HTML compilation to output/web/dashboard.html."""
     root = project_root or Path(__file__).resolve().parent.parent
     return render_dashboard_html(root)

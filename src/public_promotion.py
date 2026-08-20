@@ -247,10 +247,12 @@ def check_public_promotion_metadata(
 
 
 def _read_text(path: Path) -> str:
+    """Read a text file returning empty string if missing."""
     return path.read_text(encoding="utf-8") if path.is_file() else ""
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
+    """Read a YAML file into a dict or return empty dict if missing."""
     try:
         return read_yaml_mapping(path, required=False)
     except (OSError, TypeError, ValueError, yaml.YAMLError):
@@ -258,6 +260,7 @@ def _read_yaml(path: Path) -> dict[str, Any]:
 
 
 def _read_toml(path: Path) -> dict[str, Any]:
+    """Read a TOML file into a dict or return empty dict if missing."""
     try:
         return read_toml_mapping(path, required=False)
     except (OSError, TypeError, ValueError, tomllib.TOMLDecodeError):
@@ -265,6 +268,7 @@ def _read_toml(path: Path) -> dict[str, Any]:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
+    """Read a JSON file into a dict or return empty dict if missing."""
     try:
         return read_json_object(path, required=False)
     except (OSError, TypeError, ValueError, json.JSONDecodeError):
@@ -272,10 +276,12 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _normalise_text(text: str) -> str:
+    """Normalize whitespace in text for phrase matching."""
     return " ".join(text.lower().split())
 
 
 def _stale_default_phrase_hits(texts: dict[str, str]) -> dict[str, list[str]]:
+    """Find stale default format phrase occurrences in text files."""
     hits: dict[str, list[str]] = {}
     for path, text in texts.items():
         normalised = _normalise_text(text)
@@ -346,6 +352,7 @@ def _machine_path_hits(root: Path) -> dict[str, list[str]]:
 
 
 def _security_policy_current_default(text: str) -> bool:
+    """Validate that SECURITY.md references the current default wire format."""
     normalised = _normalise_text(text)
     return (
         crypto.FORMAT_VERSION in text
@@ -356,6 +363,7 @@ def _security_policy_current_default(text: str) -> bool:
 
 
 def _transmission_hash_current_or_pending(root: Path, manifest: dict[str, Any]) -> bool:
+    """Validate that transmission manifest records an authentic or pending PDF hash."""
     if not manifest:
         return False
     pdf_sha256 = manifest.get("pdf_sha256")
@@ -370,6 +378,7 @@ def _transmission_hash_current_or_pending(root: Path, manifest: dict[str, Any]) 
 
 
 def _sha256(path: Path) -> str:
+    """Return lowercase hex SHA-256 digest of file contents."""
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -391,6 +400,7 @@ def check_public_endpoints(timeout_seconds: float = 10.0) -> dict[str, Any]:
 
 
 def _unchecked_public_endpoint_state() -> dict[str, Any]:
+    """Default state payload for unchecked endpoints during local pre-flight."""
     return {
         "checked": False,
         "ok": False,
@@ -405,10 +415,12 @@ def _unchecked_public_endpoint_state() -> dict[str, Any]:
 
 
 def _public_endpoint_state_ok(state: dict[str, Any]) -> bool:
+    """Return True if public endpoint state was checked and succeeded."""
     return state.get("checked") is True and state.get("ok") is True
 
 
 def _endpoint_state(url: str, *, timeout_seconds: float) -> dict[str, Any]:
+    """Query an HTTP endpoint with HEAD fallback to GET."""
     head_state = _endpoint_state_once(
         url, method="HEAD", timeout_seconds=timeout_seconds
     )
@@ -420,6 +432,7 @@ def _endpoint_state(url: str, *, timeout_seconds: float) -> dict[str, Any]:
 def _endpoint_state_once(
     url: str, *, method: str, timeout_seconds: float
 ) -> dict[str, Any]:
+    """Execute a single HTTP request and return status/result dict."""
     request = urllib.request.Request(
         url,
         method=method,
@@ -451,6 +464,7 @@ def _endpoint_state_once(
 
 
 def _git_text(root: Path, *args: str) -> str:
+    """Execute git with args and return clean stdout string."""
     try:
         result = subprocess.run(
             ["git", *args],

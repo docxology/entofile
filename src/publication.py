@@ -49,6 +49,7 @@ def _output_tail(*streams: str | None, limit: int = _LIVE_DIAGNOSTIC_LIMIT) -> s
 def _with_live_diagnostics(
     summary: dict[str, Any], stdout: str | None, stderr: str | None
 ) -> dict[str, Any]:
+    """Attach tail stderr/stdout diagnostics to test summary."""
     if summary.get("all_passed") is True:
         return summary
     tail = _output_tail(stderr, stdout)
@@ -59,6 +60,7 @@ def _with_live_diagnostics(
 
 
 def _read_json(path: Path) -> dict[str, Any]:
+    """Read a JSON object from file or return empty dict if missing."""
     if not path.is_file():
         return {}
     try:

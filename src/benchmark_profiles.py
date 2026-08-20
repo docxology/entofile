@@ -55,6 +55,7 @@ def benchmark_profile_summary(
     validation_path: Path,
     actual_rows: int,
 ) -> dict[str, Any]:
+    """Build a summary dictionary describing the results of a benchmark profile run."""
     rows_per_repetition = benchmark_rows_per_repetition(cfg)
     expected_rows = cfg.benchmark_repetitions * rows_per_repetition
     return {
@@ -74,5 +75,6 @@ def benchmark_profile_summary(
 
 
 def count_csv_rows(csv_path: Path) -> int:
+    """Return total data row count in a benchmark CSV file."""
     with csv_path.open(newline="", encoding="utf-8") as handle:
         return sum(1 for _ in csv.DictReader(handle))

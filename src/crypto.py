@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-from typing import Final
+from pathlib import Path
+from typing import Any, Final
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -140,6 +141,32 @@ def crypto_backend_for_format(format_version: str) -> str:
     if format_version in SUPPORTED_FORMAT_VERSIONS:
         return CRYPTO_BACKEND
     raise ValueError(f"unsupported format_version: {format_version!r}")
+
+
+def detect_hardware_acceleration() -> dict[str, Any]:
+    """Inspect and report host CPU / cryptographic hardware acceleration features."""
+    import platform
+
+    has_aes_ni = False
+    details: dict[str, Any] = {
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "processor": platform.processor(),
+        "backend": CRYPTO_BACKEND,
+        "backend_accelerated": True,
+    }
+
+    try:
+        if Path("/proc/cpuinfo").is_file():
+            cpuinfo = Path("/proc/cpuinfo").read_text(encoding="utf-8", errors="ignore").lower()
+            flags = [line for line in cpuinfo.splitlines() if line.startswith("flags") or line.startswith("features")]
+            flag_text = " ".join(flags)
+            has_aes_ni = "aes" in flag_text or "pmull" in flag_text or "armv8_ce" in flag_text
+    except OSError:
+        pass
+
+    details["hardware_aes"] = has_aes_ni
+    return details
 
 
 def encrypt_payload(

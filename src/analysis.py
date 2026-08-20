@@ -40,6 +40,7 @@ def run_benchmark_pipeline(
     config: ExperimentConfig | None = None,
     strict: bool = False,
 ) -> Path:
+    """Execute the full ENTO benchmark pipeline and generate all registered artifacts."""
     paths = ProjectPaths.from_root(project_root)
     paths.ensure_output_dirs()
     root = paths.root
@@ -253,6 +254,7 @@ def validate_generated_outputs(
 
 
 def main() -> None:
+    """CLI entry point for running the entofile benchmark pipeline and gates."""
     root = Path(__file__).resolve().parent.parent
     run_benchmark_pipeline(root, strict=True)
     result = validate_generated_outputs(root)

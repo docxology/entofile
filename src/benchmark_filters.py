@@ -21,6 +21,7 @@ def filter_rows(
     observability_level: str | None = None,
     track_id: str | None = None,
 ) -> list[dict[str, str]]:
+    """Filter benchmark CSV rows by condition prefix, observability level, or track ID."""
     filtered = rows
     if condition_prefix is not None:
         filtered = [r for r in filtered if r["condition"].startswith(condition_prefix)]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from .benchmark_io import load_benchmark_csv
 from .experiment_config import VizConfig
@@ -59,46 +60,59 @@ def configure_viz(viz: VizConfig) -> None:
 
 
 def _generate(
-    csv_path: Path, output_path: Path, label: str, plotter, *, panel: bool = False
+    csv_path: Path,
+    output_path: Path,
+    label: str,
+    plotter: Any,
+    *,
+    panel: bool = False,
 ) -> Path:
+    """Load benchmark data and render a registered figure specification."""
     rows = load_benchmark_csv(csv_path)
     spec = spec_by_label(label)
     return render_to_path(rows, output_path, spec, plotter, panel=panel)
 
 
 def generate_benchmark_overview_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate 4-panel benchmark overview figure."""
     return _generate(
         csv_path, output_path, "fig:benchmark_overview", plot_throughput, panel=True
     )
 
 
 def generate_throughput_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate throughput benchmark figure."""
     return _generate(csv_path, output_path, "fig:throughput_benchmark", plot_throughput)
 
 
 def generate_expansion_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate expansion ratio figure."""
     return _generate(csv_path, output_path, "fig:expansion_ratio", plot_expansion)
 
 
 def generate_expansion_heatmap_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate expansion heatmap figure across sizes and observability levels."""
     return _generate(
         csv_path, output_path, "fig:expansion_heatmap", plot_expansion_heatmap
     )
 
 
 def generate_observability_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate observability manifest size figure."""
     return _generate(
         csv_path, output_path, "fig:observability_manifest_size", plot_observability
     )
 
 
 def generate_unpack_latency_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate unpack latency figure."""
     return _generate(csv_path, output_path, "fig:unpack_latency", plot_unpack_latency)
 
 
 def generate_throughput_by_observability_figure(
     csv_path: Path, output_path: Path
 ) -> Path:
+    """Generate throughput by observability level figure."""
     return _generate(
         csv_path,
         output_path,
@@ -108,6 +122,7 @@ def generate_throughput_by_observability_figure(
 
 
 def generate_observability_tradeoff_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate observability vs throughput tradeoff figure."""
     return _generate(
         csv_path,
         output_path,
@@ -117,38 +132,45 @@ def generate_observability_tradeoff_figure(csv_path: Path, output_path: Path) ->
 
 
 def generate_manifest_multitrack_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate manifest multitrack scaling figure."""
     return _generate(
         csv_path, output_path, "fig:manifest_multitrack", plot_manifest_multitrack
     )
 
 
 def generate_crypto_overhead_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate cryptographic overhead breakdown figure."""
     return _generate(csv_path, output_path, "fig:crypto_overhead", plot_crypto_overhead)
 
 
 def generate_expansion_law_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate expansion law verification figure."""
     return _generate(csv_path, output_path, "fig:expansion_law", plot_expansion_law)
 
 
 def generate_throughput_dispersion_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate throughput dispersion across repetitions figure."""
     return _generate(
         csv_path, output_path, "fig:throughput_dispersion", plot_throughput_dispersion
     )
 
 
 def generate_determinism_cv_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate coefficient of variation determinism classification figure."""
     return _generate(
         csv_path, output_path, "fig:determinism_cv", plot_determinism_cv
     )
 
 
 def generate_format_ladder_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate format security ladder figure."""
     return _generate(csv_path, output_path, "fig:format_ladder", plot_format_ladder)
 
 
 def generate_format_compatibility_matrix_figure(
     csv_path: Path, output_path: Path
 ) -> Path:
+    """Generate format compatibility matrix figure."""
     return _generate(
         csv_path,
         output_path,
@@ -160,6 +182,7 @@ def generate_format_compatibility_matrix_figure(
 def generate_length_leakage_profile_figure(
     csv_path: Path, output_path: Path
 ) -> Path:
+    """Generate PADME length leakage profile figure."""
     return _generate(
         csv_path,
         output_path,
@@ -171,6 +194,7 @@ def generate_length_leakage_profile_figure(
 def generate_conformance_outcomes_figure(
     csv_path: Path, output_path: Path
 ) -> Path:
+    """Generate conformance test outcomes figure."""
     return _generate(
         csv_path,
         output_path,
@@ -182,6 +206,7 @@ def generate_conformance_outcomes_figure(
 def generate_observability_redaction_matrix_figure(
     csv_path: Path, output_path: Path
 ) -> Path:
+    """Generate observability redaction field matrix figure."""
     return _generate(
         csv_path,
         output_path,
@@ -191,6 +216,7 @@ def generate_observability_redaction_matrix_figure(
 
 
 def generate_release_evidence_map_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate release evidence artifact provenance figure."""
     return _generate(
         csv_path,
         output_path,
@@ -202,6 +228,7 @@ def generate_release_evidence_map_figure(csv_path: Path, output_path: Path) -> P
 def generate_security_control_matrix_figure(
     csv_path: Path, output_path: Path
 ) -> Path:
+    """Generate security control matrix figure."""
     return _generate(
         csv_path,
         output_path,
@@ -211,4 +238,5 @@ def generate_security_control_matrix_figure(
 
 
 def generate_tamper_figure(csv_path: Path, output_path: Path) -> Path:
+    """Generate tamper detection rate figure."""
     return _generate(csv_path, output_path, "fig:tamper_detection", plot_tamper)

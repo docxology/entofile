@@ -106,11 +106,12 @@ def _refresh_stage_manifest(stage_dir: Path, payload: dict[str, Any]) -> None:
 
 
 def _is_ignored_output(path: Path, output_dir: Path) -> bool:
+    """Return True if path is a temporary or intermediate output artifact to ignore."""
     rel_parts = path.relative_to(output_dir).parts
     return (
         any(part in _IGNORED_OUTPUT_PARTS for part in rel_parts)
         or path.name in _IGNORED_OUTPUT_FILENAMES
-        or path.suffix in _IGNORED_OUTPUT_SUFFIXES
+        or path.name.startswith((".", "_"))
     )
 
 

@@ -32,6 +32,7 @@ CONFORMANCE_TRACK = PlainTrack(
 
 @dataclass(frozen=True)
 class ConformanceCase:
+    """Specification of expected verification/unpack outcomes for a conformance fixture."""
     case_id: str
     filename: str
     category: str
@@ -250,6 +251,7 @@ def verify_conformance_fixtures(
 def _evaluate_case(
     container: Path, key: bytes
 ) -> tuple[dict[str, bool], dict[str, str]]:
+    """Evaluate verify and unpack outcomes against an actual container fixture."""
     actual: dict[str, bool] = {}
     errors: dict[str, str] = {}
     actual["verify_with_key"], errors["verify_with_key"] = _ok_or_error(
@@ -269,6 +271,7 @@ def _evaluate_case(
 def _ok_or_error(
     operation: Callable[[], Any], *, dict_result_required: bool = False
 ) -> tuple[bool, str]:
+    """Execute an operation and return boolean success flag and redacted error string."""
     try:
         result = operation()
     except (
@@ -288,6 +291,7 @@ def _ok_or_error(
 
 
 def _manifest_entry(case: ConformanceCase, path: Path) -> dict[str, Any]:
+    """Build a manifest metadata entry for one conformance case fixture."""
     return {
         "case_id": case.case_id,
         "path": path.name,
@@ -303,11 +307,13 @@ def _manifest_entry(case: ConformanceCase, path: Path) -> dict[str, Any]:
 
 
 def _fixed_nonce(format_version: str) -> bytes:
+    """Return deterministic test nonce for conformance vector generation."""
     size = crypto.nonce_size_for(format_version)
     return bytes(range(1, size + 1))
 
 
 def _write_good_container(path: Path, format_version: str) -> None:
+    """Write a valid known-good container fixture for the given format version."""
     track = CONFORMANCE_TRACK
     track_key = crypto.derive_track_key(CONFORMANCE_KEY, track.track_id)
     plaintext = (
@@ -367,6 +373,7 @@ def _write_good_container(path: Path, format_version: str) -> None:
 
 
 def _write_duplicate_member_container(path: Path) -> None:
+    """Write an invalid container fixture containing duplicate ZIP member entries."""
     _write_good_container(path, crypto.FORMAT_VERSION)
     with zipfile.ZipFile(path, "a", compression=zipfile.ZIP_STORED) as zf:
         info = zipfile.ZipInfo("tracks/alpha.ento", date_time=(2026, 1, 1, 0, 0, 0))
@@ -377,6 +384,7 @@ def _write_duplicate_member_container(path: Path) -> None:
 
 
 def _write_path_escape_container(path: Path) -> None:
+    """Write an invalid container fixture attempting path escape."""
     manifest = {
         "format_version": crypto.FORMAT_VERSION,
         "created": CONFORMANCE_CREATED,
@@ -403,6 +411,7 @@ def _write_path_escape_container(path: Path) -> None:
 
 
 def _flip_first_track_byte(path: Path) -> None:
+    """Corrupt the last byte of the first track in a container to simulate tampering."""
     with zipfile.ZipFile(path, "r") as zin:
         members = {name: zin.read(name) for name in zin.namelist()}
     for name in sorted(members):
@@ -415,6 +424,7 @@ def _flip_first_track_byte(path: Path) -> None:
 
 
 def _write_zip(path: Path, members: dict[str, bytes]) -> None:
+    """Write a deterministic ZIP archive from a filename-to-bytes mapping."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_STORED) as zf:
         for name, data in members.items():

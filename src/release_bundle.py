@@ -16,6 +16,7 @@ from .structured_data import atomic_write_text, read_yaml_mapping
 
 @dataclass(frozen=True)
 class ReleaseFile:
+    """Designated release artifact with relative path and role description."""
     path: str
     role: str
     required: bool = True
@@ -146,6 +147,7 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
 
 
 def _load_config(root: Path) -> dict[str, Any]:
+    """Load manuscript/config.yaml or return empty dict."""
     config_path = root / "manuscript" / "config.yaml"
     try:
         return read_yaml_mapping(config_path, required=False)
@@ -154,6 +156,7 @@ def _load_config(root: Path) -> dict[str, Any]:
 
 
 def _git_text(root: Path, *args: str) -> str:
+    """Execute git with args and return clean stdout string."""
     try:
         result = subprocess.run(
             ["git", *args],

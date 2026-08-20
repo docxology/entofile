@@ -20,6 +20,7 @@ from .ontology import default_resolution
 
 @dataclass(frozen=True)
 class BenchmarkRow:
+    """Single benchmark trial observation."""
     format_version: str
     condition: str
     track_id: str
@@ -35,6 +36,7 @@ class BenchmarkRow:
     manifest_bytes: int
 
     def to_csv_row(self) -> dict[str, str]:
+        """Convert row fields to string-valued CSV mapping."""
         return {
             "format_version": self.format_version,
             "condition": self.condition,
@@ -53,6 +55,7 @@ class BenchmarkRow:
 
 
 def _synthetic_track(track_id: str, size: int) -> PlainTrack:
+    """Generate synthetic deterministic track payload."""
     payload = bytes(i % 256 for i in range(size))
     return PlainTrack(
         track_id=track_id,
@@ -63,6 +66,7 @@ def _synthetic_track(track_id: str, size: int) -> PlainTrack:
 
 
 def _medium_track(size: int) -> PlainTrack:
+    """Generate medium-sized synthetic track payload."""
     return _synthetic_track("medium", size)
 
 
@@ -74,6 +78,7 @@ def benchmark_track(
     observability_level: ObservabilityLevel,
     tmp_dir: Path,
 ) -> BenchmarkRow:
+    """Benchmark pack/unpack latency, throughput, expansion ratio, and tamper detection for one track."""
     start = time.perf_counter()
     blob = pack_container_bytes(
         master_key,
@@ -214,6 +219,7 @@ def run_all_benchmarks(
     large_track_bytes: int = 0,
     include_mixed_container: bool = False,
 ) -> list[BenchmarkRow]:
+    """Execute full benchmark matrix over configured repetitions and tracks."""
     master_key = generate_master_key()
     tmp_dir = project_root / "output" / "data" / "_bench_tmp"
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -270,11 +276,13 @@ def run_all_benchmarks(
 
 
 def manifest_size_for_level(manifest: Manifest, level: ObservabilityLevel) -> int:
+    """Return JSON byte size of manifest exported at the given observability level."""
     filtered = filter_manifest(manifest, level)
     return len(manifest_to_json(filtered).encode("utf-8"))
 
 
 def write_benchmark_csv(rows: list[BenchmarkRow], path: Path) -> Path:
+    """Write benchmark rows to a CSV file."""
     import csv
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -288,6 +296,7 @@ def write_benchmark_csv(rows: list[BenchmarkRow], path: Path) -> Path:
 
 
 def write_validation_report(rows: list[BenchmarkRow], path: Path) -> Path:
+    """Write benchmark validation summary JSON."""
     tamper_rate = sum(1 for r in rows if r.tamper_detected) / len(rows) if rows else 0.0
     payload = {
         "status": "pass" if tamper_rate == 1.0 else "fail",

@@ -264,3 +264,26 @@ def test_canonical_binding_normalizes_integral_numbers_and_unicode() -> None:
         tracks=base.tracks,
     )
     assert compute_manifest_binding(unicode_a) == compute_manifest_binding(unicode_b)
+
+
+def test_manifest_binding_rejects_non_finite_and_malformed() -> None:
+    """_normalize_numbers rejects float('nan') or float('inf') and validate_manifest_binding rejects malformed shapes."""
+    from src.manifest_binding import _normalize_numbers, validate_manifest_binding
+
+    with pytest.raises(ValueError, match="manifest binding does not permit non-finite numbers"):
+        _normalize_numbers(float("nan"))
+    with pytest.raises(ValueError, match="manifest binding does not permit non-finite numbers"):
+        _normalize_numbers(float("inf"))
+
+    # Test malformed binding regex
+    base = _vector_manifest()
+    malformed_binding_manifest = Manifest(
+        format_version="0.5.0",
+        created=base.created,
+        creator=base.creator,
+        observability_level=base.observability_level,
+        tracks=base.tracks,
+        manifest_binding="not-a-valid-hex-sha256",
+    )
+    with pytest.raises(ValueError, match="manifest_binding is missing or malformed"):
+        validate_manifest_binding(malformed_binding_manifest)

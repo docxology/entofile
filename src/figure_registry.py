@@ -212,6 +212,7 @@ class FigureSpec:
 
     @property
     def generated_by(self) -> str:
+        """Name of the Python generator function responsible for this figure."""
         return f"{self.module}::{self.generator_name}"
 
 
@@ -269,6 +270,7 @@ def _registered_spec(
 
 
 def _build_figure_specs() -> tuple[FigureSpec, ...]:
+    """Build all registered FigureSpec instances."""
     throughput = _registered_spec(
         summary=(
             "Pack throughput, in MiB/s, against plaintext size for the medium synthetic-track condition. "
@@ -665,6 +667,7 @@ def figure_caption_variables() -> dict[str, str]:
 
 
 def figure_width_token(spec: FigureSpec, default_width: str) -> str:
+    """Return configured figure width percent token for manuscript injection."""
     return str(spec.width_percent) if spec.width_percent is not None else default_width
 
 
@@ -721,6 +724,7 @@ def visual_evidence_contract_markdown() -> str:
 
 
 def _resolve_generator(name: str) -> Callable[[Path, Path], Path]:
+    """Dynamically import and resolve a figure generator callable from figures module."""
     from . import figures
 
     allowed = {spec.generator_name for spec in FIGURE_SPECS}
@@ -730,7 +734,7 @@ def _resolve_generator(name: str) -> Callable[[Path, Path], Path]:
 
 
 def generate_all_figures(csv_path: Path, figures_dir: Path) -> dict[str, Path]:
-    """Run every registered generator; return label → PNG path."""
+    """Run every registered generator; return label -> PNG path."""
     figures_dir.mkdir(parents=True, exist_ok=True)
     outputs: dict[str, Path] = {}
     for spec in FIGURE_SPECS:
@@ -743,6 +747,7 @@ def generate_all_figures(csv_path: Path, figures_dir: Path) -> dict[str, Path]:
 def _registry_entry(
     spec: FigureSpec, output_path: Path, csv_source: str
 ) -> dict[str, str]:
+    """Build registry metadata dictionary for one figure specification."""
     contract = visual_contract_for_spec(spec)
     return {
         "label": spec.label,

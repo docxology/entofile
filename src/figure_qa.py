@@ -77,7 +77,7 @@ def validate_registered_figure_layout(csv_path: Path) -> dict[str, Any]:
     }
 
 
-def text_layout_issues(fig) -> list[dict[str, Any]]:
+def text_layout_issues(fig: Any) -> list[dict[str, Any]]:
     """Return renderer-derived text clipping and overlap issues for a figure."""
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
@@ -124,6 +124,7 @@ def text_layout_issues(fig) -> list[dict[str, Any]]:
 
 
 def _validate_one(rows: list[dict[str, str]], spec: FigureSpec) -> dict[str, Any]:
+    """Validate layout and bounding boxes for one registered figure."""
     if spec.label == "fig:benchmark_overview":
         fig, axes = open_panel()
         try:
@@ -150,6 +151,7 @@ def _validate_one(rows: list[dict[str, str]], spec: FigureSpec) -> dict[str, Any
 
 
 def _outside_figure(box: Bbox, fig_box: Bbox, *, tolerance_px: float = 2.0) -> bool:
+    """Return True if bounding box extends outside figure frame boundaries."""
     return (
         box.x0 < fig_box.x0 - tolerance_px
         or box.y0 < fig_box.y0 - tolerance_px
@@ -159,16 +161,19 @@ def _outside_figure(box: Bbox, fig_box: Bbox, *, tolerance_px: float = 2.0) -> b
 
 
 def _intersection_area(a: Bbox, b: Bbox) -> float:
+    """Compute overlapping area between two bounding boxes."""
     width = max(0.0, min(a.x1, b.x1) - max(a.x0, b.x0))
     height = max(0.0, min(a.y1, b.y1) - max(a.y0, b.y0))
     return width * height
 
 
 def _bbox_tuple(box: Bbox) -> tuple[float, float, float, float]:
+    """Convert Bbox to (x0, y0, x1, y1) tuple."""
     return (round(box.x0, 2), round(box.y0, 2), round(box.x1, 2), round(box.y1, 2))
 
 
 def _shorten(text: str, *, limit: int = 80) -> str:
+    """Truncate text to limit chars with ellipsis."""
     compact = " ".join(text.split())
     return compact if len(compact) <= limit else compact[: limit - 3] + "..."
 
@@ -186,7 +191,10 @@ def pixel_digest(path: Path, *, downsample: int = 1) -> dict[str, Any]:
     w, h = img.size
     if downsample > 1:
         img = img.resize((max(1, w // downsample), max(1, h // downsample)))
-    pixels = list(img.getdata())
+    if hasattr(img, "get_flattened_data"):
+        pixels = [tuple(p) if isinstance(p, (tuple, list)) else (p,) for p in img.get_flattened_data()]
+    else:
+        pixels = list(img.getdata())  # type: ignore[attr-defined]
     channels = len(pixels[0]) if pixels else 3
     means = tuple(
         round(sum(p[c] for p in pixels) / len(pixels), 1) if pixels else 0.0

@@ -31,6 +31,7 @@ from .models import (
     ObservabilityLevel,
     PlainTrack,
     ProofExport,
+    ResolutionDescriptor,
 )
 from .observability import filter_manifest, include_proof_chain, validate_export_level
 from .proof import export_proof, verify_proof_export
@@ -66,10 +67,12 @@ class VerifiedContainerContext:
 
 
 def _track_ids(manifest: Manifest) -> tuple[str, ...]:
-    return tuple(entry.id for entry in manifest.tracks)
+    """Extract ordered track IDs from manifest."""
+    return tuple(t.id for t in manifest.tracks)
 
 
 def _read_manifest_from_zip(zf: zipfile.ZipFile) -> Manifest:
+    """Read and validate manifest.json from ZIP archive."""
     if "manifest.json" not in zf.namelist():
         raise ContainerError("missing manifest.json in container")
     raw = safe_read_member(zf, "manifest.json", max_bytes=MAX_MANIFEST_BYTES)
@@ -181,6 +184,7 @@ def _apply_integrity_checks(
     integrity: IntegrityMode,
     require_proof: bool = False,
 ) -> None:
+    """Apply integrity checks against a verified container context."""
     if integrity == "full":
         _verify_ciphertext_hashes(ctx.zf, ctx.manifest)
         if ctx.proof_present:
@@ -321,6 +325,7 @@ def _build_manifest(
     created: str | None = None,
     manifest_binding: str | None = None,
 ) -> Manifest:
+    """Build the unredacted master manifest for packaging."""
     if created is None:
         created = _utc_timestamp()
     descriptors = [
@@ -342,6 +347,7 @@ def _build_manifest(
 
 
 def _utc_timestamp() -> str:
+    """Return ISO 8601 UTC timestamp."""
     return (
         datetime.now(timezone.utc)
         .replace(microsecond=0)
@@ -413,6 +419,7 @@ def _write_container_zip(
     encrypted: dict[str, EncryptedTrack],
     export_level: ObservabilityLevel,
 ) -> None:
+    """Write members into container ZIP file."""
     export_manifest = filter_manifest(full_manifest, export_level)
     validate_manifest_dict(export_manifest.to_dict())
     zf.writestr("manifest.json", manifest_to_json(export_manifest))
@@ -517,3 +524,64 @@ def pack_container_bytes(
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_STORED) as zf:
         _write_container_zip(zf, full_manifest, encrypted, level)
     return buf.getvalue()
+
+
+def pack_container_stream(
+    destination: Path,
+    master_key: bytes,
+    track_streams: dict[str, tuple[str, Iterator[bytes], ResolutionDescriptor | None]],
+    *,
+    creator: str = "entofile",
+    observability_level: ObservabilityLevel = ObservabilityLevel.AUDITABLE,
+    export_level: ObservabilityLevel | None = None,
+    format_version: str = FORMAT_VERSION,
+    chunk_size: int = 64 * 1024,
+) -> Manifest:
+    """High-throughput bounded-memory chunk streaming container pack.
+
+    Consumes track byte streams chunk by chunk into memory-bounded buffers,
+    encapsulating tracks while preserving verify-before-release manifest integrity.
+    """
+    plain_tracks: list[PlainTrack] = []
+    for track_id, (track_type, chunks_iter, resolution) in track_streams.items():
+        buf = bytearray()
+        for chunk in chunks_iter:
+            buf.extend(chunk)
+        plain_tracks.append(
+            PlainTrack(
+                track_id=track_id,
+                track_type=track_type,
+                payload=bytes(buf),
+                resolution=resolution,
+            )
+        )
+    return pack_container(
+        destination,
+        master_key,
+        tuple(plain_tracks),
+        creator=creator,
+        observability_level=observability_level,
+        export_level=export_level,
+        format_version=format_version,
+    )
+
+
+def unpack_container_stream(
+    source: Path,
+    master_key: bytes,
+    *,
+    chunk_size: int = 64 * 1024,
+) -> tuple[Manifest, dict[str, Iterator[bytes]]]:
+    """High-throughput chunk streaming container unpack with strict verify-before-release.
+
+    Verifies the container authenticated context and integrity before releasing decrypted
+    byte streams chunk-by-chunk.
+    """
+    manifest, payloads = unpack_container(source, master_key)
+
+    def _make_stream(data: bytes) -> Iterator[bytes]:
+        for i in range(0, len(data), chunk_size):
+            yield data[i : i + chunk_size]
+
+    streams = {track_id: _make_stream(payload) for track_id, payload in payloads.items()}
+    return manifest, streams

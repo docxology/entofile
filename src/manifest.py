@@ -86,6 +86,7 @@ def build_track_descriptor(
 
 
 def crypto_sha256(data: bytes) -> str:
+    """Return lowercase hex SHA-256 digest of input bytes."""
     from . import crypto
 
     return crypto.sha256_hex(data)

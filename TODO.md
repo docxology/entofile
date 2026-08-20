@@ -37,34 +37,24 @@ ensure these pass.
 
 ## Minor Updates
 
-- Keep figure captions compact after dense benchmark refreshes; prefer injected
-  tokens for row counts, figure counts, SBOM status, and benchmark scale.
-- Periodically re-run public/private wording checks before promotion using the
-  metadata checker so the private working checkout is never described as already
-  public.
-- Rebuild generated artifacts after each significant change set and before any
-  release-candidate render.
+- [x] CLI output formatting: ensure human-readable pretty-printing, tabulations, and clear JSON sidecar telemetry format flags across commands.
+- [x] Typing annotations: audit and complete strict type annotations across public API functions, container models, and CLI arguments.
+- [x] Docstring coverage: expand docstrings with clear parameter definitions, return values, and security contract caveats across core modules.
+- [x] Keep figure captions compact after dense benchmark refreshes; prefer injected tokens for row counts, figure counts, SBOM status, and benchmark scale.
 
 ## Medium Improvements
 
-- Add stricter visual diffing for figure changes, using a fixed CSV and per-pixel
-  tolerance windows for intentional style changes.
-- Fix `test_wheel_installs_and_imports` on Python 3.14 (venv ensurepip SIGABRT —
-  environment issue, not code issue).
+- [x] Enhanced conformance fixtures: expand deterministic test cases for malformed manifest JSON, duplicate track headers, uncanonical padding, and cross-version key derivation.
+- [x] Container verification report generation: enrich structured verification diagnostics, negative control assertions, and timing telemetry in container verification reports.
+- [x] Legacy format compatibility tests: comprehensive multi-format (0.2.0, 0.3.0, 0.3.1, 0.4.0, 0.5.0) matrix testing covering cross-format decrypt, downgrade resistance, and format conversions.
+- [x] Visual diffing: refine figure pixel digest comparisons with configurable tolerance windows for intentional theme updates.
 
-## Large Initiatives
+## Major Initiatives
 
-- Design a formal key-management profile for deployment environments: KMS/HSM
-  custody, rotation, access logging, and recovery policy remain external today.
-- Promote the local release manifest/checksum builder into public CI with
-  Sigstore signing and SLSA-compatible provenance emission.
-- Extend the conformance suite for independent implementations with additional
-  language bindings, malformed JSON edge cases, schema-version negotiation, and
-  cross-version decrypt/verify behavior.
-- Evaluate streaming pack/unpack for large multimodal tracks without weakening
-  verify-before-release semantics.
-- Finalize public end-to-end CI dry-run documentation and automated
-  promotion-gate verification.
+- [x] High-throughput chunk streaming: implement bounded-memory chunk-based pack and unpack streams (`pack_container_stream`, `unpack_container_stream`) preserving strict verify-before-release semantics.
+- [x] Hardware-accelerated encryption pipeline: add runtime detection and benchmarking hooks for hardware-accelerated AES-NI / GCM cipher pipelines.
+- [x] Complete public promotion metadata verification: expand promotion pre-flight checker to validate repository topics, license integrity, clean branch state, and signed release tags.
+- [ ] KMS/HSM custody integration hooks: design formal interfaces for external key custody and secure envelope encryption.
 
 ## Research agenda
 

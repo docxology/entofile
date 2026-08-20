@@ -28,6 +28,7 @@ class ResolutionDescriptor:
     shape: tuple[int, ...] | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert resolution descriptor to JSON-compatible dictionary."""
         out: dict[str, Any] = {}
         if self.hz is not None:
             out["hz"] = self.hz
@@ -45,6 +46,7 @@ class ResolutionDescriptor:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> ResolutionDescriptor | None:
+        """Parse resolution descriptor from JSON dictionary or return None."""
         if not data:
             return None
         loci = data.get("loci")
@@ -72,6 +74,7 @@ class TrackDescriptor:
     observability: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert track descriptor to JSON-compatible dictionary."""
         out: dict[str, Any] = {
             "id": self.id,
             "type": self.type,
@@ -87,6 +90,7 @@ class TrackDescriptor:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> TrackDescriptor:
+        """Parse track descriptor from JSON dictionary."""
         return cls(
             id=str(data["id"]),
             type=str(data["type"]),
@@ -110,6 +114,7 @@ class Manifest:
     manifest_binding: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert manifest to JSON-compatible dictionary."""
         out: dict[str, Any] = {
             "format_version": self.format_version,
             "created": self.created,
@@ -123,6 +128,7 @@ class Manifest:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Manifest:
+        """Parse top-level manifest from JSON dictionary."""
         tracks_raw = data.get("tracks") or []
         return cls(
             format_version=str(data["format_version"]),
@@ -148,6 +154,7 @@ class EncryptedTrack:
     ciphertext: bytes
 
     def to_bytes(self) -> bytes:
+        """Serialize encrypted track to binary wire format (nonce + tag + ciphertext)."""
         return self.nonce + self.tag + self.ciphertext
 
 
@@ -173,6 +180,7 @@ class ProofLink:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ProofLink:
+        """Parse proof link from JSON dictionary."""
         return cls(
             index=int(data["index"]),
             track_id=str(data["track_id"]),
@@ -192,6 +200,7 @@ class ProofExport:
     links: tuple[ProofLink, ...]
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert proof export to JSON-compatible dictionary."""
         return {
             "format_version": self.format_version,
             "created": self.created,
@@ -210,6 +219,7 @@ class ProofExport:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ProofExport:
+        """Parse proof export from JSON dictionary."""
         links_raw = data.get("links", [])
         return cls(
             format_version=str(data["format_version"]),

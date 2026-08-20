@@ -14,6 +14,7 @@ from .container import verify_container
 
 
 def _benchmark_samples(project_root: Path) -> list[Path]:
+    """Find generated benchmark ENTO container sample files."""
     bench_dir = project_root / "output" / "data" / "_bench_tmp"
     if not bench_dir.is_dir():
         return []
@@ -62,6 +63,8 @@ def build_container_verification_report(project_root: Path) -> dict[str, object]
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "sample_count": len(results),
         "integrity_basis": "digest-only (keyless); adversarial integrity requires the master key",
+        "passed_samples": sum(1 for r in results if r.get("ok")),
+        "failed_samples": sum(1 for r in results if not r.get("ok")),
         "negative_control": negative_control,
         "ok": ok,
         "samples": results,

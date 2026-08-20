@@ -12,7 +12,14 @@ Public API:
 
 from __future__ import annotations
 
-from .container import inspect_container, pack_container, unpack_container, verify_container
+from .container import (
+    inspect_container,
+    pack_container,
+    pack_container_stream,
+    unpack_container,
+    unpack_container_stream,
+    verify_container,
+)
 from .crypto import (
     FORMAT_VERSION,
     FORMAT_VERSION_LATEST,
@@ -21,6 +28,7 @@ from .crypto import (
     SUPPORTED_FORMAT_VERSIONS,
     decrypt_payload,
     derive_track_key,
+    detect_hardware_acceleration,
     encrypt_payload,
     generate_master_key,
     hkdf_sha256,
@@ -63,14 +71,17 @@ __all__ = [
     "compute_manifest_binding",
     "decrypt_payload",
     "derive_track_key",
+    "detect_hardware_acceleration",
     "encrypt_payload",
     "export_proof",
     "generate_master_key",
     "hkdf_sha256",
     "inspect_container",
     "pack_container",
+    "pack_container_stream",
     "safe_output_path",
     "unpack_container",
+    "unpack_container_stream",
     "validate_track_id",
     "validate_zip_archive",
     "verify_container",

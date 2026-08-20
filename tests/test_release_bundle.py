@@ -6,6 +6,8 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from src import crypto
 from src.release_bundle import RELEASE_FILES, build_release_bundle
 
@@ -115,3 +117,12 @@ def test_release_bundle_reports_missing_required_artifacts(tmp_path: Path) -> No
     assert payload["ok"] is False
     assert "output/pdf/entofile_combined.pdf" in payload["missing_required"]
     assert "LICENSE" in payload["missing_required"]
+
+
+def test_release_bundle_refuses_symlink_output(tmp_path: Path) -> None:
+    symlink_out = tmp_path / "link_release"
+    target_out = tmp_path / "target_release"
+    target_out.mkdir()
+    symlink_out.symlink_to(target_out)
+    with pytest.raises(OSError, match="refusing to write release bundle through symlink"):
+        build_release_bundle(tmp_path, output_dir=symlink_out)
