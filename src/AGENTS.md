@@ -24,7 +24,7 @@ Technical reference for ENTO domain modules. Security: [`../docs/security.md`](.
 | `release_bundle.py` | Release manifest and `SHA256SUMS` builder for external signing |
 | `telemetry.py` | CLI JSON sidecar and JSONL telemetry helpers |
 | `benchmark_filters.py` | `AUDITABLE_LEVEL`, `MEDIUM_TRACK_PREFIX`, `SMALL_TRACKS_R0_PREFIX`, `filter_rows`, `is_tamper_detected` |
-| `benchmark_stats.py` | `avg_field`, `result_table_rows`, `tamper_detected_count` (uses `figure_registry.spec_by_label`, `filter_rows_for_spec`) |
+| `benchmark_stats.py` | `avg_field`, `result_table_rows`, `tamper_detected_count` (uses `figure_registry.filter_rows_for_spec`) |
 | `viz_theme.py` | `bind_viz`, `open_figure`, `open_panel`, `save_figure`, `PALETTE`, `FIGSIZE_PRESETS` |
 | `figure_plotters.py` | `plot_*`, `render_to_path` (matplotlib plotters; filters via `filter_rows_for_spec`) |
 | `figure_registry.py` | `FIGURE_SPECS`, `spec_by_label`, `filter_rows_for_spec`, `spec_filter_description`, `plot_title`, `figure_caption`, `generate_all_figures` |
@@ -39,4 +39,4 @@ Technical reference for ENTO domain modules. Security: [`../docs/security.md`](.
 3. **Container prelude** — shared `_with_verified_container`; `inspect` uses `manifest_only` integrity.
 4. **Analysis gate** — `validate_all_outputs` reads on-disk reports only.
 
-Line-count: prefer focused modules; `figure_registry.py` and `figure_plotters.py` may exceed 250 lines when registry/plot code stays cohesive. Project script hard fail is 950 lines (`scripts/gates/module_line_count_check.py`).
+Line-count: prefer focused modules; `figure_registry.py` and `figure_plotters.py` may exceed 250 lines when registry/plot code stays cohesive. The line-count ratchet lives in the template checkout (`scripts/gates/module_line_count_check.py` there: project scripts warn at 150 / fail at 250 lines, infrastructure warns at 800 / fails at 950).

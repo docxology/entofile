@@ -41,7 +41,7 @@ uv run python scripts/z_generate_manuscript_variables.py
 uv run python scripts/build_release_bundle.py
 uv run python scripts/check_public_promotion_metadata.py --check
 cd <template-checkout>
-uv run python scripts/03_render_pdf.py --project working/entofile
+uv run python scripts/pipeline/stage_03_render.py --project working/entofile --skip-manuscript-hydration
 ```
 
 ## Output reports

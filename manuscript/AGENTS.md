@@ -106,7 +106,7 @@ uv run python scripts/ento_analysis.py
 uv run python scripts/z_generate_manuscript_variables.py
 grep -r "{{" output/manuscript/ || echo "All resolved"
 cd <template-checkout>
-uv run python scripts/03_render_pdf.py --project working/entofile
+uv run python scripts/pipeline/stage_03_render.py --project working/entofile --skip-manuscript-hydration
 ```
 
 See [`SYNTAX.md`](SYNTAX.md) and [`../docs/syntax_guide.md`](../docs/syntax_guide.md).
