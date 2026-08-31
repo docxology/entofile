@@ -7,6 +7,7 @@ wheel installs cleanly into a fresh virtualenv.  These tests are marked
 
 from __future__ import annotations
 
+import os
 import subprocess
 import zipfile
 from pathlib import Path
@@ -14,6 +15,11 @@ from pathlib import Path
 import pytest
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Subprocess ceiling for build/install steps. On slow or heavily loaded
+# filesystems (e.g. external archive drives) `uv build` and venv creation can
+# take far longer than a small fixed default; scale via ENTOFILE_BUILD_TIMEOUT_SECONDS.
+_BUILD_TIMEOUT = int(os.environ.get("ENTOFILE_BUILD_TIMEOUT_SECONDS", "600"))
 
 
 @pytest.mark.slow
@@ -24,7 +30,7 @@ def test_uv_build_produces_wheel_and_sdist(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         cwd=str(_PROJECT_ROOT),
-        timeout=120,
+        timeout=_BUILD_TIMEOUT,
     )
     assert result.returncode == 0, result.stderr
     wheels = list(tmp_path.glob("*.whl"))
@@ -46,7 +52,7 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         cwd=str(_PROJECT_ROOT),
-        timeout=120,
+        timeout=_BUILD_TIMEOUT,
     )
     assert build_result.returncode == 0, build_result.stderr
 
@@ -60,7 +66,7 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         cwd=str(_PROJECT_ROOT),
-        timeout=120,
+        timeout=_BUILD_TIMEOUT,
     )
     assert venv_result.returncode == 0, venv_result.stderr
 
@@ -69,7 +75,7 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
         ["uv", "pip", "install", "--python", str(python), str(wheel_path)],
         capture_output=True,
         text=True,
-        timeout=120,
+        timeout=_BUILD_TIMEOUT,
     )
     assert install_result.returncode == 0, install_result.stderr
 
@@ -84,7 +90,7 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         cwd=str(_PROJECT_ROOT),
-        timeout=30,
+        timeout=_BUILD_TIMEOUT,
     )
     assert import_result.returncode == 0, import_result.stderr
     assert "import ok" in import_result.stdout
