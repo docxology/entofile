@@ -12,3 +12,22 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 build/
+
+# Auto-generated doc-fleet expansion notes (2026-08-29): local-only by design,
+# they declare "never committed" and must not dirty the release source state.
+.github/AGENTS.md
+.github/README.md
+.github/ISSUE_TEMPLATE/AGENTS.md
+.github/ISSUE_TEMPLATE/README.md
+.github/workflows/AGENTS.md
+.github/workflows/README.md
+configs/AGENTS.md
+configs/README.md
+data/test_vectors/AGENTS.md
+data/test_vectors/README.md
+docs/research/AGENTS.md
+docs/research/README.md
+docs/reviews/AGENTS.md
+docs/reviews/README.md
+tests/fixtures/AGENTS.md
+tests/fixtures/README.md
