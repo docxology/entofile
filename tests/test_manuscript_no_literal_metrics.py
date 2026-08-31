@@ -38,7 +38,7 @@ def test_manuscript_sections_avoid_bare_metric_literals(
     pattern_name: str, pattern: re.Pattern[str]
 ) -> None:
     root = Path(__file__).resolve().parent.parent
-    manuscript_dir = root / "manuscript"
+    manuscript_dir = root / "docs" / "manuscript"
     hits: list[str] = []
     for md_file in sorted(manuscript_dir.glob("*.md")):
         if md_file.name in _DOC_ONLY:
@@ -84,7 +84,7 @@ def test_manuscript_counts_are_injected_not_spelled_out(
     when the underlying enum grows. The token-strip removes legitimate {{TOKEN}} use,
     so any remaining match is a bare literal."""
     root = Path(__file__).resolve().parent.parent
-    manuscript_dir = root / "manuscript"
+    manuscript_dir = root / "docs" / "manuscript"
     hits: list[str] = []
     for md_file in sorted(manuscript_dir.glob("*.md")):
         if md_file.name in _DOC_ONLY or not md_file.name[:2].isdigit():

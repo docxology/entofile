@@ -1,6 +1,6 @@
 # Agent Instructions — entofile
 
-Read this before modifying `src/`, `tests/`, or `manuscript/`.
+Read this before modifying `src/`, `tests/`, or `docs/manuscript/`.
 
 ## Hard rules
 
@@ -42,4 +42,4 @@ grep -r "{{" output/manuscript/ || echo "Tokens resolved"
 - [`publication_checklist.md`](publication_checklist.md)
 - [`redteam_publish_0.4.md`](redteam_publish_0.4.md)
 - [`testing_philosophy.md`](testing_philosophy.md)
-- [`../manuscript/AGENTS.md`](../manuscript/AGENTS.md)
+- [`../manuscript/AGENTS.md`](manuscript/AGENTS.md)

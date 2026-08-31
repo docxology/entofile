@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_release_label_reads_manuscript_config() -> None:
-    """The SBOM application version is paper.version from manuscript/config.yaml —
+    """The SBOM application version is paper.version from docs/manuscript/config.yaml —
     the same label CITATION.cff pins — never a hardcoded literal."""
     label = release_label(PROJECT_ROOT)
     assert label == "0.5"
@@ -24,7 +24,7 @@ def test_release_label_fails_closed_without_config(tmp_path: Path) -> None:
 
 
 def test_release_label_fails_closed_without_version(tmp_path: Path) -> None:
-    config = tmp_path / "manuscript" / "config.yaml"
+    config = tmp_path / "docs" / "manuscript" / "config.yaml"
     config.parent.mkdir(parents=True)
     config.write_text("paper: {title: x}\n", encoding="utf-8")
     with pytest.raises(ValueError, match=r"paper.version missing"):

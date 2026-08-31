@@ -23,7 +23,7 @@ def test_figure_caption_variables_match_registry() -> None:
 def test_manuscript_figure_alt_text_uses_caption_tokens() -> None:
     project_root = Path(__file__).resolve().parent.parent
     produced = generate_variables(project_root)
-    manuscript_dir = project_root / "manuscript"
+    manuscript_dir = project_root / "docs" / "manuscript"
     missing_tokens: list[str] = []
     for md_file in sorted(manuscript_dir.glob("*.md")):
         if md_file.name in _DOC_ONLY:

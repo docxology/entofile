@@ -82,7 +82,7 @@ def benchmark_rows_per_repetition(cfg: ExperimentConfig) -> int:
 
 def _load_config(project_root: Path) -> dict[str, Any]:
     """Load configuration dictionary from manuscript/config.yaml."""
-    path = project_root / "manuscript" / "config.yaml"
+    path = project_root / "docs" / "manuscript" / "config.yaml"
     if not path.exists():
         return {}
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
@@ -165,7 +165,7 @@ def generate_variables(
     obs_track = observability_spec.track_id or "eeg"
 
     config_hash = hashlib.sha256(
-        (project_root / "manuscript" / "config.yaml").read_bytes()
+        (project_root / "docs" / "manuscript" / "config.yaml").read_bytes()
     ).hexdigest()[:16]
     fixture_root = fixtures_dir(project_root)
     csv_path = project_root / "output" / "data" / "ento_benchmark_results.csv"

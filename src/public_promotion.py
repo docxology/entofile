@@ -128,7 +128,7 @@ def check_public_promotion_metadata(
 ) -> dict[str, Any]:
     """Compare public-facing metadata surfaces before repository promotion."""
     root = project_root.resolve()
-    config = _read_yaml(root / "manuscript" / "config.yaml")
+    config = _read_yaml(root / "docs" / "manuscript" / "config.yaml")
     pyproject = _read_toml(root / "pyproject.toml")
     cff = _read_yaml(root / "CITATION.cff")
     readme = _read_text(root / "README.md")

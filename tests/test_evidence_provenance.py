@@ -50,8 +50,8 @@ def test_evidence_provenance_contract_covers_all_input_and_output_classes() -> N
 
 
 def test_manuscript_uses_generated_provenance_tokens() -> None:
-    setup = _read("manuscript/05_experimental_setup.md")
-    reproducibility = _read("manuscript/06_reproducibility.md")
+    setup = _read("docs/manuscript/05_experimental_setup.md")
+    reproducibility = _read("docs/manuscript/06_reproducibility.md")
     for token in (
         "FIXTURE_INPUT_CLASSIFICATION",
         "BENCHMARK_STRESS_INPUT_CLASSIFICATION",
@@ -69,7 +69,7 @@ def test_manuscript_uses_generated_provenance_tokens() -> None:
 
 
 def test_docs_and_manuscript_do_not_overclaim_real_world_inputs() -> None:
-    files = list((ROOT / "docs").rglob("*.md")) + list((ROOT / "manuscript").glob("*.md"))
+    files = list((ROOT / "docs").rglob("*.md")) + list((ROOT / "docs" / "manuscript").glob("*.md"))
     offenders: list[str] = []
     forbidden = (
         r"\breal data only\b",

@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-_MANUSCRIPT = Path(__file__).resolve().parent.parent / "manuscript"
+_MANUSCRIPT = Path(__file__).resolve().parent.parent / "docs" / "manuscript"
 _DOC_ONLY = frozenset({"AGENTS.md", "README.md", "SYNTAX.md"})
 _DEF_RE = re.compile(r"\{#eq:([a-z0-9_]+)\}")
 _REF_RE = re.compile(r"\[@eq:([a-z0-9_]+)\]")

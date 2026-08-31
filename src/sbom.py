@@ -26,7 +26,7 @@ def release_label(project_root: Path) -> str:
     Raises ``ValueError`` when the config or the field is missing — an SBOM
     must never silently fall back to a stale or invented version.
     """
-    config_path = project_root / "manuscript" / "config.yaml"
+    config_path = project_root / "docs" / "manuscript" / "config.yaml"
     if not config_path.is_file():
         raise ValueError(f"manuscript config not found: {config_path}")
     config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
@@ -36,7 +36,7 @@ def release_label(project_root: Path) -> str:
         else None
     )
     if not version:
-        raise ValueError("paper.version missing from manuscript/config.yaml")
+        raise ValueError("paper.version missing from docs/manuscript/config.yaml")
     return str(version)
 
 

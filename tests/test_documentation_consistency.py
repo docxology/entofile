@@ -33,15 +33,15 @@ def _pack_help() -> str:
 
 
 def test_pdf_margin_is_project_local_config_not_preamble() -> None:
-    config = _read("manuscript/config.yaml")
-    preamble = _read("manuscript/preamble.md")
+    config = _read("docs/manuscript/config.yaml")
+    preamble = _read("docs/manuscript/preamble.md")
     assert 'geometry: "margin=0.5in"' in config
     assert "\\geometry" not in preamble
     assert "\\usepackage[margin=" not in preamble
 
 
 def test_template_transmission_bookends_are_release_configured() -> None:
-    config = yaml.safe_load(_read("manuscript/config.yaml"))
+    config = yaml.safe_load(_read("docs/manuscript/config.yaml"))
     publication = config["publication"]
     bookends = publication["transmission_bookends"]
     assert bookends["enabled"] is True
@@ -248,7 +248,7 @@ def test_publication_docs_mark_test_results_as_non_certifying() -> None:
 
 
 def test_public_metadata_matches_manuscript_config() -> None:
-    config = yaml.safe_load(_read("manuscript/config.yaml"))
+    config = yaml.safe_load(_read("docs/manuscript/config.yaml"))
     cff = _read("CITATION.cff")
     pyproject = _read("pyproject.toml")
     assert f'version: "{config["paper"]["version"]}"' in cff

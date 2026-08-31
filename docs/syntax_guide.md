@@ -1,6 +1,6 @@
 # Syntax Guide — entofile
 
-Manuscript authoring reference. Project overlay: [`../manuscript/SYNTAX.md`](../manuscript/SYNTAX.md).
+Manuscript authoring reference. Project overlay: [`../manuscript/SYNTAX.md`](manuscript/SYNTAX.md).
 
 ## {{TOKEN}} table
 
@@ -44,8 +44,8 @@ Manuscript authoring reference. Project overlay: [`../manuscript/SYNTAX.md`](../
 
 ## Figures
 
-All registered benchmark and security figures live in `output/figures/` and use `{#fig:…}` labels documented in [`../manuscript/SYNTAX.md`](../manuscript/SYNTAX.md).
+All registered benchmark and security figures live in `output/figures/` and use `{#fig:…}` labels documented in [`../manuscript/SYNTAX.md`](manuscript/SYNTAX.md).
 
 ## Citations
 
-Use `[@citekey]` with keys from [`../manuscript/references.bib`](../manuscript/references.bib). Research backing: [`research/related_formats.md`](research/related_formats.md).
+Use `[@citekey]` with keys from [`../docs/manuscript/references.bib`](../docs/manuscript/references.bib). Research backing: [`research/related_formats.md`](research/related_formats.md).

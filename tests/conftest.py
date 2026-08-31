@@ -44,10 +44,10 @@ def fast_benchmark_project(
     if claim_ledger.is_file():
         (root / "data").mkdir(parents=True, exist_ok=True)
         shutil.copy2(claim_ledger, root / "data" / claim_ledger.name)
-    (root / "manuscript").mkdir(parents=True, exist_ok=True)
+    (root / "docs" / "manuscript").mkdir(parents=True, exist_ok=True)
     shutil.copy2(
-        project_root / "manuscript" / "config.yaml",
-        root / "manuscript" / "config.yaml",
+        project_root / "docs" / "manuscript" / "config.yaml",
+        root / "docs" / "manuscript" / "config.yaml",
     )
     cfg = replace(load_experiment_config(project_root), benchmark_repetitions=3)
     return root, cfg

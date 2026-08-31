@@ -47,6 +47,6 @@ uv run python scripts/z_generate_manuscript_variables.py
 
 ## Cross-references
 
-- [`../manuscript/AGENTS.md`](../manuscript/AGENTS.md)
+- [`../manuscript/AGENTS.md`](manuscript/AGENTS.md)
 - [`../src/AGENTS.md`](../src/AGENTS.md)
 - [`../../../AGENTS.md`](../../../AGENTS.md) — template root

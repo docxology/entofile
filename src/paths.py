@@ -54,7 +54,7 @@ class ProjectPaths:
     @property
     def manuscript(self) -> Path:
         """Path to manuscript directory."""
-        return self.root / "manuscript"
+        return self.root / "docs" / "manuscript"
 
     def report(self, filename: str) -> Path:
         """Resolve a flat JSON report filename under output/reports."""

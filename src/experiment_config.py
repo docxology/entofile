@@ -217,7 +217,7 @@ def load_experiment_config(
 ) -> ExperimentConfig:
     """Load benchmark experiment configuration from YAML or return defaults."""
     root = project_root or Path(__file__).resolve().parent.parent
-    config_path = config_path or root / "manuscript" / "config.yaml"
+    config_path = config_path or root / "docs" / "manuscript" / "config.yaml"
     if not config_path.exists():
         return ExperimentConfig()
     raw: dict[str, Any] = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}

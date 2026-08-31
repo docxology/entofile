@@ -14,7 +14,7 @@ maintainer's build and render path remains `projects/working/entofile`.
 | AI agents | [`agent_instructions.md`](agent_instructions.md) |
 | Architecture | [`architecture.md`](architecture.md) |
 | Format 0.5.0 | [`format_0_5_0.md`](format_0_5_0.md) |
-| Manuscript tokens | [`syntax_guide.md`](syntax_guide.md) + [`../manuscript/AGENTS.md`](../manuscript/AGENTS.md) |
+| Manuscript tokens | [`syntax_guide.md`](syntax_guide.md) + [`../manuscript/AGENTS.md`](manuscript/AGENTS.md) |
 | Glossary | [`glossary.md`](glossary.md) |
 
 ## Pipeline and outputs

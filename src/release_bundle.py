@@ -43,8 +43,8 @@ RELEASE_FILES: tuple[ReleaseFile, ...] = (
         "output/data/manuscript_variables.json", "hydrated manuscript variables"
     ),
     ReleaseFile("output/conformance/conformance_manifest.json", "conformance manifest"),
-    ReleaseFile("manuscript/config.yaml", "manuscript configuration"),
-    ReleaseFile("manuscript/references.bib", "bibliography"),
+    ReleaseFile("docs/manuscript/config.yaml", "manuscript configuration"),
+    ReleaseFile("docs/manuscript/references.bib", "bibliography"),
     ReleaseFile("docs/evidence_provenance.md", "evidence provenance boundary"),
     ReleaseFile("docs/publication_checklist.md", "publication readiness checklist"),
     ReleaseFile("docs/public_release_checklist.md", "public release checklist"),
@@ -148,7 +148,7 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
 
 def _load_config(root: Path) -> dict[str, Any]:
     """Load manuscript/config.yaml or return empty dict."""
-    config_path = root / "manuscript" / "config.yaml"
+    config_path = root / "docs" / "manuscript" / "config.yaml"
     try:
         return read_yaml_mapping(config_path, required=False)
     except (OSError, TypeError, ValueError):

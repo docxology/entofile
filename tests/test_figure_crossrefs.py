@@ -14,7 +14,7 @@ _IMAGE_DEF_RE = re.compile(r"\{#fig:([a-z0-9_]+)[ }]")
 
 
 def _combined_manuscript() -> str:
-    manuscript_dir = Path(__file__).resolve().parent.parent / "manuscript"
+    manuscript_dir = Path(__file__).resolve().parent.parent / "docs" / "manuscript"
     return "\n".join(
         path.read_text(encoding="utf-8") for path in sorted(manuscript_dir.glob("*.md")) if path.name not in _DOC_ONLY
     )

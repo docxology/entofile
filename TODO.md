@@ -76,6 +76,36 @@ metrics, a repetition rationale, falsification criteria, and a stopping rule.
 Results remain bounded by the protocol and cannot certify an external ecosystem,
 public endpoint, or origin signature without independent evidence.
 
+## Agent-ergonomics pass (2026-08-31)
+
+Findings from the 2026-08-31 doc-fleet deep pass. Completed items are checked
+with their fix; each claim was verified in-session (link checker over README,
+AGENTS.md, TODO.md, entofile.md, and every docs/**.md).
+
+### Minor
+- [x] 37 broken relative links left behind by the `manuscript/` -> `docs/manuscript/`
+      migration (docs/*.md pointing at `../manuscript/`, docs/manuscript/*.md with
+      stale `../docs/` and `../output/` depths). Fixed in-session; link checker
+      now reports 0 broken of 164 checked.
+
+### Medium
+- [x] Mid-migration incoherence: `src/` modules (`analysis.py`, `manuscript_variables.py`,
+      `publication.py`, `release_bundle.py`, `sbom.py`, `public_promotion.py`,
+      `paths.py`, `experiment_config.py`) and 11 test files still read the deleted
+      `manuscript/` dir; tests failed with FileNotFoundError. Paths updated to
+      `docs/manuscript/`; affected suites re-run (see REVIEW_LOG_2026-08-31.md for results).
+- [x] `docs/manuscript/MANUSCRIPT_STATUS.md` misdescribes itself ("legacy
+      `docs/manuscript/` fallback") — corrected to name `manuscript/` as the
+      legacy location.
+
+### Major (deferred)
+- [ ] Full test-suite + pipeline re-verification after the manuscript migration
+      (`uv run python scripts/run_tests.py`) — drive-bound on /Volumes/external_drive;
+      not run in this pass beyond the affected suites. Verify before next release claim.
+- [ ] Complete the release-evidence state after migration: regenerate
+      `output/reports/*` via the pipeline (see TODO.md artifact-state section above)
+      so promotion/verification tests bind against fresh artifacts.
+
 ## Maintenance Rule
 
 Before each release-candidate render, review this file and either close,

@@ -176,7 +176,7 @@ def _write_standalone_validation_report(root: Path) -> None:
     """
     import yaml
 
-    manuscript_dir = root / "manuscript"
+    manuscript_dir = root / "docs" / "manuscript"
     issues: list[str] = []
     warnings: list[str] = []
     checked_files: list[dict[str, object]] = []
@@ -184,7 +184,7 @@ def _write_standalone_validation_report(root: Path) -> None:
     # Check manuscript markdown files
     md_files = sorted(manuscript_dir.glob("*.md"))
     if not md_files:
-        issues.append("No manuscript markdown files found in manuscript/")
+        issues.append("No manuscript markdown files found in docs/manuscript/")
     for md_file in md_files:
         content = md_file.read_text(encoding="utf-8")
         file_issues: list[str] = []
@@ -206,24 +206,24 @@ def _write_standalone_validation_report(root: Path) -> None:
     # Check references.bib
     bib_path = manuscript_dir / "references.bib"
     if not bib_path.is_file():
-        warnings.append("manuscript/references.bib not found")
+        warnings.append("docs/manuscript/references.bib not found")
     elif not bib_path.read_text(encoding="utf-8").strip():
-        warnings.append("manuscript/references.bib is empty")
+        warnings.append("docs/manuscript/references.bib is empty")
 
     # Check config.yaml
     config_path = manuscript_dir / "config.yaml"
     if not config_path.is_file():
-        issues.append("manuscript/config.yaml not found")
+        issues.append("docs/manuscript/config.yaml not found")
     else:
         try:
             config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
             paper = config.get("paper") or {}
             if not paper.get("title"):
-                issues.append("manuscript/config.yaml: paper.title missing")
+                issues.append("docs/manuscript/config.yaml: paper.title missing")
             if not paper.get("version"):
-                issues.append("manuscript/config.yaml: paper.version missing")
+                issues.append("docs/manuscript/config.yaml: paper.version missing")
         except (OSError, TypeError, ValueError, yaml.YAMLError) as exc:
-            issues.append(f"manuscript/config.yaml parse error: {exc}")
+            issues.append(f"docs/manuscript/config.yaml parse error: {exc}")
 
     report = {
         "ok": len(issues) == 0,

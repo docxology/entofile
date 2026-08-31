@@ -194,7 +194,7 @@ def _evidence_issues(project_root: Path) -> tuple[list[str], str]:
         )
 
         registry = build_project_evidence_registry(project_root)
-        md_files = sorted(glob.glob(str(project_root / "manuscript" / "*.md")))
+        md_files = sorted(glob.glob(str(project_root / "docs" / "manuscript" / "*.md")))
         text = "\n".join(
             Path(p).read_text(encoding="utf-8")
             for p in md_files
@@ -219,7 +219,7 @@ def _evidence_issues(project_root: Path) -> tuple[list[str], str]:
             ], "side-file"
         report_mtime = report_path.stat().st_mtime
         sources = [
-            project_root / "manuscript",
+            project_root / "docs" / "manuscript",
             project_root / "data" / "claim_ledger.yaml",
         ]
         newest_source = max(
@@ -448,7 +448,7 @@ def check_publication_readiness(
         checks["manuscript_variables"] = False
         blockers.append("missing output/data/manuscript_variables.json")
 
-    config_path = root / "manuscript" / "config.yaml"
+    config_path = root / "docs" / "manuscript" / "config.yaml"
     config = _read_yaml(config_path)
     paper_raw = config.get("paper")
     paper: dict[str, Any] = paper_raw if isinstance(paper_raw, dict) else {}

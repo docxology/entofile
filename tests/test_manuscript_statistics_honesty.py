@@ -16,10 +16,10 @@ import pytest
 
 _INTERP = (
     Path(__file__).resolve().parent.parent
-    / "manuscript"
+    / "docs" / "manuscript"
     / "03a_benchmark_interpretation.md"
 )
-_ABSTRACT = Path(__file__).resolve().parent.parent / "manuscript" / "00_abstract.md"
+_ABSTRACT = Path(__file__).resolve().parent.parent / "docs" / "manuscript" / "00_abstract.md"
 
 # Phrases that assert a run-specific outcome the next run could contradict. The
 # class is "any qualitative verdict on dispersion magnitude or CI sign" — not just
@@ -124,7 +124,7 @@ def test_manuscript_has_no_stale_three_rep_sample_language() -> None:
         for path in (
             _INTERP,
             Path(__file__).resolve().parent.parent
-            / "manuscript"
+            / "docs" / "manuscript"
             / "05_experimental_setup.md",
         )
     ).lower()

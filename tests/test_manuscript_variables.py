@@ -90,12 +90,12 @@ def test_require_analysis_outputs_raises(tmp_path: Path) -> None:
 
 
 def test_all_manuscript_tokens_are_generated() -> None:
-    """Every {{TOKEN}} in manuscript/*.md must be produced by generate_variables()."""
+    """Every {{TOKEN}} in docs/manuscript/*.md must be produced by generate_variables()."""
     project_root = Path(__file__).resolve().parent.parent
     produced = set(generate_variables(project_root))
-    manuscript_dir = project_root / "manuscript"
+    manuscript_dir = project_root / "docs" / "manuscript"
     if not manuscript_dir.is_dir():
-        pytest.skip("manuscript/ directory not found")
+        pytest.skip("docs/manuscript/ directory not found")
 
     unresolved: dict[str, list[str]] = {}
     for md_file in sorted(manuscript_dir.glob("*.md")):

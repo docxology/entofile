@@ -75,10 +75,10 @@ def _write_public_promotion_surfaces(
 
 
 def _write_complete_public_promotion_fixture(root: Path) -> None:
-    (root / "manuscript").mkdir(parents=True, exist_ok=True)
+    (root / "docs" / "manuscript").mkdir(parents=True, exist_ok=True)
     (root / "output" / "release").mkdir(parents=True, exist_ok=True)
     _write_public_promotion_surfaces(root)
-    (root / "manuscript" / "config.yaml").write_text(
+    (root / "docs" / "manuscript" / "config.yaml").write_text(
         """
 paper:
   title: "ENTO title"
@@ -165,10 +165,10 @@ def test_public_promotion_metadata_current_tree() -> None:
 
 
 def test_public_promotion_metadata_reports_mismatch(tmp_path: Path) -> None:
-    (tmp_path / "manuscript").mkdir(parents=True)
+    (tmp_path / "docs" / "manuscript").mkdir(parents=True)
     (tmp_path / "output" / "release").mkdir(parents=True)
     _write_public_promotion_surfaces(tmp_path)
-    (tmp_path / "manuscript" / "config.yaml").write_text(
+    (tmp_path / "docs" / "manuscript" / "config.yaml").write_text(
         """
 paper:
   title: "ENTO title"
@@ -238,10 +238,10 @@ def test_public_promotion_metadata_release_ready_when_endpoints_are_live(
 def test_public_promotion_metadata_reports_stale_security_default(
     tmp_path: Path,
 ) -> None:
-    (tmp_path / "manuscript").mkdir(parents=True)
+    (tmp_path / "docs" / "manuscript").mkdir(parents=True)
     (tmp_path / "output" / "release").mkdir(parents=True)
     _write_public_promotion_surfaces(tmp_path, stale_security=True)
-    (tmp_path / "manuscript" / "config.yaml").write_text(
+    (tmp_path / "docs" / "manuscript" / "config.yaml").write_text(
         """
 paper:
   title: "ENTO title"
@@ -314,7 +314,7 @@ def test_public_promotion_metadata_reports_stale_contributing_default(
 
 
 def test_public_promotion_metadata_reports_stale_draft_pdf_hash(tmp_path: Path) -> None:
-    (tmp_path / "manuscript").mkdir(parents=True)
+    (tmp_path / "docs" / "manuscript").mkdir(parents=True)
     (tmp_path / "output" / "release").mkdir(parents=True)
     (tmp_path / "output" / "data").mkdir(parents=True)
     _write_public_promotion_surfaces(tmp_path)
