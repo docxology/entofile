@@ -8,7 +8,7 @@ External synthesis for ENTO default format 0.5.0 design choices and the
 | Pattern | Role in ENTO |
 | --- | --- |
 | Declarative figure registry (label → generator → CSV source) | `src/figure_registry.py::FIGURE_SPECS` |
-| Config-driven rendering (DPI, figsize from YAML) | `manuscript/config.yaml` → `experiment.viz` → `configure_viz()` |
+| Config-driven rendering (DPI, figsize from YAML) | `docs/manuscript/config.yaml` → `experiment.viz` → `configure_viz()` |
 | Machine-readable provenance JSON | `output/figures/figure_registry.json` with `generated_by`, `csv_source`, `takeaway`, `evidence`, and `caution` |
 | Validation gate before PDF render | `validate_generated_outputs()` checks PNG set + registry + tamper rate |
 
@@ -31,4 +31,4 @@ ENTO format **0.5.0** uses **pinned regression vectors** (`data/test_vectors/hkd
 
 ## References
 
-See `manuscript/references.bib` for cited standards (HKDF, AES-GCM, FAIR, RO-Crate, BagIt, etc.).
+See `docs/manuscript/references.bib` for cited standards (HKDF, AES-GCM, FAIR, RO-Crate, BagIt, etc.).

@@ -68,7 +68,7 @@ research_questions:
   - id: RQ-6
     title: supply_chain_and_release_provenance
     owner: DAF
-    control: "Local release manifest, SBOM, uv.lock, and generated manuscript/artifact set."
+    control: "Local release manifest, SBOM, uv.lock, and generated docs/manuscript/artifact set."
     hypotheses: [H6-A, H6-B, H6-C]
     metrics: [checksum_parity, artifact_completeness, provenance_verification_result, dependency_drift_count, reproducibility_failure_count]
     sample_size_or_repetition: "Two clean builds in separate environments plus one independent checksum/provenance verification."

@@ -65,10 +65,10 @@ claims:
   - claim_id: figure-display-width
     kind: number
     value: 90
-    source: projects/working/entofile/manuscript/config.yaml
+    source: projects/working/entofile/docs/manuscript/config.yaml
     source_tier: project_source
     freshness: active
-    artifact_path: manuscript/config.yaml
+    artifact_path: docs/manuscript/config.yaml
   - claim_id: crypto-backend-gcm
     kind: text
     value: aes-256-gcm

@@ -14,7 +14,7 @@ Machine-readable claims live in [`../data/claim_ledger.yaml`](../data/claim_ledg
 | `master-key-bytes` | number | `32` | `src/crypto.py` | `test_claim_ledger.py` |
 | `track-header-bytes` | number | `28` | nonce + tag (12 + 16) | `test_claim_ledger.py` |
 | `test-coverage-min` | number | `90` | `pyproject.toml` | `test_claim_ledger.py` |
-| `figure-display-width` | number | `90` | `manuscript/config.yaml` | `test_claim_ledger.py` |
+| `figure-display-width` | number | `90` | `docs/manuscript/config.yaml` | `test_claim_ledger.py` |
 | `crypto-backend-gcm` | text | `aes-256-gcm` | default write path `src/crypto.py` | `test_claim_ledger.py`, `test_crypto_gcm.py` |
 | `container-verification-report` | text | `container_verification.json` | `output/reports/` | `test_claim_ledger_security.py`, `test_verification_report.py` |
 | `figure-caption-registry` | text | `FIG_CAPTION_` | `src/figure_registry.py` | `test_figure_captions.py` |

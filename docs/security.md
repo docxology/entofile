@@ -4,7 +4,7 @@ Operational guidance for ENTO key handling, container verification, and hostile-
 
 ## Threat model reference
 
-Full AppSec report: [`entofile-threat-model.md`](entofile-threat-model.md) (includes MITRE ATT&CK mapping). Manuscript: `manuscript/08_limitations_and_threat_model.md`, `manuscript/02c_security_verification.md`.
+Full AppSec report: [`entofile-threat-model.md`](entofile-threat-model.md) (includes MITRE ATT&CK mapping). Manuscript: `docs/manuscript/08_limitations_and_threat_model.md`, `docs/manuscript/02c_security_verification.md`.
 
 ## First-principles security baseline
 

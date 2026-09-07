@@ -100,7 +100,7 @@ These fields are generated from `src/figure_registry.py` and validated by
 2. Append `FigureSpec` to `FIGURE_SPECS` (include `kind`, `manuscript_section`, `figsize_key`)
 3. Add `![{{FIG_CAPTION_*}}](../output/figures/name.png){#fig:label}` and `[@fig:label]` prose to the target manuscript file
 4. Extend `tests/test_figures.py`, `tests/test_figure_captions.py`, `tests/test_figure_crossrefs.py`
-5. Update `manuscript/SYNTAX.md` figure table (or rely on registry tests)
+5. Update `docs/manuscript/SYNTAX.md` figure table (or rely on registry tests)
 6. Add or update visual `takeaway`, `evidence`, and `caution` in `src/figure_registry.py`
 
 Helpers: `manuscript_image_markdown(spec)`, `figure_block_markdown(section)`, `figure_index_markdown()`.

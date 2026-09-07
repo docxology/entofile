@@ -148,7 +148,7 @@ Claims: `figure-export-dpi` and `figure-display-width` in [`data/claim_ledger.ya
 | 2 | resolved | + resolution descriptors |
 | 3 | auditable | + SHA-256 digests |
 
-Pack always writes a full internal manifest; `filter_manifest()` redacts fields at export. Proof export is omitted at level 0. Manuscript section: `manuscript/02b_proof_and_observability.md`.
+Pack always writes a full internal manifest; `filter_manifest()` redacts fields at export. Proof export is omitted at level 0. Manuscript section: `docs/manuscript/02b_proof_and_observability.md`.
 
 ## Container and security verification
 

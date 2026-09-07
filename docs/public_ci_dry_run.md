@@ -31,7 +31,7 @@ artifacts, or mutate Zenodo.
 | `uv run python scripts/generate_conformance_fixtures.py` | `conformance` | Rebuild deterministic known-good and known-bad fixtures. | None |
 | `uv run python scripts/verify_conformance_fixtures.py` | `conformance` | Verify fixture acceptance and rejection semantics. | None |
 | `uv run python scripts/check_figure_layout.py` | `figures` | Check rendered figure text/layout metadata. | None |
-| `uv run python scripts/z_generate_manuscript_variables.py` | `manuscript` | Refresh manuscript injection variables from generated evidence. | None |
+| `uv run python scripts/z_generate_manuscript_variables.py` | `docs/manuscript` | Refresh manuscript injection variables from generated evidence. | None |
 | `uv run python scripts/audit_publication_readiness.py --check` | `publication-readiness` | Run the certifying private/local readiness oracle. | None |
 | `uv run python scripts/build_release_bundle.py` | `release-bundle-dry-run` | Build checksum and manifest surfaces for inspection. | None |
 | `uv run python scripts/check_public_promotion_metadata.py --check` | `public-metadata` | Verify local public-facing metadata consistency. | None |

@@ -2,7 +2,7 @@
 
 Research notes distilled for ENTO manuscript prose: default format 0.5.0 plus
 compatibility formats 0.2.0, 0.3.0, 0.3.1, and 0.4.0. Sources verified against public
-specifications and DOIs listed in `manuscript/references.bib`.
+specifications and DOIs listed in `docs/manuscript/references.bib`.
 
 The default 0.5.0 profile adds authenticated exported-manifest context to each
 track's GCM associated data. It is an ENTO profile, not an equivalence claim with

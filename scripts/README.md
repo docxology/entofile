@@ -11,8 +11,11 @@ everything else is an explicit operator command.
 | `ento_analysis.py` | `src.analysis.main` | Benchmarks, figures, validation reports |
 | `build_dashboard.py` | `src.dashboard.run_dashboard_build` | Dashboard HTML |
 
-The reproducible test gate is explicit and writes the contextual
-`output/reports/test_results.json` sidecar used by manuscript variable generation:
+## Test gate
+
+| Script | Delegates to | Purpose |
+| --- | --- | --- |
+| `run_tests.py` | `src.test_runner.run_test_gate` | Reproducible pytest gate; writes the contextual `output/reports/test_results.json` sidecar used by manuscript variable generation |
 
 ```bash
 uv run python scripts/run_tests.py
@@ -22,6 +25,7 @@ uv run python scripts/run_tests.py
 
 | Script | Delegates to | Purpose |
 | --- | --- | --- |
+| `generate_manuscript_variables_standalone.py` | `src.manuscript_variables.generate_variables` | Variables JSON only (no template `{{TOKEN}}` hydration) |
 | `00_preflight.py` | `src.experiment_config`, env checks | Render-prerequisite check |
 | `z_generate_manuscript_variables.py` | `src.manuscript_variables.generate_variables` | Hydrate `{{TOKEN}}` variables |
 | `check_figure_layout.py` | `src.figure_qa` | Renderer-aware figure text-layout QA |

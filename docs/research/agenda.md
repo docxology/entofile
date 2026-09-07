@@ -174,7 +174,7 @@ Question: Can release artifacts be reproduced, inventoried, signed, and verified
 outside the working checkout?
 
 Owner: DAF. Control: the current local release manifest, SBOM, uv.lock, and
-generated manuscript/artifact set. Repetition rationale: two clean builds in
+generated docs/manuscript/artifact set. Repetition rationale: two clean builds in
 separate environments plus one independent checksum/provenance verification.
 Limits: local builds do not establish public registry availability, signature
 trust, or CI isolation.

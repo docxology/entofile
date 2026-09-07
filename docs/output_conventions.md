@@ -19,7 +19,7 @@ Project-root `output/` is disposable; regenerate via analysis scripts.
 | `release/release_manifest.json` | Release artifact manifest for external signing |
 | `release/SHA256SUMS` | Checksum list for release attachments |
 | `benchmark_profiles/expanded/` | Optional non-release stress benchmark output |
-| `manuscript/*.md` | Token-resolved copies |
+| `docs/manuscript/*.md` | Token-resolved copies |
 | `pdf/` | Combined PDF after render |
 
 Rendered deliverables remain under project-root `output/` for the standalone

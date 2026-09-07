@@ -21,7 +21,7 @@ Workflow: **VectorSpecialists** with PHASE 1A verifier attack. Target: `projects
 
 ### RT-002 — Evidence registry false positives
 
-- **Files:** `manuscript/03_results.md`, `02_methodology.md`, `06_reproducibility.md`, `08_limitations_and_threat_model.md`
+- **Files:** `docs/manuscript/03_results.md`, `02_methodology.md`, `06_reproducibility.md`, `08_limitations_and_threat_model.md`
 - **Issue:** Hard-coded `90%`, `32` without claim ledger bindings.
 - **Fix:** Claim ledger entries + tokens `{{TEST_COVERAGE_MIN}}`, `{{MASTER_KEY_BYTES}}`, `{{FIGURE_WIDTH}}`, `{{MEASURED_COVERAGE_PERCENT}}`.
 
@@ -35,7 +35,7 @@ Workflow: **VectorSpecialists** with PHASE 1A verifier attack. Target: `projects
 ### RT-004 — Residual (documented, not fixed in v1.0)
 
 - **File:** `src/crypto.py` — custom AES/HKDF (TM-005). Nation-state track: audited backend v0.2.
-- **File:** `manuscript/config.yaml` — empty DOI. Operator action before cite-ready deposit.
+- **File:** `docs/manuscript/config.yaml` — empty DOI. Operator action before cite-ready deposit.
 - **File:** `src/security.py` — no Sigstore/SBOM (TM-006). See `docs/nation_state_roadmap.md`.
 
 ### RT-005 — Benchmark report overwritten by Stage 6

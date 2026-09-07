@@ -65,7 +65,7 @@ implementations are not completed by local manuscript edits.
 
 ## Negative controls added
 
-- Required new scholarship keys must exist in `manuscript/references.bib`.
+- Required new scholarship keys must exist in `docs/manuscript/references.bib`.
 - Each new load-bearing key must be cited in renderable manuscript body text.
 - The manuscript must not imply AES-GCM-SIV is implemented.
 - The evidence-provenance document must record the Perplexity quota failure and

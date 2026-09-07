@@ -1,7 +1,7 @@
 # Non-default reviewer stress profile.
 #
 # This file is intentionally not used by the 0.4 release render. The release
-# benchmark remains manuscript/config.yaml: 150 repetitions x 16 rows = 2400
+# benchmark remains docs/manuscript/config.yaml: 150 repetitions x 16 rows = 2400
 # rows. This profile enables both optional benchmark dimensions so reviewers can
 # exercise a larger synthetic track and a mixed multi-track container separately.
 

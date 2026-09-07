@@ -18,7 +18,7 @@ version-dispatched compatibility formats.
 
 | ID | Finding | Risk | Fix in 0.4 RC |
 | --- | --- | --- | --- |
-| RT-04-001 | Stale release labels still said `1.0` in readiness gates and publication docs | A 0.4 artifact could certify itself under the wrong release line | Release is read from `manuscript/config.yaml`; docs/tests use 0.4 |
+| RT-04-001 | Stale release labels still said `1.0` in readiness gates and publication docs | A 0.4 artifact could certify itself under the wrong release line | Release is read from `docs/manuscript/config.yaml`; docs/tests use 0.4 |
 | RT-04-002 | Active-vs-working path drift in docs and claim ledger | Operators could run the wrong tree or validate stale artifacts | Commands now use project-root-relative paths and template `--project working/entofile` |
 | RT-04-003 | Project docs referenced nonexistent local `scripts/execute_pipeline.py` | Reproduction instructions failed before analysis/render | Standalone commands use `scripts/ento_analysis.py`, hydration, and template renderer |
 | RT-04-004 | Stale cite key `dworkin2001recommendation` survived in research notes | Citation validation could fail or route readers to a non-existent key | GCM references use `dworkin2007gcm` |

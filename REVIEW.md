@@ -19,7 +19,7 @@
 
 ## Release scope
 
-The historical 0.4 release candidate was a manuscript/paper release that ALSO promoted the
+The historical 0.4 release candidate was a docs/manuscript/paper release that ALSO promoted the
 default `.ento` wire format to `0.4.0` (paper label `0.4` and wire format string
 `0.4.0` are distinct identifiers). Formats `0.2.0`, `0.3.0`, and `0.3.1` remain
 readable and writable compatibility profiles. The RC further improves the paper,
@@ -90,7 +90,7 @@ current source and render tree until promotion.
   re-audited the security core and the R16 machine-path oracle. Crypto core,
   container, verification_report (R15 negative-control fix), security, padding,
   and proof reproduced CLEAN cross-vendor. Forge caught ENTO-XV-F1 (HIGH): the
-  R16 leak scanner globbed only `*.md`/`docs/*.md`/`manuscript/*.md` and was
+  R16 leak scanner globbed only `*.md`/`docs/*.md`/`docs/manuscript/*.md` and was
   blind to CITATION.cff, pyproject.toml, configs, .github, scripts, and depth-2
   docs — a planted home path in CITATION.cff passed the gate. Fixed by driving
   the scan off the full tracked set (`git ls-files`, output/ + self-referential
@@ -110,7 +110,7 @@ current source and render tree until promotion.
   placeholder and the working tree is referenced relatively. The promotion
   metadata checker previously passed `ok:true` with all 16 present, so the gap
   is closed at the oracle: `public_promotion.py` now scans `*.md`, `docs/*.md`,
-  and `manuscript/*.md` for home-directory prefixes
+  and `docs/manuscript/*.md` for home-directory prefixes
   (`public_docs_no_machine_paths` check + `machine_path_hits`), with a
   negative-control test that injects one and asserts it fails. Untracked the
   generated `coverage_project.json` (231 KB) and gitignored it plus `htmlcov/`.
@@ -123,7 +123,7 @@ current source and render tree until promotion.
   config, CODEOWNERS handle fix, and stale 0.2.0-default wording closed at the
   promotion checker.
 
-- Release readiness reports the manuscript version from `manuscript/config.yaml`
+- Release readiness reports the manuscript version from `docs/manuscript/config.yaml`
   instead of a hard-coded release label.
 - RedTeam 0.4 ledger closes stale release labels, stale active paths, missing local
   pipeline command references, citation-key drift, artifact-manifest drift, duplicate

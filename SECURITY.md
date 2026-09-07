@@ -19,7 +19,7 @@ release process.
 
 Do not open public issues for active vulnerabilities or exploit details. Until
 the public repository is promoted, send coordinated-disclosure reports to the
-corresponding author listed in `manuscript/config.yaml`.
+corresponding author listed in `docs/manuscript/config.yaml`.
 
 After promotion to `docxology/entofile`, prefer GitHub Security Advisories when
 available. Public issues are appropriate for hardening requests, documentation

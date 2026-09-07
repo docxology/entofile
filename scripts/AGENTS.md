@@ -6,6 +6,7 @@ explicit operator commands:
 
 - `00_preflight.py` — render-prerequisite check
 - `z_generate_manuscript_variables.py` — `{{TOKEN}}` hydration
+- `generate_manuscript_variables_standalone.py` — variables JSON only, no template hydration
 - `ento_cli.py` — pack / unpack / verify / inspect wrapper
 - `generate_conformance_fixtures.py` / `verify_conformance_fixtures.py`
 - `check_figure_layout.py`
@@ -15,5 +16,6 @@ explicit operator commands:
 - `build_release_bundle.py`
 - `export_sbom.py`
 - `check_public_promotion_metadata.py`
+- `run_tests.py` — canonical test gate, writes `output/reports/test_results.json`
 
 See `README.md` in this directory for the per-script delegation table.

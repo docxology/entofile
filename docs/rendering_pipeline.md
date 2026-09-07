@@ -71,7 +71,7 @@ cd /path/to/template
 uv run python scripts/03_render_pdf.py --project working/entofile --skip-manuscript-hydration
 ```
 
-Reads `manuscript/config.yaml`, `references.bib`, substituted markdown,
+Reads `docs/manuscript/config.yaml`, `references.bib`, substituted markdown,
 and figure paths under `output/figures/`. The project config enables the
 template's transmission-bookend renderer
 (`publication.transmission_bookends.enabled: true`), so the combined PDF
@@ -107,7 +107,7 @@ This generates all release artifacts except `output/pdf/` and
   `npx puppeteer browsers install chrome-headless-shell`.
 - **Bib errors**: from template root, `uv run python -m
   infrastructure.reference.citation.cli validate
-  projects/working/entofile/manuscript/references.bib --strict`
+  projects/working/entofile/docs/manuscript/references.bib --strict`
 - **Transmission page overflow**: run `uv run python
   scripts/04_validate_output.py --project working/entofile` from the
   template root.
