@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from src.figure_registry import (
     FIGURE_SPECS,
     caption_token,
@@ -10,6 +12,7 @@ from src.figure_registry import (
     manuscript_image_markdown,
     visual_contract_for_spec,
     visual_evidence_contract_markdown,
+    write_figure_registry,
 )
 
 
@@ -55,3 +58,27 @@ def test_visual_evidence_contract_markdown_lists_every_figure() -> None:
         assert contract["takeaway"] in table
         assert contract["evidence"] in table
         assert contract["caution"] in table
+
+
+def test_write_figure_registry_emits_relative_filenames_and_alt_text(
+    tmp_path: Path,
+) -> None:
+    """Registry JSON must publish safe relative paths plus caption alt text."""
+    figures_dir = tmp_path / "output" / "figures"
+    outputs = {
+        spec.label: figures_dir / spec.filename
+        for spec in FIGURE_SPECS
+    }
+    registry_path = write_figure_registry(tmp_path, outputs)
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    assert set(registry) == {spec.label for spec in FIGURE_SPECS}
+    for spec in FIGURE_SPECS:
+        entry = registry[spec.label]
+        filename = entry["filename"]
+        assert not filename.startswith("/")
+        assert "\\" not in filename
+        assert (figures_dir / filename).resolve() == (figures_dir / spec.filename).resolve()
+        alt_text = entry["alt_text"]
+        assert alt_text
+        assert alt_text == spec.caption[: len(alt_text)]
+        assert alt_text[-1] in ".!?"

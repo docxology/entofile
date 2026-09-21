@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -744,14 +745,21 @@ def generate_all_figures(csv_path: Path, figures_dir: Path) -> dict[str, Path]:
     return outputs
 
 
+def _caption_alt_text(caption: str) -> str:
+    """First sentence of a caption, for accessible figure alt text."""
+    match = re.search(r"^(.*?[.!?])(?:\s|$)", caption, re.DOTALL)
+    return match.group(1).strip() if match else caption.strip()
+
+
 def _registry_entry(
-    spec: FigureSpec, output_path: Path, csv_source: str
+    spec: FigureSpec, output_path: Path, csv_source: str, base_dir: Path
 ) -> dict[str, str]:
     """Build registry metadata dictionary for one figure specification."""
     contract = visual_contract_for_spec(spec)
     return {
         "label": spec.label,
-        "filename": str(output_path),
+        "filename": output_path.relative_to(base_dir).as_posix(),
+        "alt_text": _caption_alt_text(spec.caption),
         "caption": spec.caption,
         "caption_token": caption_token(spec.label),
         "takeaway": contract["takeaway"],
@@ -773,7 +781,9 @@ def write_figure_registry(project_root: Path, outputs: dict[str, Path]) -> Path:
     registry_path = project_root / "output" / "figures" / "figure_registry.json"
     csv_source = str(benchmark_csv_path(project_root))
     payload = {
-        spec.label: _registry_entry(spec, outputs[spec.label], csv_source)
+        spec.label: _registry_entry(
+            spec, outputs[spec.label], csv_source, base_dir=registry_path.parent
+        )
         for spec in FIGURE_SPECS
         if spec.label in outputs
     }
