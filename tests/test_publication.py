@@ -12,7 +12,7 @@ from src.publication import check_publication_readiness
 
 
 def _write_config(root: Path, *, doi: str = "") -> None:
-    config_dir = root / "manuscript"
+    config_dir = root / "docs" / "manuscript"
     config_dir.mkdir(parents=True, exist_ok=True)
     config_dir.joinpath("config.yaml").write_text(
         f'publication:\n  doi: "{doi}"\n',

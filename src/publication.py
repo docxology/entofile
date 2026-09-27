@@ -465,7 +465,7 @@ def check_publication_readiness(
     else:
         checks["doi_configured"] = False
         warnings.append(
-            "publication.doi not set in manuscript/config.yaml (optional pre-deposit)"
+            "publication.doi not set in docs/manuscript/config.yaml (optional pre-deposit)"
         )
 
     ok = not blockers

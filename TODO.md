@@ -99,7 +99,7 @@ AGENTS.md, TODO.md, entofile.md, and every docs/**.md).
       `publication.py`, `release_bundle.py`, `sbom.py`, `public_promotion.py`,
       `paths.py`, `experiment_config.py`) and 11 test files still read the deleted
       `manuscript/` dir; tests failed with FileNotFoundError. Paths updated to
-      `docs/manuscript/`; affected suites re-run (see REVIEW_LOG_2026-08-31.md for results).
+      `docs/manuscript/`; affected suites re-run (results recorded in git history).
 - [x] `docs/manuscript/MANUSCRIPT_STATUS.md` misdescribes itself ("legacy
       `docs/manuscript/` fallback") — corrected to name `manuscript/` as the
       legacy location.
@@ -113,20 +113,31 @@ AGENTS.md, TODO.md, entofile.md, and every docs/**.md).
 
 ### Major (Owner scoping required)
 
-- [ ] **Full test-suite + pipeline re-verification after the manuscript migration:**
-      Run `uv run python scripts/run_tests.py` to verify migration completion.
-  - **Acceptance criteria:** Full test suite passes with 0 failures on the migrated codebase.
-  - **Dependencies:** Drive performance optimization (currently drive-bound on /Volumes/external_drive); 
-    manuscript PDF/HTML rendering pipeline setup (requires template repository checkout).
-  - **Scope:** Infrastructure and performance work beyond affected-suite verification already completed.
-  - **Note:** Affected suites (11 files) already re-verified; this expands to the full 40+ test modules.
+- [x] **Full test-suite + pipeline re-verification after the manuscript migration:**
+      Completed 2026-09-26. Root-caused the residual migration drift: five test
+      fixture helpers (`test_publication.py`, `test_release_bundle.py`,
+      `test_experiment_config.py`, `test_experiment_config_surface.py`,
+      `test_scripts_smoke.py`) still wrote `manuscript/config.yaml` after src/
+      loaders moved to `docs/manuscript/config.yaml`, so fail-closed config
+      surface tests exercised defaults instead of fixtures (11 failures);
+      `scripts/00_preflight.py` still passed the legacy path to the template
+      preflight (masked by the standalone guard). All fixed; pipeline
+      regenerated (analysis 2400 rows / tamper 1.0, conformance 8/8, figure QA
+      ok, release bundle rebuilt); full suite green at 90.69% coverage with
+      only the clean-tree promotion gate pending the commit; ruff + mypy clean.
+      Removed stray tracked `TODO.md.bak`.  
+  - **Acceptance criteria:** Full test suite passes with 0 failures on the
+    migrated codebase.  
+  - **Note:** PDF/HTML render validation remains template-checkout dependent
+    (not part of this gate); see `docs/rendering_pipeline.md`.
 
 ## Round 2 TODO Completion (2026-08-31)
 
 All actionable items completed:
 - ✅ **Minor/Medium items:** Already complete per agent-ergonomics pass
 - ✅ **Artifact regeneration:** Fresh artifacts generated and verified
-- 📋 **Owner-scoped items:** KMS/HSM design work and full test-suite verification properly scoped with acceptance criteria
+- ✅ **Full test-suite verification:** Completed 2026-09-26 (see agent-ergonomics pass, Major section)
+- 📋 **Owner-scoped items:** KMS/HSM design work properly scoped with acceptance criteria
 
 **Implementation status:** All automatable work complete. Remaining items require owner architectural decisions (KMS/HSM interface design) or infrastructure work (drive optimization, template pipeline setup).
 

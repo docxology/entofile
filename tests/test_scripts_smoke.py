@@ -42,7 +42,7 @@ def test_preflight_is_standalone_safe(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parent.parent
     proj = tmp_path / "entofile"
     (proj / "scripts").mkdir(parents=True)
-    (proj / "manuscript").mkdir()
+    (proj / "docs" / "manuscript").mkdir(parents=True)
     shutil.copy(
         root / "scripts" / "00_preflight.py", proj / "scripts" / "00_preflight.py"
     )
@@ -68,7 +68,7 @@ def test_generate_manuscript_variables_is_standalone_safe(tmp_path: Path) -> Non
     root = Path(__file__).resolve().parent.parent
     proj = tmp_path / "entofile"
     (proj / "scripts").mkdir(parents=True)
-    (proj / "manuscript").mkdir()
+    (proj / "docs" / "manuscript").mkdir(parents=True)
     shutil.copy(
         root / "scripts" / "z_generate_manuscript_variables.py",
         proj / "scripts" / "z_generate_manuscript_variables.py",

@@ -13,8 +13,8 @@ from src.release_bundle import RELEASE_FILES, build_release_bundle
 
 
 def _write_release_fixture(root: Path) -> None:
-    (root / "manuscript").mkdir(parents=True)
-    (root / "manuscript" / "config.yaml").write_text(
+    (root / "docs" / "manuscript").mkdir(parents=True)
+    (root / "docs" / "manuscript" / "config.yaml").write_text(
         """
 paper:
   title: "ENTO test release"
@@ -108,8 +108,8 @@ def test_release_bundle_dirty_status_is_project_scoped(tmp_path: Path) -> None:
 
 
 def test_release_bundle_reports_missing_required_artifacts(tmp_path: Path) -> None:
-    (tmp_path / "manuscript").mkdir(parents=True)
-    (tmp_path / "manuscript" / "config.yaml").write_text(
+    (tmp_path / "docs" / "manuscript").mkdir(parents=True)
+    (tmp_path / "docs" / "manuscript" / "config.yaml").write_text(
         "paper:\n  version: '0.4'\n", encoding="utf-8"
     )
     manifest_path = build_release_bundle(tmp_path)

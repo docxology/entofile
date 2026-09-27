@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+
 from src.figure_registry import (
     FIGURE_SPECS,
     caption_token,

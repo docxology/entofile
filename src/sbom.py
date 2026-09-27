@@ -2,8 +2,7 @@
 
 The SBOM is an optional release gate: ``scripts/export_sbom.py`` is the thin
 orchestrator; the document shape and the version-of-record logic live here so
-they are unit-testable and cannot drift from the project metadata. The
-application component version is read from ``manuscript/config.yaml``
+they are unit-testable and cannot drift from the project metadata. The application component version is read from ``docs/manuscript/config.yaml``
 (``paper.version``) — the same release label the public-promotion metadata
 checker pins against ``CITATION.cff`` — never hardcoded.
 """

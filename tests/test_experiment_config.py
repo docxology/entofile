@@ -38,8 +38,8 @@ def test_optional_benchmark_dimensions_are_opt_in() -> None:
 
 
 def test_load_experiment_config_viz_from_yaml(tmp_path: Path) -> None:
-    manuscript = tmp_path / "manuscript"
-    manuscript.mkdir()
+    manuscript = tmp_path / "docs" / "manuscript"
+    manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text(
         yaml.dump(
             {

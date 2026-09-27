@@ -24,8 +24,8 @@ from src.experiment_config import (
 
 
 def _write_config(tmp_path: Path, viz: dict) -> Path:
-    manuscript = tmp_path / "manuscript"
-    manuscript.mkdir()
+    manuscript = tmp_path / "docs" / "manuscript"
+    manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text(
         yaml.dump({"experiment": {"viz": viz}}), encoding="utf-8"
     )
@@ -53,8 +53,8 @@ def test_unknown_viz_key_is_rejected_loudly(tmp_path: Path) -> None:
 
 
 def test_unknown_experiment_key_is_rejected_loudly(tmp_path: Path) -> None:
-    manuscript = tmp_path / "manuscript"
-    manuscript.mkdir()
+    manuscript = tmp_path / "docs" / "manuscript"
+    manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text(
         yaml.dump({"experiment": {"benchmark_reps": 5}}),
         encoding="utf-8",  # should be benchmark_repetitions
@@ -122,16 +122,16 @@ def test_mistyped_boolean_is_rejected_instead_of_truthiness_coercion(tmp_path: P
 
 
 def test_malformed_experiment_section_is_rejected(tmp_path: Path) -> None:
-    manuscript = tmp_path / "manuscript"
-    manuscript.mkdir()
+    manuscript = tmp_path / "docs" / "manuscript"
+    manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text("experiment: false\n", encoding="utf-8")
     with pytest.raises(ConfigError, match="experiment must be a mapping"):
         load_experiment_config(tmp_path)
 
 
 def test_invalid_observability_level_is_rejected(tmp_path: Path) -> None:
-    manuscript = tmp_path / "manuscript"
-    manuscript.mkdir()
+    manuscript = tmp_path / "docs" / "manuscript"
+    manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text(
         "experiment:\n  observability_levels: [0, 4]\n", encoding="utf-8"
     )
@@ -140,8 +140,8 @@ def test_invalid_observability_level_is_rejected(tmp_path: Path) -> None:
 
 
 def test_null_observability_level_is_rejected(tmp_path: Path) -> None:
-    manuscript = tmp_path / "manuscript"
-    manuscript.mkdir()
+    manuscript = tmp_path / "docs" / "manuscript"
+    manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text(
         "experiment:\n  observability_levels: [null]\n", encoding="utf-8"
     )

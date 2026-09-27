@@ -46,7 +46,7 @@ def main() -> int:
 
     from infrastructure.rendering.preflight import run_manuscript_preflight
 
-    manuscript_dir = _PROJECT_ROOT / "manuscript"
+    manuscript_dir = _PROJECT_ROOT / "docs" / "manuscript"
     ok, message = run_manuscript_preflight(manuscript_dir)
     if ok:
         return 0

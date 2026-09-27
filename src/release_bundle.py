@@ -147,7 +147,7 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
 
 
 def _load_config(root: Path) -> dict[str, Any]:
-    """Load manuscript/config.yaml or return empty dict."""
+    """Load docs/manuscript/config.yaml or return empty dict."""
     config_path = root / "docs" / "manuscript" / "config.yaml"
     try:
         return read_yaml_mapping(config_path, required=False)
