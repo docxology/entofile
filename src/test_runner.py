@@ -74,6 +74,10 @@ def _notify_missing_artifacts(root: Path) -> None:
         "[entofile]   uv run python scripts/generate_conformance_fixtures.py && "
         "uv run python scripts/verify_conformance_fixtures.py\n"
         "[entofile]   uv run python scripts/build_release_bundle.py\n"
+        "[entofile] NOTE: output/pdf/, output/web/, and output/data/transmission_manifest.json\n"
+        "[entofile] additionally require a template repository checkout (see\n"
+        "[entofile] docs/rendering_pipeline.md); on a standalone clone the promotion\n"
+        "[entofile] tests stay red until that render exists.\n"
         "[entofile] (see TODO.md 'Live-tree artifact state (2026-07-31)')\n\n"
     )
 
