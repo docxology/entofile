@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
 import pytest
+
+from src.structured_data import read_toml_mapping
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -41,6 +44,9 @@ def test_uv_build_produces_wheel_and_sdist(tmp_path: Path) -> None:
     with zipfile.ZipFile(wheels[0]) as archive:
         names = set(archive.namelist())
     assert "src/__init__.py" in names
+    assert "src/py.typed" in names
+    assert "src/resources/ento_manifest_schema.json" in names
+    assert "src/resources/fixtures/eeg.csv" in names
     assert not any(name.startswith(("build/", "tests/")) for name in names)
 
 
@@ -62,7 +68,7 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
 
     venv_dir = tmp_path / "test_venv"
     venv_result = subprocess.run(
-        ["uv", "venv", str(venv_dir)],
+        ["uv", "venv", "--python", sys.executable, str(venv_dir)],
         capture_output=True,
         text=True,
         cwd=str(_PROJECT_ROOT),
@@ -83,13 +89,21 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
         [
             str(python),
             "-c",
-            "from src.crypto import FORMAT_VERSION; "
+            "from src.crypto import FORMAT_VERSION, generate_master_key; "
+            "from pathlib import Path; "
+            "from src.container import pack_container_bytes, unpack_container; "
+            "from src.fixtures import load_fixture_tracks; "
             "assert FORMAT_VERSION == '0.5.0'; "
+            "key = generate_master_key(); tracks = load_fixture_tracks(); "
+            "blob = pack_container_bytes(key, tracks); "
+            "path = Path('installed.ento.zip'); path.write_bytes(blob); "
+            "manifest, payloads = unpack_container(path, key); "
+            "assert payloads == {track.track_id: track.payload for track in tracks}; "
             "print('import ok')",
         ],
         capture_output=True,
         text=True,
-        cwd=str(_PROJECT_ROOT),
+        cwd=str(tmp_path),
         timeout=_BUILD_TIMEOUT,
     )
     assert import_result.returncode == 0, import_result.stderr
@@ -99,11 +113,8 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
 @pytest.mark.slow
 def test_pyproject_version_matches_release_label() -> None:
     """The package patch version should normalize the paper release label."""
-    import tomllib
-
     pyproject = _PROJECT_ROOT / "pyproject.toml"
-    with open(pyproject, "rb") as f:
-        pp = tomllib.load(f)
+    pp = read_toml_mapping(pyproject)
     pp_version = pp["project"]["version"]
 
     cff_path = _PROJECT_ROOT / "CITATION.cff"

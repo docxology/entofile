@@ -8,12 +8,36 @@ Author: Daniel Ari Friedman (Active Inference Institute). DOI: [10.5281/zenodo.2
 
 Requires [`uv`](https://docs.astral.sh/uv/); project dependencies resolve automatically on the first `uv run`.
 
+Python 3.10 and newer are supported. Installed wheels include the manifest schema,
+deterministic example tracks, and type marker, so container operations also work
+outside a source checkout:
+
+```bash
+uv tool install .
+entofile genkey -o master.key
+entofile pack -k master.key -o example.ento.zip
+entofile verify -i example.ento.zip -k master.key
+entofile unpack -i example.ento.zip -k master.key -o decrypted
+```
+
+Optional `--json-output` and `--telemetry-jsonl` paths must be distinct from each
+other, command inputs/outputs, and fixture or extraction directories. Symlinked
+or multiply-linked sidecars are rejected; JSON results are replaced atomically. A sidecar write
+failure returns a nonzero exit code even if the primary operation completed.
+
 ```bash
 # From this project root — these run on a standalone clone:
 uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/check_figure_layout.py
 ```
+
+The full test gate intentionally includes publication checks. On a standalone
+checkout, three promotion tests remain failing until template rendering provides
+`output/pdf/entofile_combined.pdf`, `output/web/index.html`, and the transmission
+manifest, followed by a release-bundle refresh. Missing release evidence is not
+silently skipped. See [the maintenance review](docs/maintenance_review_2026_10_16.md)
+for the latest local validation scope and remaining prerequisites.
 
 Manuscript-variable injection and PDF rendering are template-integrated: they
 require a template repository checkout and exit with a clear message on a

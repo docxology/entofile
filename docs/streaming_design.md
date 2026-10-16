@@ -3,6 +3,16 @@
 Streaming support is deferred. A future design must preserve verify-before-
 release semantics while handling large multimodal tracks.
 
+The existing `pack_container_stream` and `unpack_container_stream` APIs are
+**buffered iterator adapters**, not constant-memory streaming implementations.
+Packing retains plaintext tracks before encryption and rejects accumulation over
+the per-member and aggregate archive budgets. Unpacking authenticates and buffers
+all plaintext before exposing iterators. `chunk_size` must be positive; it controls
+unpack slice sizes, not peak memory. Packing accepts the option for API symmetry
+but consumes the caller's chunk sizes. Final packed archives are checked against
+the same ingestion limits as readers and published atomically, so rejected input
+does not truncate an existing destination.
+
 ## Constraints
 
 - Do not write plaintext outside the selected output directory.

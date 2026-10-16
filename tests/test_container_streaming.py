@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from src import container, crypto
+from src.errors import ContainerError
 from src.models import ObservabilityLevel
 from src.ontology import default_resolution
 
@@ -62,3 +65,20 @@ def test_chunk_streaming_round_trip(tmp_path: Path) -> None:
 
     assert audio_bytes == expected_audio
     assert eeg_bytes == expected_eeg
+
+
+@pytest.mark.parametrize("chunk_size", [0, -1])
+def test_stream_adapters_reject_invalid_chunk_sizes(tmp_path: Path, chunk_size: int) -> None:
+    with pytest.raises(ValueError, match="chunk_size must be positive"):
+        container.pack_container_stream(tmp_path / "out.zip", bytes(32), {}, chunk_size=chunk_size)
+    with pytest.raises(ValueError, match="chunk_size must be positive"):
+        container.unpack_container_stream(tmp_path / "missing.zip", bytes(32), chunk_size=chunk_size)
+
+
+def test_stream_pack_bounds_accumulation(tmp_path: Path) -> None:
+    chunk = b"x" * (1024 * 1024)
+    destination = tmp_path / "out.zip"
+    streams = {"proof": ("ento:blockchain.proof", (chunk for _ in range(65)), None)}
+    with pytest.raises(ContainerError, match="uncompressed size limit"):
+        container.pack_container_stream(destination, bytes(32), streams)
+    assert not destination.exists()

@@ -19,7 +19,7 @@ from .container import (
     unpack_container,
     verify_container,
 )
-from .fixtures import load_fixture_tracks
+from .fixtures import fixtures_dir, load_fixture_tracks
 from .manifest import manifest_to_json
 from .models import ObservabilityLevel
 from .proof import export_proof
@@ -92,6 +92,41 @@ def _add_common_output_args(parser: argparse.ArgumentParser) -> None:
         type=Path,
         help="Append one redacted local telemetry event as JSONL",
     )
+
+
+def _validate_sidecar_paths(args: argparse.Namespace) -> None:
+    """Reject sidecars aliasing command inputs, outputs, or each other."""
+    protected = [
+        value
+        for name in ("key", "input", "output")
+        if isinstance(value := getattr(args, name, None), Path)
+    ]
+    sidecars = [
+        value
+        for name in ("json_output", "telemetry_jsonl")
+        if isinstance(value := getattr(args, name, None), Path)
+    ]
+    directories = [
+        value.resolve()
+        for name in ("fixtures", "output_dir")
+        if isinstance(value := getattr(args, name, None), Path)
+    ]
+    for sidecar in sidecars:
+        if sidecar.is_symlink():
+            raise ValueError(f"refusing symlinked sidecar: {sidecar}")
+        if sidecar.is_file() and sidecar.stat().st_nlink > 1:
+            raise ValueError(f"refusing multiply-linked sidecar: {sidecar}")
+        if any(
+            directory == sidecar.resolve() or directory in sidecar.resolve().parents
+            for directory in directories
+        ):
+            raise ValueError(f"sidecar overlaps command data directory: {sidecar}")
+        for target in protected:
+            if sidecar.resolve() == target.resolve() or (
+                sidecar.exists() and target.exists() and sidecar.samefile(target)
+            ):
+                raise ValueError(f"sidecar aliases another command path: {sidecar}")
+        protected.append(sidecar)
 
 
 def _load_key(path: Path) -> bytes:
@@ -292,7 +327,7 @@ def build_parser() -> argparse.ArgumentParser:
     pack.add_argument(
         "--fixtures",
         type=Path,
-        default=Path(__file__).resolve().parent.parent / "data" / "fixtures",
+        default=fixtures_dir(),
     )
     pack.add_argument("--creator", default="entofile")
     pack.add_argument("--observability", type=int, default=3, choices=[0, 1, 2, 3])
@@ -303,7 +338,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "ENTO format version: 0.5.0 (default: 12-byte nonce + AAD + PADME length padding "
             "+ manifest-context AAD), or compatibility formats "
-            "0.2.0, 0.3.0, 0.3.1"
+            "0.2.0, 0.3.0, 0.3.1, 0.4.0"
         ),
     )
     pack.set_defaults(func=cmd_pack)
@@ -370,6 +405,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
+        _validate_sidecar_paths(args)
+    except (ValueError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    try:
         code = int(args.func(args))
         _write_sidecars(args, ok=code == 0, exit_code=code)
         return code
@@ -386,7 +426,10 @@ def main(argv: list[str] | None = None) -> int:
         # uncaught traceback. Catch it here so adversarial input yields a clean
         # "error: ..." + exit 1, consistent with every other malformed-input path.
         print(f"error: {exc}", file=sys.stderr)
-        _write_sidecars(args, ok=False, exit_code=1, error=exc)
+        try:
+            _write_sidecars(args, ok=False, exit_code=1, error=exc)
+        except (ValueError, OSError) as sidecar_exc:
+            print(f"error: could not write sidecars: {sidecar_exc}", file=sys.stderr)
         return 1
 
 

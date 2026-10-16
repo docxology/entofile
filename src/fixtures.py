@@ -16,8 +16,12 @@ FIXTURE_MAPPING: dict[str, tuple[str, str]] = {
 
 def fixtures_dir(project_root: Path | None = None) -> Path:
     """Return absolute path to fixture track data directory."""
-    root = project_root or Path(__file__).resolve().parent.parent
-    return root / "data" / "fixtures"
+    if project_root is not None:
+        return project_root / "data" / "fixtures"
+    source_data = Path(__file__).resolve().parent.parent / "data" / "fixtures"
+    if source_data.is_dir():
+        return source_data
+    return Path(__file__).resolve().parent / "resources" / "fixtures"
 
 
 def load_fixture_tracks(

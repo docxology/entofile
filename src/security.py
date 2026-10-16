@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import zipfile
+from io import BytesIO
 from pathlib import Path
 
 from .errors import ContainerError
@@ -45,7 +46,7 @@ def _member_uncompressed_size(info: zipfile.ZipInfo) -> int:
     return info.file_size
 
 
-def validate_zip_archive(source: Path) -> None:
+def validate_zip_archive(source: Path | BytesIO) -> None:
     """Fail closed on oversize archives or zip bombs before full read.
 
     ``ZipExtFile.read`` truncates output to the declared ``file_size`` (CPython
@@ -55,7 +56,7 @@ def validate_zip_archive(source: Path) -> None:
     :func:`safe_read_member` adds a second, independent ceiling (it never
     materializes more than ``max_bytes`` even if the declared size is large).
     """
-    size = source.stat().st_size
+    size = source.getbuffer().nbytes if isinstance(source, BytesIO) else source.stat().st_size
     if size > MAX_ZIP_BYTES:
         raise ContainerError(f"container exceeds max size ({size} > {MAX_ZIP_BYTES} bytes)")
     with zipfile.ZipFile(source, "r") as zf:
@@ -65,6 +66,8 @@ def validate_zip_archive(source: Path) -> None:
         declared_total = 0
         for name in names:
             info = zf.getinfo(name)
+            if name == "manifest.json" and info.file_size > MAX_MANIFEST_BYTES:
+                raise ContainerError("manifest.json exceeds uncompressed size limit")
             if _member_uncompressed_size(info) > MAX_MEMBER_UNCOMPRESSED:
                 raise ContainerError(f"ZIP member {name!r} exceeds uncompressed size limit")
             declared_total += _member_uncompressed_size(info)

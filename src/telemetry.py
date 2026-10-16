@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from .structured_data import atomic_write_json
 
 
 def utc_timestamp() -> str:
@@ -23,16 +26,23 @@ def redact_error(message: object, *, max_chars: int = 500) -> str:
 
 def write_json(path: Path, payload: dict[str, Any]) -> Path:
     """Write a JSON payload, creating parent directories."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    atomic_write_json(path, payload)
     return path
 
 
 def append_jsonl(path: Path, payload: dict[str, Any]) -> Path:
     """Append a single JSONL event, creating parent directories."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+    if path.is_symlink():
+        raise OSError(f"refusing symlinked telemetry output: {path}")
+    text = json.dumps(payload, sort_keys=True, allow_nan=False) + "\n"
+    descriptor = os.open(
+        path, os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0), 0o600
+    )
+    with os.fdopen(descriptor, "a", encoding="utf-8") as handle:
+        if os.fstat(handle.fileno()).st_nlink > 1:
+            raise OSError(f"refusing multiply-linked telemetry output: {path}")
+        handle.write(text)
     return path
 
 

@@ -34,13 +34,16 @@ dev = [
     "types-jsonschema",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
-exclude = ["build*", "tests*"]
+[tool.setuptools]
+packages = ["src", "src.resources"]
 
 [tool.setuptools.package-dir]
 "" = "."
+"src.resources" = "data"
+
+[tool.setuptools.package-data]
+src = ["py.typed"]
+"src.resources" = ["ento_manifest_schema.json", "fixtures/*.csv", "fixtures/*.vcf", "fixtures/*.bin"]
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]

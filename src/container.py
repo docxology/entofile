@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 import zipfile
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -37,6 +39,9 @@ from .observability import filter_manifest, include_proof_chain, validate_export
 from .proof import export_proof, verify_proof_export
 from .security import (
     MAX_MANIFEST_BYTES,
+    MAX_MEMBER_UNCOMPRESSED,
+    MAX_TOTAL_UNCOMPRESSED,
+    MAX_ZIP_ENTRIES,
     assert_zip_members_match_manifest,
     safe_read_member,
     validate_track_id,
@@ -455,8 +460,20 @@ def pack_container(
         format_version=format_version,
     )
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_STORED) as zf:
-        _write_container_zip(zf, full_manifest, encrypted, level)
+    if destination.is_symlink():
+        raise ContainerError(f"refusing symlinked container output: {destination}")
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{destination.name}.", dir=destination.parent)
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w+b") as handle:
+            with zipfile.ZipFile(handle, "w", compression=zipfile.ZIP_STORED) as zf:
+                _write_container_zip(zf, full_manifest, encrypted, level)
+            handle.flush()
+            os.fsync(handle.fileno())
+        validate_zip_archive(temporary_path)
+        os.replace(temporary_path, destination)
+    finally:
+        temporary_path.unlink(missing_ok=True)
     return filter_manifest(full_manifest, level)
 
 
@@ -523,6 +540,7 @@ def pack_container_bytes(
     buf = BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_STORED) as zf:
         _write_container_zip(zf, full_manifest, encrypted, level)
+    validate_zip_archive(buf)
     return buf.getvalue()
 
 
@@ -537,15 +555,26 @@ def pack_container_stream(
     format_version: str = FORMAT_VERSION,
     chunk_size: int = 64 * 1024,
 ) -> Manifest:
-    """High-throughput bounded-memory chunk streaming container pack.
+    """Buffered iterator adapter for container packing, not constant-memory I/O.
 
-    Consumes track byte streams chunk by chunk into memory-bounded buffers,
-    encapsulating tracks while preserving verify-before-release manifest integrity.
+    Plaintext is retained for all tracks before encryption. Per-member and aggregate
+    ingestion budgets cap accumulation; chunk_size does not set a memory ceiling.
     """
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be positive")
+    if len(track_streams) + 1 > MAX_ZIP_ENTRIES:
+        raise ContainerError("too many track streams")
     plain_tracks: list[PlainTrack] = []
+    total_bytes = 0
     for track_id, (track_type, chunks_iter, resolution) in track_streams.items():
+        validate_track_id(track_id)
         buf = bytearray()
         for chunk in chunks_iter:
+            if len(buf) + len(chunk) > MAX_MEMBER_UNCOMPRESSED:
+                raise ContainerError(f"track {track_id!r} exceeds uncompressed size limit")
+            total_bytes += len(chunk)
+            if total_bytes >= MAX_TOTAL_UNCOMPRESSED:
+                raise ContainerError("track streams exceed aggregate limit")
             buf.extend(chunk)
         plain_tracks.append(
             PlainTrack(
@@ -572,11 +601,13 @@ def unpack_container_stream(
     *,
     chunk_size: int = 64 * 1024,
 ) -> tuple[Manifest, dict[str, Iterator[bytes]]]:
-    """High-throughput chunk streaming container unpack with strict verify-before-release.
+    """Buffered iterator adapter with strict verify-before-release.
 
-    Verifies the container authenticated context and integrity before releasing decrypted
-    byte streams chunk-by-chunk.
+    All plaintext is authenticated and buffered before returning any iterators.
+    chunk_size controls yielded slices, not peak memory usage.
     """
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be positive")
     manifest, payloads = unpack_container(source, master_key)
 
     def _make_stream(data: bytes) -> Iterator[bytes]:

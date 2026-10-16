@@ -19,8 +19,12 @@ _SCHEMA_CACHE: dict[Path, dict[str, Any]] = {}
 
 def schema_path(project_root: Path | None = None) -> Path:
     """Return path to bundled JSON Schema."""
-    root = project_root or Path(__file__).resolve().parent.parent
-    return root / "data" / "ento_manifest_schema.json"
+    if project_root is not None:
+        return project_root / "data" / "ento_manifest_schema.json"
+    source_data = Path(__file__).resolve().parent.parent / "data"
+    bundled_data = Path(__file__).resolve().parent / "resources"
+    root = source_data if (source_data / "ento_manifest_schema.json").is_file() else bundled_data
+    return root / "ento_manifest_schema.json"
 
 
 def load_schema(project_root: Path | None = None) -> dict[str, Any]:
