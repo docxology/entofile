@@ -31,3 +31,6 @@ docs/reviews/AGENTS.md
 docs/reviews/README.md
 tests/fixtures/AGENTS.md
 tests/fixtures/README.md
+
+# Pinned external rendering SDK used only by CI.
+.ci-template-sdk/

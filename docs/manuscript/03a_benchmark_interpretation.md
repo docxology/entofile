@@ -1,6 +1,6 @@
 # Benchmark interpretation {#sec:benchmark_interpretation}
 
-Benchmarks execute via `src/benchmarks.py::run_all_benchmarks` and write `output/data/ento_benchmark_results.csv` (SHA-256: `{{BENCHMARK_CSV_SHA256}}`). Filter definitions for plots and injected statistics match [`docs/methods.md`](../methods.md#figure-filter-contract). This section interprets primary metrics declared in `experiment_plan.yaml`.
+Benchmarks execute via `src/benchmarks.py::run_all_benchmarks` and write `output/data/ento_benchmark_results.csv` (SHA-256: `{{BENCHMARK_CSV_SHA256}}`). Filter definitions for plots and injected statistics match [`docs/methods.md`](https://github.com/docxology/entofile/blob/b88a050587603bf3d42290252d5b2c46571c8456/docs/methods.md#figure-filter-contract). This section interprets primary metrics declared in `experiment_plan.yaml`.
 
 ## Baselines and conditions
 
