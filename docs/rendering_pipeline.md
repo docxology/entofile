@@ -24,7 +24,7 @@ cd projects/platform/hum-docxology/repos/public/template
 ln -sf /path/to/entofile projects/working/entofile
 
 # Render PDF + HTML (uses the template's pandoc + xelatex pipeline):
-uv run python scripts/03_render_pdf.py --project working/entofile --skip-manuscript-hydration
+uv run python scripts/pipeline/stage_03_render.py --project working/entofile --skip-manuscript-hydration
 ```
 
 The `--skip-manuscript-hydration` flag is used because the standalone
@@ -68,7 +68,7 @@ uv run python -m infrastructure.validation.cli prerender projects/working/entofi
 
 ```bash
 cd /path/to/template
-uv run python scripts/03_render_pdf.py --project working/entofile --skip-manuscript-hydration
+uv run python scripts/pipeline/stage_03_render.py --project working/entofile --skip-manuscript-hydration
 ```
 
 Reads `docs/manuscript/config.yaml`, `references.bib`, substituted markdown,
@@ -111,3 +111,19 @@ This generates all release artifacts except `output/pdf/` and
 - **Transmission page overflow**: run `uv run python
   scripts/04_validate_output.py --project working/entofile` from the
   template root.
+
+## Fresh CI checkout
+
+The three declared Python matrix cells now run analysis, conformance and the
+real pinned template renderer before the artifact-bound test gate. The SDK
+has a separate locked Python3.14 environment; the consumer matrix stays
+3.10/3.12/3.14. `.github/workflows/ci.yml` owns the exact SDK source commit,
+converter action and native prerequisites. The SDK receives a physical local
+clone of the exact consumer commit plus its generated analysis outputs, and
+its genuine outputs return to the consumer before release-manifest generation
+and the complete test suite. No render failure, test or coverage floor is
+skipped. Source-document links name the verified immutable public entofile
+source rather than the private SDK working-project pool.
+
+The pinned SDK commit is independently qualified source; this consumer pin
+does not assert that template4.0.2 has completed its separate release gates.

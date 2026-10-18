@@ -43,7 +43,7 @@ expansion ratio, manifest bytes, and tamper outcome. This is a real execution of
 the ENTO pack/unpack/verify path over documented inputs, not a mock or a
 substituted result table.
 
-Validation requires `output/reports/benchmark_validation.json` to report status {{RESULT_BENCHMARK_VALIDATION_STATUS}} and tamper detection rate {{RESULT_TAMPER_DETECTION_RATE}}, and `output/reports/container_verification.json` to report all benchmark samples verified (`{{RESULT_CONTAINER_VERIFY_OK}}`). HKDF and GCM vectors in `data/test_vectors/` are exercised before release. Figure DPI follows `src/figures.py::VIZ_CONFIG`; caption tokens follow `src/figure_registry.py` (`tests/test_figure_captions.py`). Claims bind via `data/claim_ledger.yaml` and [`docs/claim_ledger.md`](../claim_ledger.md).
+Validation requires `output/reports/benchmark_validation.json` to report status {{RESULT_BENCHMARK_VALIDATION_STATUS}} and tamper detection rate {{RESULT_TAMPER_DETECTION_RATE}}, and `output/reports/container_verification.json` to report all benchmark samples verified (`{{RESULT_CONTAINER_VERIFY_OK}}`). HKDF and GCM vectors in `data/test_vectors/` are exercised before release. Figure DPI follows `src/figures.py::VIZ_CONFIG`; caption tokens follow `src/figure_registry.py` (`tests/test_figure_captions.py`). Claims bind via `data/claim_ledger.yaml` and [`docs/claim_ledger.md`](https://github.com/docxology/entofile/blob/b88a050587603bf3d42290252d5b2c46571c8456/docs/claim_ledger.md).
 
 ## Statistical methods
 

@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   gates:
     runs-on: ubuntu-latest
@@ -14,18 +17,19 @@ jobs:
       matrix:
         python-version: ["3.10", "3.12", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --locked --extra dev
       - name: Lint (ruff)
         run: uv run ruff check src/ scripts/ tests/
       - name: Type check (mypy)
         run: uv run mypy src/
-      - name: Test with coverage
-        run: uv run python scripts/run_tests.py
+      # Artifact-bound tests require real products, including PDF and HTML.
       - name: Analysis pipeline smoke
         run: uv run python scripts/ento_analysis.py
       - name: Conformance fixtures
@@ -34,8 +38,44 @@ jobs:
           uv run python scripts/verify_conformance_fixtures.py
       - name: Figure layout gate
         run: uv run python scripts/check_figure_layout.py
+      - name: Check out the pinned rendering SDK source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: docxology/template
+          ref: 4670c48cc490636455f2eac09ba4396baed9ffd7
+          path: .ci-template-sdk
+          persist-credentials: false
+      - name: Prepare the SDK locked Python 3.14 environment
+        run: uv sync --project .ci-template-sdk --python 3.14 --locked
+      - name: Prepare pinned document converters
+        uses: docxology/template/.github/actions/setup-acceptance-documents@4670c48cc490636455f2eac09ba4396baed9ffd7
+        with:
+          mode: converter
+      - name: Prepare real TeX, fonts and PDF readers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends             texlive-xetex texlive-latex-extra texlive-bibtex-extra             texlive-fonts-recommended lmodern fonts-dejavu poppler-utils
+          xelatex --version
+          bibtex --version
+          pdftotext -v
+      - name: Render actual PDF HTML and transmission artifacts
+        run: |
+          set -euo pipefail
+          sdk="$GITHUB_WORKSPACE/.ci-template-sdk"
+          project="$sdk/projects/working/entofile"
+          mkdir -p "$sdk/projects/working"
+          git clone --no-hardlinks "$GITHUB_WORKSPACE" "$project"
+          mkdir -p "$project/output"
+          cp -R "$GITHUB_WORKSPACE/output/." "$project/output/"
+          (
+            cd "$sdk"
+            uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+          )
+          cp -R "$project/output/." "$GITHUB_WORKSPACE/output/"
       - name: Release bundle gate
         run: uv run python scripts/build_release_bundle.py
+      - name: Test with coverage
+        run: uv run python scripts/run_tests.py
       - name: Package and console-script smoke
         run: |
           dist="$RUNNER_TEMP/ento-dist"

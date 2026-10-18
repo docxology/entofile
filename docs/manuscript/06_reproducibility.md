@@ -65,7 +65,7 @@ Evidence reports: conformance status `{{CONFORMANCE_REPORT_STATUS}}` at
 `{{ARTIFACT_MANIFEST_STATUS}}` at `{{ARTIFACT_MANIFEST_PATH}}`; release manifest
 status `{{RELEASE_MANIFEST_STATUS}}` at `{{RELEASE_MANIFEST_PATH}}`. The evidence
 provenance contract is maintained in
-[`docs/evidence_provenance.md`](../evidence_provenance.md).
+[`docs/evidence_provenance.md`](https://github.com/docxology/entofile/blob/b88a050587603bf3d42290252d5b2c46571c8456/docs/evidence_provenance.md).
 
 ## Fixture digests
 
