@@ -1,7 +1,7 @@
 # Public CI Dry-Run Map
 
-This document maps the private release-candidate commands to a future
-`docxology/entofile` GitHub Actions dry run. It is intentionally non-publishing:
+This document maps release-candidate commands to the non-publishing
+`docxology/entofile` GitHub Actions gates. It is intentionally non-publishing:
 the workflow should prove that the public repository can rebuild and validate
 the release surfaces, but it must not upload packages, create releases, sign
 artifacts, or mutate Zenodo.
@@ -37,38 +37,16 @@ artifacts, or mutate Zenodo.
 | `uv run python scripts/check_public_promotion_metadata.py --check` | `public-metadata` | Verify local public-facing metadata consistency. | None |
 | `uv run python scripts/check_public_promotion_metadata.py --check --require-public-endpoints --live-public-endpoints` | `public-endpoints` | Confirm promoted endpoints resolve after publication. | None in dry run; expected to block before promotion. |
 
-## Candidate Workflow Shape
+## Executable workflow
 
-```yaml
-name: entofile dry run
-
-on:
-  pull_request:
-  push:
-    branches: ["main", "release/**"]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  release-dry-run:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-      - run: uv run python scripts/run_tests.py
-      - run: grep -r "unittest.mock\\|MagicMock\\|@patch" tests/ || echo "Clean"
-      - run: uv run python scripts/ento_analysis.py
-      - run: uv run python scripts/export_sbom.py
-      - run: uv run python scripts/generate_conformance_fixtures.py
-      - run: uv run python scripts/verify_conformance_fixtures.py
-      - run: uv run python scripts/check_figure_layout.py
-      - run: uv run python scripts/z_generate_manuscript_variables.py
-      - run: uv run python scripts/audit_publication_readiness.py --check
-      - run: uv run python scripts/build_release_bundle.py
-      - run: uv run python scripts/check_public_promotion_metadata.py --check
-```
+`.github/workflows/ci.yml` is the executable source of truth, with immutable action
+and SDK pins and Python 3.10/3.12/3.14 consumer cells. It renders genuine PDF/HTML,
+runs the complete test suite, then rehydrates measured values and certifies live
+tests in the SDK environment. The complete current-output snapshot and stage 04
+validation precede the final outer `release/` envelope and checksum verification.
+No template-render-dependent test is excluded. See
+[`rendering_pipeline.md`](rendering_pipeline.md) for the matching local sequence;
+do not use an abbreviated example that tests before generating its prerequisites.
 
 The live endpoint command remains a separate manual or protected job until the
 public home, DOI, and Zenodo record are expected to resolve. Artifact signing

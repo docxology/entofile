@@ -33,11 +33,12 @@ uv run python scripts/check_figure_layout.py
 ```
 
 The full test gate intentionally includes publication checks. On a standalone
-checkout, three promotion tests remain failing until template rendering provides
+checkout, three promotion tests require template rendering to provide
 `output/pdf/entofile_combined.pdf`, `output/web/index.html`, and the transmission
 manifest, followed by a release-bundle refresh. Missing release evidence is not
 silently skipped. See [the maintenance review](docs/maintenance_review_2026_10_16.md)
-for the latest local validation scope and remaining prerequisites.
+for the historical standalone scope, and [publication validation](docs/publication_validation_2026_10_18.md)
+for the completed render-dependent checks and remaining external release boundary.
 
 Manuscript-variable injection and PDF rendering are template-integrated: they
 require a template repository checkout and exit with a clear message on a

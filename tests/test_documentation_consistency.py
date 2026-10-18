@@ -247,6 +247,29 @@ def test_publication_docs_mark_test_results_as_non_certifying() -> None:
     assert "not use it to certify" in publication
 
 
+def test_ci_finalizes_real_rendered_inventory_after_tests() -> None:
+    workflow = yaml.safe_load(_read(".github/workflows/ci.yml"))
+    steps = workflow["jobs"]["gates"]["steps"]
+    names = [step.get("name", "") for step in steps]
+    certification_name = "Certify hydrated reader artifacts and full output inventory"
+    assert names.index("Render actual PDF HTML and transmission artifacts") < names.index("Test with coverage")
+    assert names.index("Test with coverage") < names.index(certification_name)
+    certification = steps[names.index(certification_name)]["run"]
+    commands = (
+        "scripts/pipeline/stage_03_render.py --project working/entofile",
+        "scripts/audit_publication_readiness.py\" --check",
+        "scripts/maintenance/refresh_artifact_manifests.py --project working/entofile",
+        "scripts/pipeline/stage_04_validate.py --project working/entofile",
+        "scripts/build_release_bundle.py",
+        "sha256sum --check release/SHA256SUMS",
+        "scripts/check_public_promotion_metadata.py --check",
+    )
+    positions = [certification.index(command) for command in commands]
+    assert positions == sorted(positions)
+    assert "--skip-manuscript-hydration" not in certification
+    assert "--no-live-tests" not in certification
+
+
 def test_public_metadata_matches_manuscript_config() -> None:
     config = yaml.safe_load(_read("docs/manuscript/config.yaml"))
     cff = _read("CITATION.cff")

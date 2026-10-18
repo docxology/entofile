@@ -11,6 +11,7 @@ from typing import Any
 
 from . import crypto
 from .artifact_manifest import compute_sha256
+from .paths import ProjectPaths
 from .structured_data import atomic_write_text, read_yaml_mapping
 
 
@@ -80,7 +81,7 @@ RELEASE_FILES: tuple[ReleaseFile, ...] = (
 
 
 def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) -> Path:
-    """Write release manifest and SHA256SUMS under ``output/release``.
+    """Write release manifest and SHA256SUMS outside the attested output tree.
 
     The generated files are designed to be signed externally. ENTO does not
     shell out to Cosign or upload a release here; it binds the local artifacts
@@ -89,7 +90,7 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
     root = project_root.resolve()
     source_dirty_project = bool(_git_text(root, "status", "--porcelain", "--", "."))
     source_dirty_repository = bool(_git_text(root, "status", "--porcelain"))
-    release_dir = output_dir or root / "output" / "release"
+    release_dir = output_dir or ProjectPaths.from_root(root).release
     if release_dir.is_symlink():
         raise OSError(f"refusing to write release bundle through symlink: {release_dir}")
     release_dir.mkdir(parents=True, exist_ok=True)
@@ -138,7 +139,8 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
         "entries": entries,
         "missing_required": missing,
         "signing_note": (
-            "Sign output/release/SHA256SUMS and output/release/release_manifest.json "
+            f"Sign {checksums_path.relative_to(root).as_posix()} and "
+            f"{manifest_path.relative_to(root).as_posix()} "
             "with the external Sigstore/Cosign process documented in docs/provenance_signing.md."
         ),
     }

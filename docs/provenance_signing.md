@@ -43,9 +43,9 @@ and in-toto-style attestations [@nist2022sp800161r1; @slsa2024levels;
 5. Sign release artifacts with Sigstore Cosign or an equivalent signer:
 
    ```bash
-   cosign sign-blob --yes output/release/SHA256SUMS \
-     --output-signature output/release/SHA256SUMS.sig \
-     --output-certificate output/release/SHA256SUMS.pem
+   cosign sign-blob --yes release/SHA256SUMS \
+     --output-signature release/SHA256SUMS.sig \
+     --output-certificate release/SHA256SUMS.pem
    ```
 
 6. Emit SLSA-compatible and/or in-toto-style provenance in CI for the build and

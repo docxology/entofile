@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from src import crypto
+from src.artifact_manifest import compute_sha256
 from src.release_bundle import RELEASE_FILES, build_release_bundle
 
 
@@ -58,11 +59,13 @@ def test_release_bundle_manifest_and_checksums(tmp_path: Path) -> None:
     assert "docs/redteam_claim_scholarship_audit_0.4.md" in paths
     assert "docs/redteam_repo_visual_audit_0.4.md" in paths
     assert "SECURITY.md" in paths
-    checksums = (tmp_path / "output" / "release" / "SHA256SUMS").read_text(
+    checksums = (tmp_path / "release" / "SHA256SUMS").read_text(
         encoding="utf-8"
     )
     assert "output/pdf/entofile_combined.pdf" in checksums
     assert "output/release/release_manifest.json" not in checksums
+    assert manifest_path == tmp_path / "release" / "release_manifest.json"
+    assert not (tmp_path / "output" / "release").exists()
 
 
 def test_release_bundle_dirty_status_is_project_scoped(tmp_path: Path) -> None:
@@ -126,3 +129,17 @@ def test_release_bundle_refuses_symlink_output(tmp_path: Path) -> None:
     symlink_out.symlink_to(target_out)
     with pytest.raises(OSError, match="refusing to write release bundle through symlink"):
         build_release_bundle(tmp_path, output_dir=symlink_out)
+
+
+def test_release_envelope_does_not_mutate_the_attested_output_tree(tmp_path: Path) -> None:
+    _write_release_fixture(tmp_path)
+    output = tmp_path / "output"
+    before = {path.relative_to(output): compute_sha256(path) for path in output.rglob("*") if path.is_file()}
+    for _ in range(2):
+        manifest = build_release_bundle(tmp_path)
+        payload = json.loads(manifest.read_text(encoding="utf-8"))
+        assert payload["ok"] is True
+        for entry in payload["entries"]:
+            assert compute_sha256(tmp_path / entry["path"]) == entry["sha256"]
+    after = {path.relative_to(output): compute_sha256(path) for path in output.rglob("*") if path.is_file()}
+    assert after == before

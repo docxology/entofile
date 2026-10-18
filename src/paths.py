@@ -43,8 +43,8 @@ class ProjectPaths:
 
     @property
     def release(self) -> Path:
-        """Path to output/release directory."""
-        return self.output / "release"
+        """Path to the release envelope outside the attested output tree."""
+        return self.root / "release"
 
     @property
     def conformance(self) -> Path:
@@ -72,3 +72,11 @@ class ProjectPaths:
             self.conformance,
         ):
             directory.mkdir(parents=True, exist_ok=True)
+
+
+def release_manifest_path(project_root: Path) -> Path:
+    """Prefer the outer release envelope; read legacy inventories compatibly."""
+    current = project_root / "release" / "release_manifest.json"
+    if current.exists() or current.is_symlink():
+        return current
+    return project_root / "output" / "release" / "release_manifest.json"

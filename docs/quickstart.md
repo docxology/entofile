@@ -11,6 +11,10 @@ compatibility `0.2.0`/`0.3.0`/`0.3.1`/`0.4.0` containers remain supported via
 
 ## Tests
 
+The complete test gate requires generated analysis and real rendered publication
+artifacts. First follow [`rendering_pipeline.md`](rendering_pipeline.md); missing
+products intentionally leave the publication tests red rather than skipped.
+
 ```bash
 uv run python scripts/run_tests.py
 ```
@@ -40,7 +44,7 @@ Outputs under `output/`:
 
 ```bash
 cd <template-checkout>
-uv run python scripts/03_render_pdf.py --project working/entofile
+uv run python scripts/pipeline/stage_03_render.py --project working/entofile
 ```
 
 ## CLI

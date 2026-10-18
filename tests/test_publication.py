@@ -138,6 +138,10 @@ def test_blocker_evidence_registry(tmp_path: Path) -> None:
     _write_validation_report(
         tmp_path, evidence_issues=["unsupported literal 90% in abstract"]
     )
+    (tmp_path / "docs" / "manuscript" / "01_evidence.md").write_text(
+        "An ungrounded measurement is 987654321 [@missing_evidence_reference].\n",
+        encoding="utf-8",
+    )
     pdf_dir = tmp_path / "output" / "pdf"
     pdf_dir.mkdir(parents=True, exist_ok=True)
     # Real %PDF header + non-trivial size so the (now substance-checking) combined_pdf
@@ -216,13 +220,12 @@ def test_audit_publication_readiness_help() -> None:
     assert "--check" in result.stdout
 
 
-def test_audit_publication_readiness_check_json() -> None:
+def test_audit_publication_readiness_display_json() -> None:
     root = Path(__file__).resolve().parent.parent
     result = subprocess.run(
         [
             sys.executable,
             str(root / "scripts" / "audit_publication_readiness.py"),
-            "--check",
             "--no-live-tests",
         ],
         cwd=root,
@@ -234,6 +237,31 @@ def test_audit_publication_readiness_check_json() -> None:
     assert "checks" in payload
     assert "blockers" in payload
     assert isinstance(payload["ok"], bool)
+    assert payload["tests_source"] == "side-file"
+
+
+def test_certification_cannot_disable_live_tests() -> None:
+    script = Path(__file__).resolve().parent.parent / "scripts" / "audit_publication_readiness.py"
+    for options in (("--check", "--no-live-tests"), ("--no-live-tests", "--check")):
+        result = subprocess.run(
+            [sys.executable, str(script), *options], capture_output=True, text=True, check=False
+        )
+        assert result.returncode == 2
+        assert "not allowed with argument" in result.stderr
+        assert not result.stdout.strip()
+
+
+def test_cli_certification_rejects_forged_green_test_report(tmp_path: Path) -> None:
+    _write_passing_test_report(tmp_path, coverage=99.0)
+    script = Path(__file__).resolve().parent.parent / "scripts" / "audit_publication_readiness.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--project-root", str(tmp_path), "--check"],
+        capture_output=True, text=True, check=False, timeout=30,
+    )
+    report = json.loads(result.stdout)
+    assert result.returncode == 1
+    assert report["tests_source"] == "live"
+    assert report["checks"]["tests_passed"] is False
 
 
 def test_publication_rejects_fake_pdf(tmp_path: Path) -> None:

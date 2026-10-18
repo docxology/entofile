@@ -15,6 +15,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from src.paths import release_manifest_path
 from src.test_results import parse_test_summary
 
 _CLEANUP_TIMEOUT_SECONDS = 2.0
@@ -42,7 +43,6 @@ _ARTIFACT_BOUND_TESTS = (
 )
 _ARTIFACT_TARGETS = (
     "output/reports/container_verification.json",
-    "output/release/release_manifest.json",
     "output/data/transmission_manifest.json",
     "output/reports/conformance_report.json",
 )
@@ -50,11 +50,14 @@ _ARTIFACT_TARGETS = (
 
 def _missing_artifact_preflight(root: Path) -> list[str]:
     """Return generated outputs whose absence makes artifact-bound tests fail."""
-    return [
+    missing = [
         rel
         for rel in _ARTIFACT_TARGETS
         if not (root / rel).is_file()
     ]
+    if not release_manifest_path(root).is_file():
+        missing.append("release/release_manifest.json")
+    return missing
 
 
 def _notify_missing_artifacts(root: Path) -> None:

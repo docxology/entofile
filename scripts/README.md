@@ -50,7 +50,7 @@ uv run python scripts/run_tests.py
 | Script | Delegates to | Purpose |
 | --- | --- | --- |
 | `audit_publication_readiness.py` | `src.publication.check_publication_readiness` | Publication readiness gate (`--check` is certifying) |
-| `build_release_bundle.py` | `src.release_bundle` | Release manifest + checksum list for `output/release/` |
+| `build_release_bundle.py` | `src.release_bundle` | Outer manifest + checksum list under project-root `release/`, outside the attested `output/` tree |
 | `export_sbom.py` | `src.sbom.build_cyclonedx_skeleton` | CycloneDX SBOM (optional release gate) |
 | `check_public_promotion_metadata.py` | `src.public_promotion` | Public-promotion metadata consistency |
 

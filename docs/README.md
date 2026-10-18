@@ -22,6 +22,7 @@ maintainer's build and render path remains `projects/working/entofile`.
 | Document | Topic |
 | --- | --- |
 | [`rendering_pipeline.md`](rendering_pipeline.md) | Analysis → PDF |
+| [`publication_validation_2026_10_18.md`](publication_validation_2026_10_18.md) | Executed full-render publication checks and external release boundary |
 | [`output_conventions.md`](output_conventions.md) | `output/` layout |
 | [`output_inventory.md`](output_inventory.md) | Producer/consumer graph |
 | [`evidence_provenance.md`](evidence_provenance.md) | Input/output provenance and no-mock evidence boundary |

@@ -32,16 +32,24 @@ Active private project implementing **ENTO** (stable `format_version` **0.5.0**,
 ## Pipeline
 
 ```bash
-uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/generate_conformance_fixtures.py
 uv run python scripts/verify_conformance_fixtures.py
 uv run python scripts/check_figure_layout.py
-uv run python scripts/z_generate_manuscript_variables.py
+uv run python scripts/export_sbom.py
+cd <template-checkout>
+uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+cd projects/working/entofile
+uv run python scripts/build_release_bundle.py
+uv run python scripts/run_tests.py
+cd ../../..
+uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --locked --python 3.14 python projects/working/entofile/scripts/audit_publication_readiness.py --check
+uv run --locked --python 3.14 python scripts/maintenance/refresh_artifact_manifests.py --project working/entofile
+uv run --locked --python 3.14 python scripts/pipeline/stage_04_validate.py --project working/entofile
+cd projects/working/entofile
 uv run python scripts/build_release_bundle.py
 uv run python scripts/check_public_promotion_metadata.py --check
-cd <template-checkout>
-uv run python scripts/pipeline/stage_03_render.py --project working/entofile --skip-manuscript-hydration
 ```
 
 ## Output reports
@@ -52,7 +60,7 @@ uv run python scripts/pipeline/stage_03_render.py --project working/entofile --s
 | `output/reports/container_verification.json` | Per-sample `verify_container` |
 | `output/reports/conformance_report.json` | Known-good/bad fixture acceptance report |
 | `output/reports/figure_layout_report.json` | Renderer-aware figure text layout QA |
-| `output/release/release_manifest.json` | Release artifact/checksum manifest for signing |
+| `release/release_manifest.json` | Outer release artifact/checksum manifest for signing |
 | `output/reports/validation_report.json` | Stage 6 PDF/manuscript validation |
 | `output/reports/test_results.json` | Pytest summary |
 

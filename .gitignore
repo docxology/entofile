@@ -1,4 +1,5 @@
 output/
+release/
 .coverage
 .coverage.*
 .pytest_cache/

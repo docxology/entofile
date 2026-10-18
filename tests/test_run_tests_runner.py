@@ -64,7 +64,8 @@ def test_runner_notifies_missing_artifacts_on_stderr(tmp_path: Path) -> None:
     json.loads(completed.stdout)
 
 
-def test_runner_stays_silent_when_artifacts_present(tmp_path: Path) -> None:
+@pytest.mark.parametrize("release_path", ("release/release_manifest.json", "output/release/release_manifest.json"))
+def test_runner_stays_silent_when_artifacts_present(tmp_path: Path, release_path: str) -> None:
     """Once the required generated outputs exist, the notice is suppressed."""
     _write_temp_project(
         tmp_path,
@@ -73,7 +74,7 @@ def test_runner_stays_silent_when_artifacts_present(tmp_path: Path) -> None:
     )
     for rel in (
         "output/reports/container_verification.json",
-        "output/release/release_manifest.json",
+        release_path,
         "output/data/transmission_manifest.json",
         "output/reports/conformance_report.json",
     ):

@@ -17,8 +17,11 @@ Target public home: `https://github.com/docxology/entofile`.
 
 ## Validation
 
+Follow [rendering_pipeline.md](rendering_pipeline.md) for the authoritative ordered
+workflow. Generate independent evidence first; render, bootstrap the envelope, run
+all tests, then rehydrate measured coverage before final certification.
+
 ```bash
-uv run python scripts/run_tests.py
 grep -r "unittest.mock\\|MagicMock\\|@patch" tests/ || echo "Clean"
 uv run python scripts/ento_analysis.py
 uv run python scripts/build_dashboard.py
@@ -27,20 +30,25 @@ uv run python scripts/export_sbom.py
 uv run python scripts/generate_conformance_fixtures.py
 uv run python scripts/verify_conformance_fixtures.py
 uv run python scripts/check_figure_layout.py
-uv run python scripts/z_generate_manuscript_variables.py
 ```
 
 From your template checkout root (`<template-checkout>`):
 
 ```bash
-uv run python scripts/03_render_pdf.py --project working/entofile
-uv run python scripts/04_validate_output.py --project working/entofile
+uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+cd projects/working/entofile
+uv run python scripts/build_release_bundle.py
+uv run python scripts/run_tests.py
+cd ../../..
+uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --locked --python 3.14 python projects/working/entofile/scripts/audit_publication_readiness.py --check
+uv run --locked --python 3.14 python scripts/maintenance/refresh_artifact_manifests.py --project working/entofile
+uv run --locked --python 3.14 python scripts/pipeline/stage_04_validate.py --project working/entofile
 ```
 
-Finish with:
+Finish from the entofile project root (after committing the final source):
 
 ```bash
-uv run python scripts/audit_publication_readiness.py --check
 uv run python scripts/build_release_bundle.py
 uv run python scripts/check_public_promotion_metadata.py --check
 uv run python scripts/check_public_promotion_metadata.py --check --require-public-endpoints --live-public-endpoints
@@ -48,7 +56,9 @@ uv run python scripts/check_public_promotion_metadata.py --check --require-publi
 
 The first public-promotion command is the deterministic local metadata gate. The
 second command performs live checks against GitHub, Zenodo, and DOI resolution;
-it must report `release_ready: true` before the release can be called public.
+it must report `release_ready: true` before promotion. That flag alone does not
+prove a signed/uploaded release: verify versioned assets, transmission pairing,
+signatures, and external provenance independently.
 Before committing/signing, rebuild the release bundle from a project-clean
 checkout so `source_dirty_project` and the compatibility field `source_dirty`
 are both `false`.
@@ -61,4 +71,4 @@ are both `false`.
 - Conformance report and fixture manifest.
 - Release checksums.
 - Signatures/provenance when public CI is available.
-- `output/release/release_manifest.json` and `output/release/SHA256SUMS`.
+- `release/release_manifest.json` and `release/SHA256SUMS` (outside the inner `output/` inventory).

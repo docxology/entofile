@@ -102,7 +102,6 @@ def test_audit_publication_readiness_script() -> None:
         [
             sys.executable,
             str(root / "scripts" / "audit_publication_readiness.py"),
-            "--check",
             "--no-live-tests",
         ],
         cwd=root,

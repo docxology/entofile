@@ -14,29 +14,33 @@ Project-root `output/` is disposable; regenerate via analysis scripts.
 | `reports/benchmark_validation.json` | Tamper rate gate (analysis) |
 | `reports/conformance_report.json` | Fixture accept/reject report |
 | `reports/figure_layout_report.json` | Renderer-aware figure text clipping/overlap QA |
-| `reports/validation_report.json` | Pipeline Stage 6 output validation |
+| `reports/validation_report.json` | SDK stage 04 output validation |
 | `reports/test_results.json` | Pipeline test summary side file; contextual only, not the certifying publication oracle |
-| `release/release_manifest.json` | Release artifact manifest for external signing |
-| `release/SHA256SUMS` | Checksum list for release attachments |
 | `benchmark_profiles/expanded/` | Optional non-release stress benchmark output |
-| `docs/manuscript/*.md` | Token-resolved copies |
+| `manuscript/*.md` | Token-resolved copies |
 | `pdf/` | Combined PDF after render |
 
 Rendered deliverables remain under project-root `output/` for the standalone
 `working/entofile` RC.
 
+The outer envelope is **project-root** `release/release_manifest.json` and
+`release/SHA256SUMS`, not `output/release/`. Rebuilding it must not alter inner
+output bytes; a full inventory and an envelope cannot hash each other cyclically.
+Both generated trees are ignored by Git.
+
 ## Regeneration
 
 ```bash
-uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/generate_conformance_fixtures.py
 uv run python scripts/verify_conformance_fixtures.py
 uv run python scripts/check_figure_layout.py
-uv run python scripts/z_generate_manuscript_variables.py
-uv run python scripts/build_release_bundle.py
-uv run python scripts/check_public_promotion_metadata.py --check
 ```
+
+Then follow [`rendering_pipeline.md`](rendering_pipeline.md): actual render,
+bootstrap envelope, complete tests, measured-value rehydration, live audit,
+complete SDK snapshot/validation, and final outer envelope. The standalone
+commands above are only the independent evidence preparation, not certification.
 
 Use `uv run python scripts/check_public_promotion_metadata.py --check
 --require-public-endpoints --live-public-endpoints` only for the final public

@@ -74,14 +74,18 @@ operator telemetry easy to route:
 
 ## 0.5.0 release checklist
 
+The commands below are individual gates, not the complete generation order.
+Follow [`rendering_pipeline.md`](rendering_pipeline.md), including real artifacts
+before tests, measured-value rehydration, final snapshot, and outer envelope.
+
 ```bash
 uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/export_sbom.py
 uv run python scripts/z_generate_manuscript_variables.py
 cd <template-checkout>
-uv run python scripts/03_render_pdf.py --project working/entofile
-uv run python scripts/04_validate_output.py --project working/entofile
+uv run python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run python scripts/pipeline/stage_04_validate.py --project working/entofile
 ```
 
 ## Out of scope for this repo

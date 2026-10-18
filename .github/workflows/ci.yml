@@ -65,6 +65,7 @@ jobs:
           project="$sdk/projects/working/entofile"
           mkdir -p "$sdk/projects/working"
           git clone --no-hardlinks "$GITHUB_WORKSPACE" "$project"
+          git -C "$project" remote set-url origin https://github.com/docxology/entofile.git
           mkdir -p "$project/output"
           cp -R "$GITHUB_WORKSPACE/output/." "$project/output/"
           (
@@ -76,6 +77,25 @@ jobs:
         run: uv run python scripts/build_release_bundle.py
       - name: Test with coverage
         run: uv run python scripts/run_tests.py
+      - name: Certify hydrated reader artifacts and full output inventory
+        run: |
+          set -euo pipefail
+          sdk="$GITHUB_WORKSPACE/.ci-template-sdk"
+          project="$sdk/projects/working/entofile"
+          cp -R "$GITHUB_WORKSPACE/output/." "$project/output/"
+          mkdir -p "$project/release"
+          cp -R "$GITHUB_WORKSPACE/release/." "$project/release/"
+          (
+            cd "$sdk"
+            uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+            uv run --locked --python 3.14 python "$project/scripts/audit_publication_readiness.py" --check
+            uv run --locked --python 3.14 python scripts/maintenance/refresh_artifact_manifests.py --project working/entofile
+            uv run --locked --python 3.14 python scripts/pipeline/stage_04_validate.py --project working/entofile
+          )
+          cp -R "$project/output/." "$GITHUB_WORKSPACE/output/"
+          uv run python scripts/build_release_bundle.py
+          sha256sum --check release/SHA256SUMS
+          uv run python scripts/check_public_promotion_metadata.py --check
       - name: Package and console-script smoke
         run: |
           dist="$RUNNER_TEMP/ento-dist"

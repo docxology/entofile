@@ -33,7 +33,7 @@ def test_evidence_provenance_contract_covers_all_input_and_output_classes() -> N
         "Registered figures": "src/figure_registry.py",
         "Manuscript variables": "scripts/z_generate_manuscript_variables.py",
         "Release bundle manifest": "scripts/build_release_bundle.py",
-        "Rendered PDF/HTML": "scripts/03_render_pdf.py --project working/entofile",
+        "Rendered PDF/HTML": "scripts/pipeline/stage_03_render.py --project working/entofile",
         "Test gate": "uv run python scripts/run_tests.py",
     }
     for label, evidence in required.items():

@@ -49,12 +49,10 @@ def compute_sha256(path: Path) -> str:
 def write_artifact_manifest(project_root: Path) -> Path:
     """Write ``output/reports/artifact_manifest.json`` for current outputs.
 
-    The shared template pipeline writes stage manifests when projects run under
-    `active/`. This project is rendered standalone from `working/entofile`, so the
-    RC needs a stage manifest that describes stable project-local analysis artifacts
-    and avoids stale `projects/entofile/output` declarations. Renderer-mutated
-    outputs such as PDFs, HTML, LaTeX logs, and validation reports are intentionally
-    excluded so template validation can re-run after render without hash drift.
+    This intermediate manifest describes stable project-local analysis artifacts.
+    It is not the complete rendered-output inventory. After the final render and
+    live audit, use the SDK maintenance snapshot and stage 04 validation before
+    building the outer release envelope; see docs/rendering_pipeline.md.
     """
     root = project_root.resolve()
     output_dir = root / "output"

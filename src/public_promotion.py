@@ -20,6 +20,7 @@ else:
     import tomli as tomllib  # type: ignore[no-redef]
 
 from . import crypto
+from .paths import release_manifest_path
 from .structured_data import read_json_object, read_toml_mapping, read_yaml_mapping
 
 PLANNED_PUBLIC_HOME = "https://github.com/docxology/entofile"
@@ -132,7 +133,7 @@ def check_public_promotion_metadata(
     pyproject = _read_toml(root / "pyproject.toml")
     cff = _read_yaml(root / "CITATION.cff")
     readme = _read_text(root / "README.md")
-    release = _read_json(root / "output" / "release" / "release_manifest.json")
+    release = _read_json(release_manifest_path(root))
     transmission = _read_json(root / "output" / "data" / "transmission_manifest.json")
     public_docs = {
         path: _read_text(root / path) for path in PUBLIC_DEFAULT_FORMAT_SURFACES

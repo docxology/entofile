@@ -47,3 +47,8 @@ and external release certification are not delivered by this maintenance pass.
 The initial publication preflight was blocked by an active GitVault bootstrap.
 Commit and push operations must use the shared writer and migration guards after
 that operation releases the lock; no publication may bypass those guards.
+# Historical scope
+
+This review records the standalone state on 2026-10-16. See
+[publication validation on 2026-10-18](publication_validation_2026_10_18.md)
+for the subsequent real render-dependent checks and external release boundary.

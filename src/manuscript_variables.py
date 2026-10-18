@@ -43,6 +43,7 @@ from .figure_registry import (
 )
 from .fixtures import FIXTURE_MAPPING, fixtures_dir
 from .output_gates import benchmark_report_ok, load_container_verification_report
+from .paths import release_manifest_path as find_release_manifest
 
 try:
     from .experiment_config import ExperimentConfig, load_experiment_config
@@ -192,7 +193,7 @@ def generate_variables(
     sbom_path = project_root / "output" / "reports" / "sbom.cyclonedx.json"
     conformance_report_path = project_root / "output" / "reports" / "conformance_report.json"
     artifact_manifest_path = project_root / "output" / "reports" / "artifact_manifest.json"
-    release_manifest_path = project_root / "output" / "release" / "release_manifest.json"
+    release_manifest_path = find_release_manifest(project_root)
     sbom_component_count = 0
     if sbom_path.is_file():
         try:

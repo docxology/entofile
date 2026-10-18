@@ -25,10 +25,11 @@ def main() -> int:
         default=PROJECT_ROOT,
         help="Project root (default: parent of scripts/)",
     )
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--check", action="store_true", help="Exit 1 when blockers remain"
     )
-    parser.add_argument(
+    mode.add_argument(
         "--no-live-tests",
         action="store_true",
         help="Read test_results.json instead of re-running pytest live (display-only; "
@@ -39,7 +40,7 @@ def main() -> int:
     # The certifying path (--check) re-derives the test/coverage verdict live so a stale
     # or forged test_results.json cannot certify a red project (F1 oracle false-assurance).
     # --no-live-tests opts into the side-file read for a quick display pass only.
-    live = args.check and not args.no_live_tests
+    live = args.check
     result = check_publication_readiness(args.project_root, live_tests=live)
     print(json.dumps(result, indent=2))
     if args.check and not result["ok"]:
