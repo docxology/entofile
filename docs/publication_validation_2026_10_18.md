@@ -73,8 +73,6 @@ tests bind that ordering. A read-only independent review found no actionable
 correctness/regression/gate-weakening findings. No future hosted run is inferred
 from these local results.
 
-## External publication boundary
-
 ## Clean-source follow-through
 
 The full clean rebuild of committed source
@@ -94,6 +92,33 @@ dashboard, API documentation, and SBOM before rendering, matching the documented
 independent-evidence preparation. These are additional source changes, not a claim
 that the earlier build already included them.
 
+## 2026-10-19 completed validation
+
+The clean rebuild of source `550774a44290a7ff35f4de420abe706b87ae2b75`
+regenerated analysis, conformance, figure QA, dashboard, API documentation, SBOM,
+actual PDF/HTML, measured-value hydration, and all publication evidence. Results:
+
+- **502 tests passed**, zero failures/errors, **90.77%** coverage; no test exclusions.
+- Live certifying audit: `ok: true`, `tests_source: live`, all checks true, no blockers or warnings.
+- SDK stage 04: all checks passed; the seven prior link-label warnings are resolved.
+- Complete current inventory: **106 stable artifacts**; post-envelope inventory and current rendered provenance remain valid.
+- Outer release: **36 checksums** verified; manuscript CSV digest matches the actual final CSV.
+- Genuine **45-page PDF**, **3,793,939 bytes**, SHA-256 `7decf3ebd61b03a9d6f85eb78f579b15f58cc9a891836ab34b4d41c6c1c0c6bf`.
+- First/last-page visual inspection confirms legible bookends and accurate unpublished/pending pairing.
+- Local metadata and live public-endpoint gates pass with clean source and `release_ready: true`.
+
+That PDF digest identifies the verified source build above; subsequent rebuilds
+must use their generated envelope rather than assuming the same bytes. PDF
+metadata uses the pinned SDK source epoch for reproducibility; it is not the
+execution timestamp. Final assembly may advance the source revision for this
+evidence and signing documentation without changing the rendered source inputs.
+
+The signing recipe now preserves finalization order and documents signing and
+identity-bound verification of both the checksum list and source-bearing release
+manifest. Cosign is not installed on this host (`command -v cosign` returned no
+command); no operator-approved signing identity or external release execution is
+part of this task. No signature, upload, or attestation is claimed.
+
 ## External publication boundary
 
 On 2026-10-18, live checks reached GitHub, Zenodo record `20396329`, and DOI
@@ -102,6 +127,12 @@ The observed GitHub release list contained `v0.4`, published 2026-06-11, not a 0
 release. The generated transmission manifest explicitly remains `published: false`
 with null release URL and PDF SHA-256/SHA-512 pairing. This is pending publication,
 not a broken local renderer. A reachable DOI does not prove it contains the new PDF.
+
+The GitHub release listing and live endpoints were rechecked on 2026-10-19 with
+the same boundary: `v0.4` exists, but no versioned 0.5 release is listed. The
+template end-page text “No prior releases” describes its empty local publication
+ledger, not GitHub history. Historical pairing records were not invented or
+imported without verified release-asset hashes.
 
 Actual 0.5 upload/deposit, externally authorized signing/key custody, transmission
 pairing, and external provenance are outstanding. No release tag, uploaded asset,
