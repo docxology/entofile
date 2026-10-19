@@ -75,6 +75,27 @@ from these local results.
 
 ## External publication boundary
 
+## Clean-source follow-through
+
+The full clean rebuild of committed source
+`c4445e46c8c10b18ac61afe735da80410e9c400e` completed on 2026-10-18:
+501 tests passed at 90.77% coverage, the live publication audit passed, and
+the complete inventory contained **106 stable artifacts** after explicit dashboard
+generation. All 36 release checksums verified. Independent post-envelope checks
+confirmed that both inner inventory and current rendered provenance remained valid.
+The clean source and rebuilt envelope had no dirty-source flags; the live endpoint
+gate returned `release_ready: true` with no metadata/readiness blockers.
+
+Retained inventory, provenance, and outer digests were rechecked successfully on
+2026-10-19 before further edits. Manuscript follow-through corrects stale abbreviated
+regeneration advice, clarifies that the interpreter token describes hydration,
+and replaces non-informative source-link labels. CI now explicitly generates the
+dashboard, API documentation, and SBOM before rendering, matching the documented
+independent-evidence preparation. These are additional source changes, not a claim
+that the earlier build already included them.
+
+## External publication boundary
+
 On 2026-10-18, live checks reached GitHub, Zenodo record `20396329`, and DOI
 `10.5281/zenodo.20396329` with HTTP 200 (the DOI resolves to that record).
 The observed GitHub release list contained `v0.4`, published 2026-06-11, not a 0.5

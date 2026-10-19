@@ -254,6 +254,7 @@ def test_ci_finalizes_real_rendered_inventory_after_tests() -> None:
     certification_name = "Certify hydrated reader artifacts and full output inventory"
     assert names.index("Render actual PDF HTML and transmission artifacts") < names.index("Test with coverage")
     assert names.index("Test with coverage") < names.index(certification_name)
+    assert names.index("Dashboard API and SBOM evidence") < names.index("Render actual PDF HTML and transmission artifacts")
     certification = steps[names.index(certification_name)]["run"]
     commands = (
         "scripts/pipeline/stage_03_render.py --project working/entofile",
@@ -268,6 +269,19 @@ def test_ci_finalizes_real_rendered_inventory_after_tests() -> None:
     assert positions == sorted(positions)
     assert "--skip-manuscript-hydration" not in certification
     assert "--no-live-tests" not in certification
+
+
+def test_manuscript_reproduction_names_complete_publication_finalization() -> None:
+    reproducibility = _read("docs/manuscript/06_reproducibility.md")
+    for command in (
+        "scripts/run_tests.py",
+        "scripts/audit_publication_readiness.py --check",
+        "scripts/maintenance/refresh_artifact_manifests.py",
+        "scripts/pipeline/stage_04_validate.py",
+    ):
+        assert command in reproducibility
+    assert "planned public home" not in reproducibility
+    assert "--skip-manuscript-hydration" not in reproducibility
 
 
 def test_public_metadata_matches_manuscript_config() -> None:

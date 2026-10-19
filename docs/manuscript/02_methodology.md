@@ -1,6 +1,6 @@
 # Methodology {#sec:methodology}
 
-The benchmark matrix, figure-filter contract, and visualization pipeline are documented in [`docs/methods.md`](https://github.com/docxology/entofile/blob/b88a050587603bf3d42290252d5b2c46571c8456/docs/methods.md).
+The benchmark matrix, figure-filter contract, and visualization pipeline are documented in [the benchmark and visualization methods](https://github.com/docxology/entofile/blob/c4445e46c8c10b18ac61afe735da80410e9c400e/docs/methods.md).
 
 The method starts from four hard constraints. First, an ENTO file is still ZIP:
 member names, sizes, and central-directory metadata are inspectable before any

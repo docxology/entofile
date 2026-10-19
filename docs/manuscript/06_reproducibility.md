@@ -9,11 +9,23 @@ Author: {{CONFIG_FIRST_AUTHOR}}. Keywords: {{CONFIG_KEYWORDS}}.
 ```bash
 uv run python scripts/ento_analysis.py
 uv run python scripts/build_dashboard.py
-uv run python scripts/audit_publication_readiness.py --check
-uv run python scripts/z_generate_manuscript_variables.py   # run last: re-binds manuscript variables to the final CSV
+uv run python scripts/generate_conformance_fixtures.py
+uv run python scripts/verify_conformance_fixtures.py
+uv run python scripts/check_figure_layout.py
+uv run python scripts/generate_api_docs.py
+uv run python scripts/export_sbom.py
 ```
 
-The variable-injection step is run **last** on purpose: live readiness checks exercise the real project tree and may refresh benchmark-derived artifacts with newly measured wall-clock timings. Regenerating the manuscript variables afterward keeps the injected statistics and the recorded `BENCHMARK_CSV_SHA256` bound to the same CSV that ships, without treating the whole CSV hash as a cross-run reproducibility target.
+These commands prepare independent evidence; they are not the complete publication
+gate. Follow the [ordered rendering and certification procedure](https://github.com/docxology/entofile/blob/c4445e46c8c10b18ac61afe735da80410e9c400e/docs/rendering_pipeline.md):
+render actual reader products, build the bootstrap release envelope, run
+`scripts/run_tests.py`, and hydrate/render again with measured coverage. Then run
+`scripts/audit_publication_readiness.py --check` in the SDK environment, snapshot
+the complete inventory with `scripts/maintenance/refresh_artifact_manifests.py`,
+and run `scripts/pipeline/stage_04_validate.py`. Build the outer release envelope
+last, outside `output/`, and verify all checksums. If any producer changes an
+input after hydration, repeat hydration/rendering, certification, and finalization;
+never ship a manuscript whose `BENCHMARK_CSV_SHA256` differs from the final CSV.
 
 Third-party containers: run `verify` before `unpack` (see [@sec:limitations]).
 
@@ -21,7 +33,7 @@ The reproducibility contract is deliberately operational rather than rhetorical:
 scripts, fixture classes, generated reports, rendered outputs, and validation
 commands are named so a reader can rerun or inspect the same evidence surface
 [@sandve2013reproducible; @wilson2017goodenough]. ENTO does not claim that this
-private RC already satisfies an external artifact-review badge; it does organize
+release candidate already satisfies an external artifact-review badge; it does organize
 the release artifacts around the same availability/functionality/reusability
 distinctions [@acm2024artifactbadging].
 
@@ -65,7 +77,7 @@ Evidence reports: conformance status `{{CONFORMANCE_REPORT_STATUS}}` at
 `{{ARTIFACT_MANIFEST_STATUS}}` at `{{ARTIFACT_MANIFEST_PATH}}`; release manifest
 status `{{RELEASE_MANIFEST_STATUS}}` at `{{RELEASE_MANIFEST_PATH}}`. The evidence
 provenance contract is maintained in
-[`docs/evidence_provenance.md`](https://github.com/docxology/entofile/blob/b88a050587603bf3d42290252d5b2c46571c8456/docs/evidence_provenance.md).
+[the input and output provenance contract](https://github.com/docxology/entofile/blob/c4445e46c8c10b18ac61afe735da80410e9c400e/docs/evidence_provenance.md).
 
 ## Fixture digests
 
@@ -75,6 +87,6 @@ provenance contract is maintained in
 | `sample.vcf` | `{{FIXTURE_VCF_SHA256}}` |
 | `spectrogram.bin` | `{{FIXTURE_SPECTROGRAM_SHA256}}` |
 
-Claim bindings are declared in `data/claim_ledger.yaml` and documented in `docs/claim_ledger.md`. Tests: `tests/test_claim_ledger.py`, `tests/test_claim_ledger_security.py` (tamper rate, container verification report, GCM backend claim). The current release-candidate build path is the private `projects/working/entofile` tree rendered through the template with `--project working/entofile`; the planned public home is `https://github.com/docxology/entofile` after release readiness, not a separate source of truth for these artifacts.
+Claim bindings are declared in `data/claim_ledger.yaml` and documented in `docs/claim_ledger.md`. Tests: `tests/test_claim_ledger.py`, `tests/test_claim_ledger_security.py` (tamper rate, container verification report, GCM backend claim). The release-candidate build uses a physical consumer clone at `projects/working/entofile` under the pinned template SDK and renders with `--project working/entofile`. Public source is `https://github.com/docxology/entofile`; a local readiness pass does not prove an uploaded, signed, or paired publication.
 
 Generated at: {{GENERATION_TIMESTAMP}}

@@ -61,7 +61,7 @@ uv run python scripts/check_public_promotion_metadata.py --check
 | `output/reports/conformance_report.json` | Known-good/bad fixture acceptance report |
 | `output/reports/figure_layout_report.json` | Renderer-aware figure text layout QA |
 | `release/release_manifest.json` | Outer release artifact/checksum manifest for signing |
-| `output/reports/validation_report.json` | Stage 6 PDF/manuscript validation |
+| `output/reports/validation_report.json` | SDK stage 04 PDF/manuscript validation |
 | `output/reports/test_results.json` | Pytest summary |
 
 Release gate: `scripts/audit_publication_readiness.py --check`.

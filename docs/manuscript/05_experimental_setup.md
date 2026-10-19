@@ -2,9 +2,12 @@
 
 ## Software
 
-- Python {{PYTHON_VERSION}} on {{PLATFORM}}
+- Manuscript hydration runtime: Python {{PYTHON_VERSION}} on {{PLATFORM}}
 - ENTO format version {{FORMAT_VERSION}} (suite {{CRYPTO_BACKEND_DEFAULT}})
 - Manuscript config version {{CONFIG_VERSION}} (paper version {{PAPER_VERSION}})
+
+The interpreter above describes manuscript hydration. Analysis and test jobs can
+use separate locked environments; it does not identify every benchmark process.
 
 ## Fixtures
 
@@ -43,7 +46,7 @@ expansion ratio, manifest bytes, and tamper outcome. This is a real execution of
 the ENTO pack/unpack/verify path over documented inputs, not a mock or a
 substituted result table.
 
-Validation requires `output/reports/benchmark_validation.json` to report status {{RESULT_BENCHMARK_VALIDATION_STATUS}} and tamper detection rate {{RESULT_TAMPER_DETECTION_RATE}}, and `output/reports/container_verification.json` to report all benchmark samples verified (`{{RESULT_CONTAINER_VERIFY_OK}}`). HKDF and GCM vectors in `data/test_vectors/` are exercised before release. Figure DPI follows `src/figures.py::VIZ_CONFIG`; caption tokens follow `src/figure_registry.py` (`tests/test_figure_captions.py`). Claims bind via `data/claim_ledger.yaml` and [`docs/claim_ledger.md`](https://github.com/docxology/entofile/blob/b88a050587603bf3d42290252d5b2c46571c8456/docs/claim_ledger.md).
+Validation requires `output/reports/benchmark_validation.json` to report status {{RESULT_BENCHMARK_VALIDATION_STATUS}} and tamper detection rate {{RESULT_TAMPER_DETECTION_RATE}}, and `output/reports/container_verification.json` to report all benchmark samples verified (`{{RESULT_CONTAINER_VERIFY_OK}}`). HKDF and GCM vectors in `data/test_vectors/` are exercised before release. Figure DPI follows `src/figures.py::VIZ_CONFIG`; caption tokens follow `src/figure_registry.py` (`tests/test_figure_captions.py`). Claims bind via `data/claim_ledger.yaml` and [the claim-to-evidence ledger](https://github.com/docxology/entofile/blob/c4445e46c8c10b18ac61afe735da80410e9c400e/docs/claim_ledger.md).
 
 ## Statistical methods
 

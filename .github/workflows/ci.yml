@@ -38,6 +38,11 @@ jobs:
           uv run python scripts/verify_conformance_fixtures.py
       - name: Figure layout gate
         run: uv run python scripts/check_figure_layout.py
+      - name: Dashboard API and SBOM evidence
+        run: |
+          uv run python scripts/build_dashboard.py
+          uv run python scripts/generate_api_docs.py
+          uv run python scripts/export_sbom.py
       - name: Check out the pinned rendering SDK source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
