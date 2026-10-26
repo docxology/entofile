@@ -53,7 +53,7 @@ jobs:
       - name: Prepare the SDK locked Python 3.14 environment
         run: uv sync --project .ci-template-sdk --python 3.14 --locked
       - name: Prepare pinned document converters
-        uses: docxology/template/.github/actions/setup-acceptance-documents@4670c48cc490636455f2eac09ba4396baed9ffd7
+        uses: docxology/template/.github/actions/setup-acceptance-documents@7ac6f4e5f1180c69072692c584a6a477e7dfc50a
         with:
           mode: converter
       - name: Prepare real TeX, fonts and PDF readers
