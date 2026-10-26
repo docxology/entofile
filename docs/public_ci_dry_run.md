@@ -8,8 +8,7 @@ artifacts, or mutate Zenodo.
 
 ## Non-Publishing Contract
 
-- Run on pull requests, pushes to protected release branches, and manual
-  dispatch.
+- Run on pull requests and pushes to `main` (see `.github/workflows/ci.yml`).
 - Use read-only repository permissions by default.
 - Upload temporary CI artifacts only when needed for review; do not publish
   release assets.
@@ -20,7 +19,7 @@ artifacts, or mutate Zenodo.
 
 ## Local Command to CI Job Map
 
-| Local command | Future CI job | Purpose | Publish side effect |
+| Local command | CI job | Purpose | Publish side effect |
 | --- | --- | --- | --- |
 | `uv run python scripts/run_tests.py` | `test` | Certify live project tests and coverage from source, writing the structured sidecar. | None |
 | `uvx ruff check src/ tests/ scripts/` | `lint` | Lint gate. | None |
@@ -48,6 +47,7 @@ No template-render-dependent test is excluded. See
 [`rendering_pipeline.md`](rendering_pipeline.md) for the matching local sequence;
 do not use an abbreviated example that tests before generating its prerequisites.
 
-The live endpoint command remains a separate manual or protected job until the
-public home, DOI, and Zenodo record are expected to resolve. Artifact signing
-also stays outside this dry run; see [`provenance_signing.md`](provenance_signing.md).
+The live endpoint command remains a separate manual job; run it before publishing
+to confirm the promoted public home, DOI, and Zenodo record resolve. Artifact
+signing also stays outside this dry run; see
+[`provenance_signing.md`](provenance_signing.md).

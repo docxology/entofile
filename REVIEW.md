@@ -39,8 +39,8 @@ current source and render tree until promotion.
 | Analysis outputs | `uv run python scripts/ento_analysis.py` |
 | Dashboard/API/SBOM | `build_dashboard.py`, `generate_api_docs.py`, `export_sbom.py` |
 | Manuscript variables | `z_generate_manuscript_variables.py` and no unresolved tokens in `output/manuscript/` |
-| Render | template `scripts/03_render_pdf.py --project working/entofile` |
-| Output validation | template `scripts/04_validate_output.py --project working/entofile` |
+| Render | template `scripts/pipeline/stage_03_render.py --project working/entofile` |
+| Output validation | template `scripts/pipeline/stage_04_validate.py --project working/entofile` |
 | Publication audit | `uv run python scripts/audit_publication_readiness.py --check` |
 
 ## 0.4 RC hardening highlights
@@ -146,6 +146,6 @@ uv run python scripts/export_sbom.py
 uv run python scripts/z_generate_manuscript_variables.py
 
 cd <template-checkout>
-uv run python scripts/03_render_pdf.py --project working/entofile
-uv run python scripts/04_validate_output.py --project working/entofile
+uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --locked --python 3.14 python scripts/pipeline/stage_04_validate.py --project working/entofile
 ```

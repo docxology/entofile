@@ -108,6 +108,7 @@ def test_public_repository_language_is_published() -> None:
         "docs/README.md": _read("docs/README.md"),
         "docs/faq.md": _read("docs/faq.md"),
         "docs/agent_instructions.md": _read("docs/agent_instructions.md"),
+        "SECURITY.md": _read("SECURITY.md"),
     }
     stale = (
         "planned public",

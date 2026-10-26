@@ -638,7 +638,10 @@ land the result on synchronized `main` without force-pushing.
 ### Decisions
 
 - Keep `FORMAT_VERSION` and package version at the stable 0.4.0 contract; expose
-  `FORMAT_VERSION_NEXT = "0.5.0"` as explicit opt-in.
+  `FORMAT_VERSION_NEXT = "0.5.0"` as explicit opt-in. (Superseded by the landed
+  0.5.0 default migration: `FORMAT_VERSION` is now `0.5.0`, `FORMAT_VERSION_PREVIOUS`
+  names the `0.4.0` compatibility profile, and `FORMAT_VERSION_NEXT` is only a
+  source-compatible alias — see the release-state notes below.)
 - Bind the exported projection and exclude only `sha256_ciphertext`, because the
   digest is computed after encryption and would create circular state; document
   this as redundant unkeyed metadata rather than hidden authentication.

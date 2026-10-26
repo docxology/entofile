@@ -1,6 +1,6 @@
 # Public Release Checklist
 
-Target public home: `https://github.com/docxology/entofile`.
+Public home: `https://github.com/docxology/entofile`.
 
 ## Repository Readiness
 

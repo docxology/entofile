@@ -1,8 +1,7 @@
 # Security Policy
 
-ENTO is currently prepared in the private `projects/working/entofile` checkout.
-The planned public home after release readiness is
-`https://github.com/docxology/entofile`.
+ENTO is published at `https://github.com/docxology/entofile`; the maintainer's
+`projects/working/entofile` working tree remains the development source.
 
 ## Supported Scope
 
@@ -17,13 +16,11 @@ release process.
 
 ## Reporting
 
-Do not open public issues for active vulnerabilities or exploit details. Until
-the public repository is promoted, send coordinated-disclosure reports to the
-corresponding author listed in `docs/manuscript/config.yaml`.
-
-After promotion to `docxology/entofile`, prefer GitHub Security Advisories when
-available. Public issues are appropriate for hardening requests, documentation
-clarifications, and non-sensitive bugs.
+Do not open public issues for active vulnerabilities or exploit details. Use
+[GitHub Security Advisories](https://github.com/docxology/entofile/security/advisories/new)
+for private coordinated disclosure, or email the corresponding author listed in
+`docs/manuscript/config.yaml`. Public issues are appropriate for hardening
+requests, documentation clarifications, and non-sensitive bugs.
 
 ## Useful Report Material
 
