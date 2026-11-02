@@ -44,7 +44,7 @@ jobs:
           uv run python scripts/generate_api_docs.py
           uv run python scripts/export_sbom.py
       - name: Check out the pinned rendering SDK source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # actions/checkout@v7.0.1
         with:
           repository: docxology/template
           ref: 4670c48cc490636455f2eac09ba4396baed9ffd7
@@ -53,7 +53,7 @@ jobs:
       - name: Prepare the SDK locked Python 3.14 environment
         run: uv sync --project .ci-template-sdk --python 3.14 --locked
       - name: Prepare pinned document converters
-        uses: docxology/template/.github/actions/setup-acceptance-documents@4670c48cc490636455f2eac09ba4396baed9ffd7
+        uses: docxology/template/.github/actions/setup-acceptance-documents@4670c48cc490636455f2eac09ba4396baed9ffd7 # docxology/template@4670c48
         with:
           mode: converter
       - name: Prepare real TeX, fonts and PDF readers
