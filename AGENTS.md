@@ -38,15 +38,15 @@ uv run python scripts/verify_conformance_fixtures.py
 uv run python scripts/check_figure_layout.py
 uv run python scripts/export_sbom.py
 cd <template-checkout>
-uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --locked python scripts/pipeline/stage_03_render.py --project working/entofile
 cd projects/working/entofile
 uv run python scripts/build_release_bundle.py
 uv run python scripts/run_tests.py
 cd ../../..
-uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
-uv run --locked --python 3.14 python projects/working/entofile/scripts/audit_publication_readiness.py --check
-uv run --locked --python 3.14 python scripts/maintenance/refresh_artifact_manifests.py --project working/entofile
-uv run --locked --python 3.14 python scripts/pipeline/stage_04_validate.py --project working/entofile
+uv run --locked python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --locked python projects/working/entofile/scripts/audit_publication_readiness.py --check
+uv run --locked python scripts/maintenance/refresh_artifact_manifests.py --project working/entofile
+uv run --locked python scripts/pipeline/stage_04_validate.py --project working/entofile
 cd projects/working/entofile
 uv run python scripts/build_release_bundle.py
 uv run python scripts/check_public_promotion_metadata.py --check
