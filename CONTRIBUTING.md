@@ -28,8 +28,8 @@ Render from the sibling template checkout:
 
 ```bash
 cd <template-checkout>
-uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
-uv run --locked --python 3.14 python scripts/pipeline/stage_04_validate.py --project working/entofile
+uv run --locked python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --locked python scripts/pipeline/stage_04_validate.py --project working/entofile
 ```
 
 ## Security Changes
