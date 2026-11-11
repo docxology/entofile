@@ -283,6 +283,8 @@ def run_test_gate(
             "-q",
         ]
         process: subprocess.Popen[str] | None = None
+        stdout: str | bytes | None = None
+        stderr: str | bytes | None = None
         try:
             process = subprocess.Popen(
                 command,
@@ -296,7 +298,7 @@ def run_test_gate(
                     subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0  # type: ignore[attr-defined]  # Windows-only attr; POSIX branch never evaluates it
                 ),
             )
-            process.communicate(timeout=timeout)
+            stdout, stderr = process.communicate(timeout=timeout)
         except subprocess.TimeoutExpired as exc:
             assert process is not None
             stdout, stderr, cleanup_detail = _terminate_and_reap(process)
@@ -344,6 +346,15 @@ def run_test_gate(
                     process.returncode,
                     source="pytest",
                 )
+                if summary.get("all_passed") is not True:
+                    details = [str(summary.get("detail") or "pytest failed")]
+                    stderr_tail = _bounded_tail(stderr)
+                    stdout_tail = _bounded_tail(stdout)
+                    if stderr_tail:
+                        details.append(f"stderr tail: {stderr_tail}")
+                    if stdout_tail:
+                        details.append(f"stdout tail: {stdout_tail}")
+                    summary["detail"] = "; ".join(details)
                 returncode = process.returncode
 
     report = {

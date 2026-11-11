@@ -1,13 +1,12 @@
 # Quick Start — entofile
 
-Run ENTO default format **0.5.0** benchmarks and render the 0.5 release candidate;
-compatibility `0.2.0`/`0.3.0`/`0.3.1`/`0.4.0` containers remain supported via
-`pack --format`.
+Run ENTO wire format **0.5.0** benchmarks and render the 0.5 release candidate.
+Only ENTO 0.5.0 containers are accepted; all other wire versions are rejected.
 
 ## Prerequisites
 
-- Python 3.10+
-- `uv sync` at repo root
+- Python 3.15 only
+- `uv sync --locked --extra dev` at repo root for development and validation
 
 ## Tests
 
@@ -44,7 +43,7 @@ Outputs under `output/`:
 
 ```bash
 cd <template-checkout>
-uv run python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --no-sync --locked --python 3.15 python scripts/pipeline/stage_03_render.py --project working/entofile
 ```
 
 ## CLI
@@ -58,5 +57,4 @@ uv run python -m src.cli verify -i /tmp/demo.ento.zip -k /tmp/ento.key
 ```
 
 See [`architecture.md`](architecture.md) and [`agent_instructions.md`](agent_instructions.md).
-To exercise the previous compatibility profile explicitly, pass
-`--format 0.4.0` to `pack`.
+The `pack` command always writes ENTO 0.5.0 and has no format selector.

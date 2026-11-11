@@ -17,6 +17,7 @@ and in-toto-style attestations [@nist2022sp800161r1; @slsa2024levels;
 - `output/reports/conformance_report.json`.
 - `output/data/ento_benchmark_results.csv`.
 - `output/data/manuscript_variables.json`.
+- `output/data/transmission_manifest.json`.
 - `output/conformance/conformance_manifest.json`.
 
 ## Recommended Flow
@@ -40,8 +41,7 @@ and in-toto-style attestations [@nist2022sp800161r1; @slsa2024levels;
    ```
 
 4. Confirm the release manifest was rebuilt from a project-clean checkout:
-   `source_dirty_project` and the legacy `source_dirty` compatibility field
-   must both be `false`.
+   `source_dirty_project` must be `false`.
 5. With an operator-approved signing identity and installed signing tool, sign
    both the checksum list and the release manifest. The checksum list binds
    artifact bytes; the separate manifest binds the source revision and release

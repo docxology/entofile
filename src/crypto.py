@@ -10,36 +10,11 @@ from typing import Any, Final
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-# 0.5.0 is the current default profile. It keeps the 0.4.0 binary track layout
-# while adding a canonical exported-manifest binding to each track's AEAD AAD.
-# 0.4.0 remains an explicit compatibility profile, alongside the older formats.
+# ENTO 0.5.0 binds each track's AEAD to the canonical exported-manifest context.
 FORMAT_VERSION: Final[str] = "0.5.0"
-FORMAT_VERSION_LATEST: Final[str] = "0.5.0"
-FORMAT_VERSION_PREVIOUS: Final[str] = "0.4.0"
-# Kept as a source-compatible alias for clients that consumed the pre-0.5
-# forward-profile constant. There is no unimplemented forward profile in 0.5.0.
-FORMAT_VERSION_NEXT: Final[str] = FORMAT_VERSION
-SUPPORTED_FORMAT_VERSIONS: Final[tuple[str, ...]] = (
-    "0.2.0",
-    "0.3.0",
-    "0.3.1",
-    "0.4.0",
-    "0.5.0",
-)
+SUPPORTED_FORMAT_VERSIONS: Final[tuple[str, ...]] = (FORMAT_VERSION,)
 
-# Default 0.5.0 nonce size. Per-format sizes live in _NONCE_SIZE_BY_FORMAT so
-# legacy containers parse with their original nonce length.
 NONCE_SIZE: Final[int] = 12
-_NONCE_SIZE_BY_FORMAT: Final[dict[str, int]] = {
-    "0.2.0": 16,
-    "0.3.0": 12,
-    "0.3.1": 12,
-    "0.4.0": 12,
-    "0.5.0": 12,
-}
-# Formats that PADMÉ-pad the plaintext before encryption (length-hiding).
-_PADDED_FORMATS: Final[frozenset[str]] = frozenset({"0.3.1", "0.4.0", "0.5.0"})
-MANIFEST_BINDING_FORMATS: Final[frozenset[str]] = frozenset({"0.5.0"})
 TAG_SIZE: Final[int] = 16
 MASTER_KEY_SIZE: Final[int] = 32
 
@@ -47,25 +22,24 @@ CRYPTO_BACKEND: Final[str] = "aes-256-gcm"
 
 
 def nonce_size_for(format_version: str) -> int:
-    """Return the GCM nonce length for a format version."""
-    try:
-        return _NONCE_SIZE_BY_FORMAT[format_version]
-    except KeyError:
-        raise ValueError(f"unsupported format_version: {format_version!r}") from None
+    """Return the current format's GCM nonce length."""
+    if format_version != FORMAT_VERSION:
+        raise ValueError(f"unsupported format_version: {format_version!r}")
+    return NONCE_SIZE
 
 
 def pads_payload(format_version: str) -> bool:
-    """Whether this format PADMÉ-pads the plaintext before encryption."""
-    if format_version not in SUPPORTED_FORMAT_VERSIONS:
+    """Return whether the current format PADMÉ-pads plaintext."""
+    if format_version != FORMAT_VERSION:
         raise ValueError(f"unsupported format_version: {format_version!r}")
-    return format_version in _PADDED_FORMATS
+    return True
 
 
 def requires_manifest_binding(format_version: str) -> bool:
-    """Whether a format requires the canonical exported-manifest binding."""
-    if format_version not in SUPPORTED_FORMAT_VERSIONS:
+    """Return whether the current format requires exported-manifest binding."""
+    if format_version != FORMAT_VERSION:
         raise ValueError(f"unsupported format_version: {format_version!r}")
-    return format_version in MANIFEST_BINDING_FORMATS
+    return True
 
 
 def track_aad(
@@ -73,32 +47,19 @@ def track_aad(
     track_id: str | None,
     *,
     manifest_binding: str | None = None,
-) -> bytes | None:
-    """Associated data authenticated by the AEAD (but not encrypted).
-
-    0.2.0 bound no AAD (track context came only from the HKDF key-derivation label).
-    0.3.0, 0.3.1, and 0.4.0 bind ``format_version`` and ``track_id``. 0.5.0
-    additionally binds the canonical exported-manifest context digest, so a
-    keyed reader authenticates the metadata it uses to interpret the tracks.
-    Returns ``None`` for 0.2.0.
-    """
-    if format_version == "0.2.0":
-        return None
-    if format_version in ("0.3.0", "0.3.1", "0.4.0"):
-        if not track_id:
-            raise ValueError(f"track_id is required to build {format_version} associated data")
-        return f"ento:{format_version}:track:{track_id}".encode()
-    if format_version == "0.5.0":
-        if not track_id:
-            raise ValueError("track_id is required to build 0.5.0 associated data")
-        if not manifest_binding:
-            raise ValueError("manifest_binding is required for 0.5.0 associated data")
-        if len(manifest_binding) != 64 or any(
-            character not in "0123456789abcdef" for character in manifest_binding
-        ):
-            raise ValueError("manifest_binding must be lowercase SHA-256 hex")
-        return f"ento:{format_version}:manifest:{manifest_binding}:track:{track_id}".encode()
-    raise ValueError(f"unsupported format_version: {format_version!r}")
+) -> bytes:
+    """Build current manifest-context and track associated data."""
+    if format_version != FORMAT_VERSION:
+        raise ValueError(f"unsupported format_version: {format_version!r}")
+    if not track_id:
+        raise ValueError("track_id is required to build 0.5.0 associated data")
+    if not manifest_binding:
+        raise ValueError("manifest_binding is required for 0.5.0 associated data")
+    if len(manifest_binding) != 64 or any(
+        character not in "0123456789abcdef" for character in manifest_binding
+    ):
+        raise ValueError("manifest_binding must be lowercase SHA-256 hex")
+    return f"ento:{format_version}:manifest:{manifest_binding}:track:{track_id}".encode()
 
 
 def generate_master_key() -> bytes:
@@ -116,9 +77,8 @@ def hkdf_sha256(ikm: bytes, length: int, *, info: bytes = b"", salt: bytes = b""
 
     Delegates to the audited library primitive rather than a hand-rolled
     HMAC loop, shrinking the custom-crypto surface flagged by the threat model
-    (TM-005). The empty-salt → 32 zero bytes convention is the ENTO 0.2.0
-    default; output is byte-identical to the prior implementation and is
-    regression-locked by ``tests/test_crypto_vectors.py``.
+    (TM-005). The empty-salt → 32 zero bytes convention is part of the ENTO key
+    derivation contract and is regression-locked by ``tests/test_crypto_vectors.py``.
     """
     return HKDF(
         algorithm=hashes.SHA256(),
@@ -178,7 +138,7 @@ def encrypt_payload(
     track_id: str | None = None,
     manifest_binding: str | None = None,
 ) -> tuple[bytes, bytes, bytes]:
-    """Encrypt plaintext for the ENTO GCM format (version-aware nonce + AAD).
+    """Encrypt plaintext with the current nonce size and manifest-context AAD.
 
     ``_nonce`` is a private test-vector-only knob — see the DANGER note in
     ``crypto_gcm.encrypt_payload``; production callers leave it unset."""

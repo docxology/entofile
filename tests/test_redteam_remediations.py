@@ -9,12 +9,15 @@ from __future__ import annotations
 import io
 import json
 import zipfile
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from src import container, crypto
+from src.errors import ContainerError, IntegrityError
 from src.manifest import manifest_from_json, manifest_to_json
+from src.manifest_binding import compute_manifest_binding
 from src.models import Manifest, ObservabilityLevel, PlainTrack, TrackDescriptor
 from src.observability import filter_manifest
 from src.proof import export_proof
@@ -24,7 +27,7 @@ from src.security import validate_zip_member_names
 
 
 def test_duplicate_zip_member_names_rejected() -> None:
-    with pytest.raises(ValueError, match="duplicate ZIP members"):
+    with pytest.raises(ContainerError, match="duplicate ZIP members"):
         validate_zip_member_names(["manifest.json", "tracks/a.ento", "tracks/a.ento"])
 
 
@@ -43,7 +46,7 @@ def test_container_with_duplicate_member_is_rejected(tmp_path: Path) -> None:
             z.writestr("tracks/alpha.ento", b"MALICIOUS-SECOND-SHADOW")  # duplicate name
     p = tmp_path / "dup.ento.zip"
     p.write_bytes(out.getvalue())
-    with pytest.raises(ValueError, match="duplicate ZIP members"):
+    with pytest.raises(ContainerError, match="duplicate ZIP members"):
         container.inspect_container(p)
 
 
@@ -61,13 +64,14 @@ def _descriptor(byte_length: int) -> TrackDescriptor:
 
 
 def _manifest(track: TrackDescriptor) -> Manifest:
-    return Manifest(
-        format_version="0.2.0",
+    manifest = Manifest(
+        format_version="0.5.0",
         created="2026-01-01T00:00:00Z",
         creator="t",
         observability_level=ObservabilityLevel.AUDITABLE,
         tracks=(track,),
     )
+    return replace(manifest, manifest_binding=compute_manifest_binding(manifest))
 
 
 def test_sealed_zeroes_byte_length() -> None:
@@ -93,6 +97,8 @@ def test_schema_format_enum_matches_crypto_supported() -> None:
     root = Path(__file__).resolve().parent.parent
     schema = json.loads((root / "data" / "ento_manifest_schema.json").read_text(encoding="utf-8"))
     enum = set(schema["properties"]["format_version"]["enum"])
+    assert crypto.SUPPORTED_FORMAT_VERSIONS == ("0.5.0",)
+    assert enum == {"0.5.0"}
     assert enum == set(crypto.SUPPORTED_FORMAT_VERSIONS)
 
 
@@ -101,12 +107,14 @@ def test_schema_format_enum_matches_crypto_supported() -> None:
 
 def test_cross_track_ciphertext_swap_fails_authentication(tmp_path: Path) -> None:
     """Swapping two tracks' ciphertext blobs (keeping manifest ids) must fail GCM:
-    each ciphertext is bound to its own track key + (0.3.0) AAD. Proves the
-    per-track binding the oracle never explicitly exercised."""
+    each ciphertext is bound to its own track key and manifest-context AAD. Proves
+    the per-track binding the oracle never explicitly exercised."""
     key = crypto.generate_master_key()
     t_a = PlainTrack(track_id="aaa", track_type="ento:blockchain.proof", payload=b"AAA-PAYLOAD")
     t_b = PlainTrack(track_id="bbb", track_type="ento:blockchain.proof", payload=b"BBB-PAYLOAD")
-    blob = container.pack_container_bytes(key, (t_a, t_b), format_version=crypto.FORMAT_VERSION_LATEST)
+    blob = container.pack_container_bytes(
+        key, (t_a, t_b), format_version=crypto.FORMAT_VERSION
+    )
     zin = zipfile.ZipFile(io.BytesIO(blob))
     blob_a, blob_b = zin.read("tracks/aaa.ento"), zin.read("tracks/bbb.ento")
     man = json.loads(zin.read("manifest.json"))
@@ -124,5 +132,5 @@ def test_cross_track_ciphertext_swap_fails_authentication(tmp_path: Path) -> Non
             z.writestr("proof/chain.json", json.dumps(export_proof(man_obj).to_dict(), indent=2) + "\n")
     p = tmp_path / "swapped.ento.zip"
     p.write_bytes(out.getvalue())
-    with pytest.raises(ValueError, match="authentication tag mismatch"):
+    with pytest.raises(IntegrityError, match="authentication tag mismatch"):
         container.unpack_container(p, key)

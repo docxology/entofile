@@ -14,23 +14,20 @@ Baseline operations: [`security.md`](security.md). AppSec model:
 | NationStateSecurity pillar | Repository-enforced controls | Partial / documented controls | External / residual controls |
 | --- | --- | --- | --- |
 | Zero trust / verify before use | `verify_container`, CLI `verify`, verify-before-unpack path, duplicate-member and member-set gates | `container_verification.json` is keyless and therefore digest-only; manuscript distinguishes assurance levels | Operators must run keyed verify before trusting third-party containers; no network ZTA plane exists in this offline CLI |
-| Cryptographic discipline | `cryptography` AES-256-GCM, HKDF-SHA256, format dispatch, pinned HKDF/GCM vectors, default `0.5.0` exported-manifest binding/AAD/PADMÉ padding [@nistfips197; @nistfips1804; @rfc5116; @dworkin2007gcm; @mcgrew2004gcm; @krawczyk2010hkdf; @nikitin2019purb] | Legacy `0.2.0` remains readable with 16-byte nonce/no AAD; `0.3.0`/`0.3.1`/`0.4.0` remain explicit compatibility profiles; bucket-size leakage remains in padded formats; nonce reuse remains catastrophic if CSPRNG assumptions fail; 0.5.0 canonicalization has no independent-language certification yet [@joux2006forbidden; @bock2016nonce] | FIPS-validated module selection, HSM/KMS custody, key rotation, PQC transport/signing, and nonce-misuse-resistant future formats remain deployment or future-format controls [@nistsp80057pt1r5; @nist2024mlkem; @nist2024mldsa; @rfc8452] |
+| Cryptographic discipline | `cryptography` AES-256-GCM, HKDF-SHA256, strict ENTO 0.5.0 validation, pinned HKDF/GCM vectors, exported-manifest binding/AAD/PADMÉ padding [@nistfips197; @nistfips1804; @rfc5116; @dworkin2007gcm; @mcgrew2004gcm; @krawczyk2010hkdf; @nikitin2019purb] | Bucket-size leakage remains; nonce reuse remains catastrophic if CSPRNG assumptions fail; 0.5.0 canonicalization has no independent-language certification yet [@joux2006forbidden; @bock2016nonce] | FIPS-validated module selection, HSM/KMS custody, key rotation, PQC transport/signing, and nonce-misuse-resistant designs remain deployment or research controls [@nistsp80057pt1r5; @nist2024mlkem; @nist2024mldsa; @rfc8452] |
 | Supply chain integrity | `uv.lock`, no-mock tests, artifact manifest, claim ledger, CycloneDX SBOM export | SBOM exists as local artifact; release provenance is described but not emitted by this repo | Sign source, SBOM, PDF, and packages with Sigstore/cosign or equivalent; target SLSA Build L3+ and in-toto-style provenance in public CI [@nist2022sp800161r1; @torresarias2019intoto] |
 | Detection and telemetry | Structured CLI verify failure JSON, validation reports, adversarial security tests | ATT&CK mapping is review coverage, not live detection coverage | Forward verify/audit events to SIEM; add detection-as-code, runbooks, MTTD/MTTR ownership |
 | Identity and key handling | `genkey` CSPRNG, 32-byte key check, Unix `0600`, keys never embedded in ENTO ZIPs | Local file permissions reduce accidental exposure only | Enforce FIDO2/JIT on operator hosts, KMS/HSM storage, audited key use, cryptoperiods, rotation, and break-glass policy [@nistsp80057pt1r5] |
-| Data protection | Per-track AEAD, observability filters, proof omission at sealed level, default PADMÉ support in `0.5.0` | ZIP names and padded member sizes remain visible; `0.2.0`/`0.3.0` leak exact plaintext length | Classify datasets; avoid unpadded compatibility formats for length-sensitive sealed exports; add DLP/retention outside repo |
+| Data protection | Per-track AEAD, observability filters, proof omission at sealed level, mandatory PADMÉ in `0.5.0` | ZIP names and padded member sizes remain visible; non-sealed manifests disclose exact length | Classify datasets; use sealed export for length-sensitive data and add DLP/retention outside repo |
 | Operational resilience | Full pytest/coverage gate, tamper gate, artifact validation, deterministic benchmark fingerprint | Rendered outputs and reports can be regenerated from the working tree | Signed backups, restore drills, artifact escrow, disaster-recovery ownership |
 | Secure SDLC | Threat model, RedTeam ledger, claim-ledger tests, figure/caption gates, warning hygiene | Local tests provide evidence but not public CI policy | Branch protection, CODEOWNERS for crypto/build paths, SCA/secret scans, signed commits, vulnerability response process |
 
 ## Format posture
 
-- Default write format is **0.5.0**: 12-byte GCM nonce, PADMÉ length-padding,
-  and canonical exported-manifest context bound into every track tag.
-- Compatibility formats remain **0.2.0** (16-byte nonce, no AAD), **0.3.0**
-  (12-byte nonce + AAD), **0.3.1** (0.3.0 plus PADMÉ), and **0.4.0** (the
-  previous 12-byte/AAD/PADMÉ profile).
-- Existing containers remain readable under explicit manifest-version dispatch;
-  new writes use 0.5.0 unless an older compatibility profile is selected.
+- ENTO **0.5.0** is the only accepted wire format: 12-byte GCM nonce, mandatory
+  PADMÉ length-padding, and canonical exported-manifest context in every tag.
+- Every other version is rejected by readers and writers; `pack` has no format
+  selector.
 
 ## Standards alignment
 
@@ -40,7 +37,7 @@ Baseline operations: [`security.md`](security.md). AppSec model:
 | NIST SP 800-218 SSDF | Tests, threat model, claim ledger, and release gates provide the project-level secure-SDLC evidence. |
 | NIST SP 800-57 Part 1 | Master-key generation is repo-local; cryptoperiods, custody, escrow, rotation, and KMS/HSM policy remain operator controls. |
 | NIST SP 800-161 | Public-release dependency, artifact, and provenance risk management must be implemented by CI/release operations, not inferred from the `.ento` file. |
-| NIST SP 800-38D | GCM is the authenticated-encryption primitive; 0.3.x uses the standard 96-bit nonce profile. |
+| NIST SP 800-38D | GCM is the authenticated-encryption primitive; ENTO 0.5.0 uses the standard 96-bit nonce profile. |
 | FIPS 203 / FIPS 204 | PQC KEM/signature standards are relevant to external transport and signing, not the offline container's symmetric envelope. |
 | SLSA v1.0 / in-toto / COSE | Current repo does not emit build provenance; release automation should target SLSA Build L3 or better and can use in-toto-style attestations; COSE is an external compact signing/provenance option, not an ENTO container feature [@torresarias2019intoto; @rfc9052]. |
 | Sigstore / CycloneDX / SPDX | SBOM export exists as a local artifact; signatures/provenance remain external release controls. |
@@ -70,7 +67,7 @@ operator telemetry easy to route:
 | Duplicate ZIP member | `validate_zip_member_names` / archive validation | Archive smuggling or parser differential attempt |
 | ZIP size/member limit exceeded | `validate_zip_archive`, `safe_read_member` | Endpoint denial of service attempt (T1499) |
 | Keyless `unverified` result | `verify_container.integrity` | Policy violation when keyed assurance is required |
-| Legacy unpadded sealed export for length-sensitive data | release/operator checklist | Data-handling exception requiring default `0.5.0` or external approval |
+| Non-0.5.0 manifest version | manifest/schema rejection | Policy violation; convert outside the implementation before fresh packing |
 
 ## 0.5.0 release checklist
 
@@ -84,8 +81,8 @@ uv run python scripts/ento_analysis.py
 uv run python scripts/export_sbom.py
 uv run python scripts/z_generate_manuscript_variables.py
 cd <template-checkout>
-uv run python scripts/pipeline/stage_03_render.py --project working/entofile
-uv run python scripts/pipeline/stage_04_validate.py --project working/entofile
+uv run --no-sync --locked --python 3.15 python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --no-sync --locked --python 3.15 python scripts/pipeline/stage_04_validate.py --project working/entofile
 ```
 
 ## Out of scope for this repo

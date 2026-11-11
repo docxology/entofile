@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from src import crypto
 from src.manifest import manifest_to_json
+from src.manifest_binding import compute_manifest_binding
 from src.models import (
     Manifest,
     ObservabilityLevel,
@@ -15,8 +18,8 @@ from src.proof import export_proof, verify_proof_chain, verify_proof_export
 
 
 def _manifest() -> Manifest:
-    return Manifest(
-        format_version="0.2.0",
+    manifest = Manifest(
+        format_version="0.5.0",
         created="2026-01-01T00:00:00Z",
         creator="test",
         observability_level=ObservabilityLevel.AUDITABLE,
@@ -37,6 +40,7 @@ def _manifest() -> Manifest:
             ),
         ),
     )
+    return replace(manifest, manifest_binding=compute_manifest_binding(manifest))
 
 
 def test_proof_chain_structure() -> None:
@@ -71,7 +75,7 @@ def test_verify_proof_export_rejects_links_describing_other_tracks() -> None:
     prev = "0" * 64
     payload = f"{prev}:evil:{'9' * 64}".encode()
     forged = ProofExport(
-        format_version="0.2.0",
+        format_version="0.5.0",
         created="x",
         manifest_sha256=crypto.sha256_hex(manifest_json.encode("utf-8")),
         links=(

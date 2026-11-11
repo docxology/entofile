@@ -3,7 +3,7 @@
 # status: todo | in_progress | blocked | done. dates: YYYY-MM-DD. progress: 0-100.
 project:
   name: entofile
-  title: ENTO — Encrypted Typed Omnitrack format 0.5 with legacy compatibility
+  title: 'ENTO — Encrypted Typed Omnitrack format 0.5.0 only'
   status: active
   color: '#4C72B0'
   lead: DAF

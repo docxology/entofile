@@ -5,30 +5,39 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 9 * * 1"
+
+env:
+  PYTHON_VERSION: "3.15"
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   gates:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      matrix:
-        python-version: [ "3.12", "3.14", "3.15" ]
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
         run: uv sync --locked --extra dev
       - name: Lint (ruff)
         run: uv run ruff check src/ scripts/ tests/
       - name: Type check (mypy)
         run: uv run mypy src/
+      - name: Evidence provenance gate
+        run: ./run.sh no-mocks
       # Artifact-bound tests require real products, including PDF and HTML.
       - name: Analysis pipeline smoke
         run: uv run python scripts/ento_analysis.py
@@ -47,12 +56,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # actions/checkout@v7.0.1
         with:
           repository: docxology/template
-          ref: 4670c48cc490636455f2eac09ba4396baed9ffd7
+          ref: 0b19f0e40f817a88c9b8d870b695687058a17d53
           path: .ci-template-sdk
           persist-credentials: false
-      - name: Prepare the SDK locked Python 3.14 environment
-        run: uv sync --project .ci-template-sdk --python 3.14 --locked
+      - name: Prepare the SDK locked Python 3.15 environment
+        run: uv sync --project .ci-template-sdk --python "$PYTHON_VERSION" --locked
       - name: Prepare pinned document converters
+        # The render SDK uses 3.15; converter setup uses the reviewed action without the newer APT guard.
         uses: docxology/template/.github/actions/setup-acceptance-documents@4670c48cc490636455f2eac09ba4396baed9ffd7 # docxology/template@4670c48
         with:
           mode: converter
@@ -75,7 +85,7 @@ jobs:
           cp -R "$GITHUB_WORKSPACE/output/." "$project/output/"
           (
             cd "$sdk"
-            uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
+            uv run --no-sync --locked --python "$PYTHON_VERSION" python scripts/pipeline/stage_03_render.py --project working/entofile
           )
           cp -R "$project/output/." "$GITHUB_WORKSPACE/output/"
       - name: Release bundle gate
@@ -92,10 +102,10 @@ jobs:
           cp -R "$GITHUB_WORKSPACE/release/." "$project/release/"
           (
             cd "$sdk"
-            uv run --locked --python 3.14 python scripts/pipeline/stage_03_render.py --project working/entofile
-            uv run --locked --python 3.14 python "$project/scripts/audit_publication_readiness.py" --check
-            uv run --locked --python 3.14 python scripts/maintenance/refresh_artifact_manifests.py --project working/entofile
-            uv run --locked --python 3.14 python scripts/pipeline/stage_04_validate.py --project working/entofile
+            uv run --no-sync --locked --python "$PYTHON_VERSION" python scripts/pipeline/stage_03_render.py --project working/entofile
+            uv run --no-sync --locked --python "$PYTHON_VERSION" python "$project/scripts/audit_publication_readiness.py" --check
+            uv run --no-sync --locked --python "$PYTHON_VERSION" python scripts/maintenance/refresh_artifact_manifests.py --project working/entofile
+            uv run --no-sync --locked --python "$PYTHON_VERSION" python scripts/pipeline/stage_04_validate.py --project working/entofile
           )
           cp -R "$project/output/." "$GITHUB_WORKSPACE/output/"
           uv run python scripts/build_release_bundle.py
@@ -106,6 +116,34 @@ jobs:
           dist="$RUNNER_TEMP/ento-dist"
           venv="$RUNNER_TEMP/ento-venv"
           uv build --out-dir "$dist"
-          uv venv --python "${{ matrix.python-version }}" "$venv"
+          uv venv --python "${{ env.PYTHON_VERSION }}" "$venv"
           uv pip install --python "$venv/bin/python" "$dist"/*.whl
           "$venv/bin/entofile" --version
+      - name: Retain failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ci-failure-${{ env.PYTHON_VERSION }}
+          path: |
+            output/pdf/entofile_combined.pdf
+            output/web/index.html
+            output/reports/test_results.json
+            output/reports/validation_report.json
+            output/reports/rendered_provenance.json
+            output/reports/artifact_manifest.json
+            output/reports/conformance_report.json
+            output/reports/figure_layout_report.json
+            output/reports/benchmark_validation.json
+            output/reports/container_verification.json
+            output/reports/sbom.cyclonedx.json
+            release/SHA256SUMS
+            release/release_manifest.json
+            .ci-template-sdk/projects/working/entofile/output/pdf/entofile_combined.pdf
+            .ci-template-sdk/projects/working/entofile/output/web/index.html
+            .ci-template-sdk/projects/working/entofile/output/reports/test_results.json
+            .ci-template-sdk/projects/working/entofile/output/reports/validation_report.json
+            .ci-template-sdk/projects/working/entofile/output/reports/rendered_provenance.json
+            .ci-template-sdk/projects/working/entofile/output/reports/artifact_manifest.json
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 7

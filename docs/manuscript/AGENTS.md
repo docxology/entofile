@@ -11,7 +11,7 @@ Agent rules: [`../docs/agent_instructions.md`](../agent_instructions.md). This f
 | `02_methodology.md` | `{#sec:methodology}` | `fig:manifest_multitrack`, `fig:observability_redaction_matrix`, `fig:crypto_overhead` |
 | `02a_ontology_and_fixtures.md` | `{#sec:ontology_fixtures}` | FIXTURE_*, FIXTURE_TRACK_COUNT |
 | `02b_proof_and_observability.md` | `{#sec:proof_observability}` | RESULT_MANIFEST_BYTES_L0–L3 |
-| `02c_security_verification.md` | `{#sec:security_verification}` | `fig:tamper_detection`, `fig:format_ladder`, `fig:format_compatibility_matrix`, `fig:length_leakage_profile`, `fig:conformance_outcomes`, `fig:security_control_matrix`, FORMAT_VERSION, RESULT_CONTAINER_VERIFY_* |
+| `02c_security_verification.md` | `{#sec:security_verification}` | `fig:tamper_detection`, `fig:length_leakage_profile`, `fig:conformance_outcomes`, `fig:security_control_matrix`, FORMAT_VERSION, RESULT_CONTAINER_VERIFY_* |
 | `02d_formal_model.md` | `{#sec:formal_model}` | `eq:container_map`…`eq:observability_monotone`, `fig:expansion_law` |
 | `03_results.md` | `{#sec:results}` | Overview + results figures (`fig:benchmark_overview` … `fig:observability_manifest_size`) |
 | `03a_benchmark_interpretation.md` | `{#sec:benchmark_interpretation}` | `fig:unpack_latency`, `fig:throughput_by_observability`, `fig:observability_throughput_tradeoff`, `fig:expansion_law`, `fig:throughput_dispersion`, RESULT_THROUGHPUT_* |
@@ -36,11 +36,9 @@ Doc-only files (excluded from cross-reference test): `AGENTS.md`, `README.md`, `
 
 | Token | Description |
 | --- | --- |
-| `FORMAT_VERSION` | Stable default ENTO format (`0.5.0`) |
-| `FORMAT_VERSION_PREVIOUS` | Explicit compatibility profile (`0.4.0`) |
-| `FORMAT_VERSION_NEXT` | Deprecated source-compatible alias for the current profile (`0.5.0`) |
-| `FORMAT_NEXT_AAD_TEMPLATE` | Canonical 0.5.0 manifest-context AAD template |
-| `FORMAT_NEXT_BINDING_DESCRIPTION` | Generated description of the bound exported manifest context |
+| `FORMAT_VERSION` | Sole ENTO wire format (`0.5.0`) |
+| `FORMAT_AAD_TEMPLATE` | Canonical 0.5.0 manifest-context AAD template |
+| `FORMAT_BINDING_DESCRIPTION` | Generated description of the bound exported manifest context |
 | `CRYPTO_BACKEND_DEFAULT` | Suite from `crypto_backend_for_format(FORMAT_VERSION)` |
 | `PAPER_TITLE` | `docs/manuscript/config.yaml` `paper.title` |
 | `PAPER_SUBTITLE` | `paper.subtitle` |
@@ -106,7 +104,7 @@ uv run python scripts/ento_analysis.py
 uv run python scripts/z_generate_manuscript_variables.py
 grep -r "{{" output/manuscript/ || echo "All resolved"
 cd <template-checkout>
-uv run python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --no-sync --locked --python 3.15 python scripts/pipeline/stage_03_render.py --project working/entofile
 ```
 
 See [`SYNTAX.md`](SYNTAX.md) and [`../docs/syntax_guide.md`](../syntax_guide.md).

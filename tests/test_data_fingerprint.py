@@ -25,6 +25,7 @@ from src.benchmark_stats import (
     benchmark_data_fingerprint,
     expansion_ratio_model,
 )
+from src.padding import padme
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -33,7 +34,7 @@ def _sample_rows() -> list[dict[str, str]]:
     """Two real-shaped benchmark rows with both deterministic and volatile columns."""
     return [
         {
-            "format_version": "0.4.0",
+            "format_version": "0.5.0",
             "condition": "small_tracks_r0",
             "track_id": "eeg",
             "track_type": "ento:timeseries.eeg",
@@ -48,7 +49,7 @@ def _sample_rows() -> list[dict[str, str]]:
             "manifest_bytes": "499",
         },
         {
-            "format_version": "0.4.0",
+            "format_version": "0.5.0",
             "condition": "medium_tracks_r0",
             "track_id": "medium",
             "track_type": "ento:spectrogram",
@@ -93,7 +94,7 @@ def test_fingerprint_columns_cover_benchmark_row_schema() -> None:
 
     schema_columns = set(
         BenchmarkRow(
-            format_version="0.4.0",
+            format_version="0.5.0",
             condition="c",
             track_id="t",
             track_type="ento:x",
@@ -125,8 +126,7 @@ def test_fingerprint_columns_match_live_csv_header_when_present() -> None:
     rows = load_benchmark_csv(benchmark_csv_path(project_root))
     if not rows:
         pytest.skip("benchmark CSV not generated in this environment")
-    if "format_version" not in rows[0]:
-        pytest.skip("benchmark CSV predates 0.4.0 format_version column")
+    assert {row["format_version"] for row in rows} == {"0.5.0"}
     classified = set(DETERMINISTIC_BENCHMARK_COLUMNS) | set(VOLATILE_BENCHMARK_COLUMNS)
     assert set(rows[0].keys()) == classified
 
@@ -164,29 +164,25 @@ def test_fingerprint_matches_live_csv_variable_when_present() -> None:
     rows = load_benchmark_csv(benchmark_csv_path(project_root))
     if not rows:
         pytest.skip("benchmark CSV not generated in this environment")
-    if "format_version" not in rows[0]:
-        pytest.skip("benchmark CSV predates 0.4.0 format_version column")
+    assert {row["format_version"] for row in rows} == {"0.5.0"}
     vars_path = project_root / "output" / "data" / "manuscript_variables.json"
     if not vars_path.is_file():
         pytest.skip("manuscript_variables.json not generated in this environment")
     variables = json.loads(vars_path.read_text(encoding="utf-8"))
-    if variables.get("FORMAT_VERSION") != "0.5.0":
-        pytest.skip("manuscript variables predate the current default 0.5.0")
-    stored = variables.get("BENCHMARK_DATA_FINGERPRINT")
-    if stored is None:
-        pytest.skip("BENCHMARK_DATA_FINGERPRINT not present (stale variables file)")
+    assert variables["FORMAT_VERSION"] == "0.5.0"
+    stored = variables["BENCHMARK_DATA_FINGERPRINT"]
     assert stored == benchmark_data_fingerprint(rows)
 
 
 def test_expansion_ratio_model_is_exact_over_many_sizes() -> None:
-    """Property-style: version-aware model matches padded default and legacy law."""
+    """Property-style: the 0.5.0 model matches the padded wire law."""
     rng = random.Random(1729)
     for _ in range(500):
         n = rng.randint(1, 10_000_000)
-        assert expansion_ratio_model(n, format_version="0.2.0") == pytest.approx(
-            1 + 32 / n, rel=0, abs=1e-12
+        expected = (28 + padme(n + 8)) / n
+        assert expansion_ratio_model(n) == pytest.approx(
+            expected, rel=0, abs=1e-12
         )
-        assert expansion_ratio_model(n) >= 1 + 28 / n
 
 
 def test_expansion_ratio_model_rejects_nonpositive() -> None:

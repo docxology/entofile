@@ -23,13 +23,12 @@ def test_generate_variables_after_analysis(
     assert variables["FORMAT_VERSION"] == "0.5.0"
     assert variables["FORMAT_DEFAULT_HEADER_BYTES"] == "28"
     assert variables["FORMAT_DEFAULT_PADS"] == "yes"
-    assert variables["FORMAT_VERSIONS_COMPATIBILITY"] == "0.2.0, 0.3.0, 0.3.1 and 0.4.0"
-    assert variables["FORMAT_VERSION_NEXT"] == "0.5.0"
-    assert variables["FORMAT_VERSIONS_FORWARD"] == "not applicable (current profile)"
-    assert variables["FORMAT_NEXT_AAD_TEMPLATE"] == (
+    assert variables["FORMAT_AAD_TEMPLATE"] == (
         "ento:0.5.0:manifest:{manifest_binding}:track:{track_id}"
     )
-    assert variables["COUNT_FORWARD_FORMATS"] == "0"
+    assert variables["FORMAT_BINDING_DESCRIPTION"] == (
+        "canonical SHA-256 of the exported manifest context in every track tag"
+    )
     assert variables["RESULT_BENCHMARK_ROWS"] != "N/A"
     assert variables["RESULT_AVG_UNPACK_SECONDS"] != "N/A"
     assert variables["FIXTURE_EEG_SHA256"] != "N/A"
@@ -45,8 +44,7 @@ def test_generate_variables_after_analysis(
     assert "CONFORMANCE_REPORT_STATUS" in variables
     assert "ARTIFACT_MANIFEST_STATUS" in variables
     assert "RELEASE_MANIFEST_STATUS" in variables
-    assert variables["COUNT_SUPPORTED_FORMATS"] == "5"
-    assert variables["COUNT_COMPATIBILITY_FORMATS"] == "4"
+    assert variables["COUNT_SUPPORTED_FORMATS"] == "1"
     assert variables["CONFIG_BENCHMARK_REPETITIONS"] == "3"
     assert variables["CONFIG_BENCHMARK_PILOT_REPETITIONS"] == "3"
     assert variables["CONFIG_BENCHMARK_REPETITION_SCALE"] == "1"
@@ -87,6 +85,28 @@ def test_throughput_dispersion_tokens_present_and_consistent(
 def test_require_analysis_outputs_raises(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         generate_variables(tmp_path, require_analysis_outputs=True)
+
+
+def test_removed_compatibility_tokens_are_absent() -> None:
+    project_root = Path(__file__).resolve().parent.parent
+    produced = set(generate_variables(project_root))
+    removed = {
+        "FORMAT_VERSION_HARDENED_FIRST",
+        "FORMAT_VERSION_LATEST",
+        "FORMAT_VERSION_PREVIOUS",
+        "FORMAT_VERSION_NEXT",
+        "FORMAT_NEXT_AAD_TEMPLATE",
+        "FORMAT_NEXT_BINDING_DESCRIPTION",
+        "FORMAT_VERSIONS_HARDENED",
+        "FORMAT_VERSIONS_COMPATIBILITY",
+        "FORMAT_VERSIONS_FORWARD",
+        "NONCE_BYTES_HARDENED",
+        "FORMAT_LATEST_PADS",
+        "COUNT_HARDENED_FORMATS",
+        "COUNT_COMPATIBILITY_FORMATS",
+        "COUNT_FORWARD_FORMATS",
+    }
+    assert produced.isdisjoint(removed)
 
 
 def test_all_manuscript_tokens_are_generated() -> None:

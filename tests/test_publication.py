@@ -52,7 +52,13 @@ def _write_validation_report(
     reports.mkdir(parents=True, exist_ok=True)
     issues = evidence_issues or []
     reports.joinpath("validation_report.json").write_text(
-        json.dumps({"output_statistics": {"evidence_issues": issues}}),
+        json.dumps(
+            {
+                "ok": not issues,
+                "issues": issues,
+                "output_statistics": {"evidence_issues": issues},
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -69,7 +75,11 @@ def _write_benchmark_gate(
     data = root / "output" / "data"
     data.mkdir(parents=True, exist_ok=True)
     data.joinpath("ento_benchmark_results.csv").write_text(
-        "condition,bytes\n", encoding="utf-8"
+        "format_version,condition,track_id,track_type,plaintext_bytes,ciphertext_bytes,"
+        "expansion_ratio,pack_seconds,unpack_seconds,pack_throughput_mib_s,tamper_detected,"
+        "observability_level,manifest_bytes\n"
+        "0.5.0,small_tracks_r0,eeg,ento:timeseries.eeg,42,74,1.76,0.01,0.001,0.5,True,3,512\n",
+        encoding="utf-8",
     )
 
 

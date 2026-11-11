@@ -1,18 +1,13 @@
 # ENTO 0.5.0 authenticated-manifest-context profile
 
-ENTO `0.5.0` is the current default wire profile. Existing `0.4.0` containers
-remain readable and explicitly writable as a compatibility profile. Readers and
-writers support `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`, and
-`0.5.0`; unknown versions fail closed.
-
-The profile addresses a specific limitation in the earlier AAD contract:
-`0.4.0` authenticates each track's format label and track id, but not the
-manifest context that tells a reader how to interpret that track. `0.5.0`
-binds the exported manifest context to every track's AES-256-GCM tag.
+ENTO `0.5.0` is the only supported wire profile. Readers and writers reject
+every other version explicitly. The profile binds the exported manifest context
+to every track's AES-256-GCM tag so keyed verification authenticates both track
+content and the metadata context used to interpret it.
 
 ## Wire layout
 
-The ZIP layout and per-track binary layout are unchanged:
+The ZIP layout and per-track binary layout are:
 
 ```text
 manifest.json
@@ -67,9 +62,7 @@ plaintext digest, byte length, track order, or redaction view changes the
 binding.
 
 Because the selected exported view is authenticated as GCM context, changing
-the 0.5.0 export level is an explicit repack operation. The stable and
-compatibility profiles retain their historical metadata-only redaction behavior;
-that behavior is not silently generalized to 0.5.0.
+the 0.5.0 export level is an explicit repack operation.
 
 ## AEAD associated data
 
@@ -83,12 +76,14 @@ Encryption is performed only after the binding is known. The implementation
 uses a provisional manifest with ciphertext digests ignored by the projection,
 computes the binding for the requested export level, encrypts every track with
 that binding, and then emits the final manifest. This avoids circular state and
-keeps `pack_container()` and `pack_container_bytes()` on one code path.
+keeps `pack_container()` and `pack_container_bytes()` on one code path. Their
+optional `format_version` argument accepts only `0.5.0`; the CLI exposes no
+format selector.
 
 ## Verification behavior
 
-- Schema parsing requires `manifest_binding` for `0.5.0` and validates its
-  lowercase-hex shape.
+- Schema parsing accepts only `0.5.0`, requires top-level `manifest_binding`,
+  and validates its lowercase-hex shape.
 - Readers recompute the binding before member verification or plaintext
   release. A changed manifest with the old binding is rejected immediately.
 - Keyed `verify`/`unpack` supplies the binding to GCM. An attacker who rewrites
@@ -100,13 +95,13 @@ keeps `pack_container()` and `pack_container_bytes()` on one code path.
 - External signatures over the container or release bundle remain necessary for
   origin, release identity, and supply-chain provenance.
 
-## Compatibility and migration
+## Version rejection
 
-Use `0.5.0` for new containers. Use explicit `0.4.0` when a consumer has not
-yet adopted manifest-context binding. Existing 0.2.0–0.4.0 containers keep
-their original nonce, AAD, padding, and manifest semantics; they are not
-retrofit or silently re-encrypted. A migration is an explicit unpack/repack
-operation with a new key or nonce set, followed by independent verification.
+Use `0.5.0` for every container. Other versions are rejected during manifest
+validation and cryptographic operations; there is no read or write fallback.
+Any external conversion of older material must happen outside this
+implementation before producing a fresh 0.5.0 container and independently
+verifying it.
 
 The profile does not provide streaming, random access, KMS/HSM custody, release
 signing, SBOM provenance, or equivalence with RO-Crate, BagIt, HDF5, Zarr, or
@@ -118,9 +113,9 @@ other ecosystems. Those are separate research questions in
 The normative code seams are:
 
 - `src/manifest_binding.py` — canonical projection, digest, and validation;
-- `src/crypto.py` — version dispatch and 0.5.0 AAD;
+- `src/crypto.py` — strict 0.5.0 validation and manifest-context AAD;
 - `src/container.py` — shared pack preparation and exported-view binding;
-- `data/ento_manifest_schema.json` — conditional field requirement;
+- `data/ento_manifest_schema.json` — 0.5.0-only enum and required top-level binding;
 - `tests/test_format_0_5_0.py` — canonical bytes, AEAD vector, redaction matrix,
   manifest mutation, and rebound-manifest negative controls.
 

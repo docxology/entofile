@@ -6,4 +6,6 @@ Run from the project root:
 uv run pytest tests/ --cov=src --cov-fail-under=90
 ```
 
-No mocks policy — temp ZIP fixtures and subprocess CLI only.
+No test doubles: `unittest.mock`, `MagicMock`, `patch`, and pytest `monkeypatch` are
+prohibited. Use real temporary ZIPs, explicit environment restoration with
+`try`/`finally`, real subprocesses, and explicit timeout parameters.

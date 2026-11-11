@@ -6,20 +6,6 @@ claims:
     source_tier: project_source
     freshness: active
     artifact_path: data/ento_manifest_schema.json
-  - claim_id: format-version-latest
-    kind: text
-    value: "0.5.0"
-    source: projects/working/entofile/src/crypto.py
-    source_tier: project_source
-    freshness: active
-    artifact_path: src/crypto.py
-  - claim_id: format-version-next
-    kind: text
-    value: "0.5.0"
-    source: projects/working/entofile/src/crypto.py
-    source_tier: project_source
-    freshness: active
-    artifact_path: src/manifest_binding.py
   - claim_id: tamper-detection-rate
     kind: number
     value: 1.0
@@ -85,7 +71,7 @@ claims:
     artifact_path: output/reports/container_verification.json
   - claim_id: figure-count
     kind: number
-    value: 21
+    value: 19
     source: projects/working/entofile/src/figure_registry.py
     source_tier: project_source
     freshness: active

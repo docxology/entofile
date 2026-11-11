@@ -11,37 +11,73 @@ import json
 import subprocess
 import sys
 import zipfile
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from src import container, crypto, security
 from src.crypto import decrypt_payload, derive_track_key, encrypt_payload, hkdf_sha256
+from src.errors import ContainerError, IntegrityError
 from src.manifest import manifest_from_json, manifest_to_json
-from src.models import PlainTrack
+from src.manifest_binding import compute_manifest_binding
+from src.models import Manifest, PlainTrack
 from src.proof import export_proof
 from src.security import safe_read_member
+from src.track import decrypt_track, encrypt_track, parse_track_bytes
 
 
-def _build_container() -> bytes:
+def _build_container() -> tuple[bytes, bytes]:
     key = crypto.generate_master_key()
     track = PlainTrack(track_id="alpha", track_type="ento:blockchain.proof", payload=b"SECRET-RESEARCH-DATA")
-    return key, container.pack_container_bytes(key, (track,), format_version="0.4.0")
+    return key, container.pack_container_bytes(key, (track,))
 
 
-def _adversary_rewrite(blob: bytes, *, blank_digests: bool, corrupt_ciphertext: bool) -> bytes:
-    """Simulate an attacker who controls the bytes: optionally blank manifest
-    digests, corrupt the ciphertext, and (always) regenerate a self-consistent
-    proof chain — which needs no secret."""
+def _adversary_rewrite(
+    blob: bytes,
+    *,
+    blank_digests: bool,
+    corrupt_ciphertext: bool,
+    master_key: bytes | None = None,
+) -> bytes:
+    """Rebind public metadata and optionally re-encrypt before corrupting bytes."""
     zin = zipfile.ZipFile(io.BytesIO(blob))
-    man = json.loads(zin.read("manifest.json"))
+    raw_manifest = zin.read("manifest.json")
+    original_manifest = manifest_from_json(raw_manifest.decode("utf-8"))
+    man = json.loads(raw_manifest)
     if blank_digests:
-        for t in man["tracks"]:
-            t["sha256_ciphertext"] = ""
-            t["sha256_plaintext"] = ""
-    man_obj = manifest_from_json(json.dumps(man))
+        for track in man["tracks"]:
+            track["sha256_ciphertext"] = ""
+            track["sha256_plaintext"] = ""
+    man.pop("manifest_binding", None)
+    man_obj = Manifest.from_dict(man)
+    man_obj = replace(
+        man_obj, manifest_binding=compute_manifest_binding(man_obj)
+    )
+    replacement_tracks: dict[str, bytes] = {}
+    if master_key is not None:
+        for entry in original_manifest.tracks:
+            name = f"tracks/{entry.id}.ento"
+            encrypted = parse_track_bytes(entry.id, zin.read(name))
+            plaintext = decrypt_track(
+                master_key,
+                encrypted,
+                format_version=original_manifest.format_version,
+                manifest_binding=original_manifest.manifest_binding,
+            )
+            plain = PlainTrack(
+                track_id=entry.id,
+                track_type=entry.type,
+                payload=plaintext,
+                resolution=entry.resolution,
+            )
+            replacement_tracks[name] = encrypt_track(
+                master_key,
+                plain,
+                manifest_binding=man_obj.manifest_binding,
+            ).to_bytes()
     man_json = manifest_to_json(man_obj)
-    new_proof = export_proof(man_obj)  # attacker recomputes — no key needed
+    new_proof = export_proof(man_obj)
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w", zipfile.ZIP_STORED) as z:
         z.writestr("manifest.json", man_json)
@@ -51,7 +87,11 @@ def _adversary_rewrite(blob: bytes, *, blank_digests: bool, corrupt_ciphertext: 
             if name == "proof/chain.json":
                 z.writestr(name, json.dumps(new_proof.to_dict(), indent=2) + "\n")
                 continue
-            data = zin.read(name)
+            data = (
+                replacement_tracks[name]
+                if name in replacement_tracks
+                else zin.read(name)
+            )
             if corrupt_ciphertext and name.startswith("tracks/"):
                 data = data[:-1] + bytes([data[-1] ^ 0xFF])
             z.writestr(name, data)
@@ -115,27 +155,19 @@ def test_blanked_digests_no_key_fails_require_integrity(tmp_path: Path) -> None:
     assert strict["ok"] is False
 
 
-def test_keyed_verify_cannot_be_downgraded_by_header_mutation(tmp_path: Path) -> None:
-    """No header-mutation downgrade: with the key supplied, blanking digests and
-    dropping observability_level (unauthenticated manifest fields) cannot coerce
-    verify into a weaker check — GCM is always attempted, so integrity stays
-    key-authenticated. The integrity level is derived from the decrypt attempt,
-    never read from an attacker-controlled header field."""
+def test_keyed_verify_rejects_header_mutation_before_decryption(
+    tmp_path: Path,
+) -> None:
+    """Digest and observability mutations cannot downgrade authenticated metadata."""
     key, blob = _build_container()
     zin = zipfile.ZipFile(io.BytesIO(blob))
     man = json.loads(zin.read("manifest.json"))
-    for t in man["tracks"]:
-        t["sha256_ciphertext"] = ""
-        t["sha256_plaintext"] = ""
-        # A well-formed SEALED manifest redacts byte_length to the sentinel 0; an
-        # attacker claiming SEALED must match it, since SEALED + a non-zero byte_length
-        # is now rejected as a forged-size bypass (see
-        # test_keyed_verify_rejects_sealed_header_byte_length_bypass). This test isolates
-        # the anti-downgrade property: even a well-formed SEALED-claim with blanked
-        # digests cannot coerce a keyed verify away from key-authenticated.
-        t["byte_length"] = 0
-    man["observability_level"] = 0  # attacker drops to "sealed" header
-    man_obj = manifest_from_json(json.dumps(man))
+    for track in man["tracks"]:
+        track["sha256_ciphertext"] = ""
+        track["sha256_plaintext"] = ""
+        track["byte_length"] = 0
+    man["observability_level"] = 0
+    man_obj = Manifest.from_dict(man)  # retain the now-stale original binding
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w", zipfile.ZIP_STORED) as z:
         z.writestr("manifest.json", manifest_to_json(man_obj))
@@ -143,24 +175,31 @@ def test_keyed_verify_cannot_be_downgraded_by_header_mutation(tmp_path: Path) ->
             if name == "manifest.json":
                 continue
             if name == "proof/chain.json":
-                z.writestr(name, json.dumps(export_proof(man_obj).to_dict(), indent=2) + "\n")
+                z.writestr(
+                    name,
+                    json.dumps(export_proof(man_obj).to_dict(), indent=2) + "\n",
+                )
                 continue
-            z.writestr(name, zin.read(name))  # ciphertext intact
-    p = tmp_path / "downgrade.ento.zip"
-    p.write_bytes(out.getvalue())
-    result = container.verify_container(p, key, require_integrity=True)
-    assert result["integrity"] == "key-authenticated"  # not coerced to digest-only/unverified
-    assert result["plaintext_verified"] is True
+            z.writestr(name, zin.read(name))
+    path = tmp_path / "mutated-header.ento.zip"
+    path.write_bytes(out.getvalue())
+    with pytest.raises(IntegrityError, match="manifest binding mismatch"):
+        container.verify_container(path, key, require_integrity=True)
 
 
 def test_keyed_verify_still_catches_ciphertext_tamper(tmp_path: Path) -> None:
     """The key-based path remains adversarially sound: GCM rejects tampered
     ciphertext even when the attacker blanked digests and forged the proof."""
     key, blob = _build_container()
-    evil = _adversary_rewrite(blob, blank_digests=True, corrupt_ciphertext=True)
+    evil = _adversary_rewrite(
+        blob,
+        blank_digests=True,
+        corrupt_ciphertext=True,
+        master_key=key,
+    )
     p = tmp_path / "evil.ento.zip"
     p.write_bytes(evil)
-    with pytest.raises(ValueError, match="authentication tag mismatch"):
+    with pytest.raises(IntegrityError, match="authentication tag mismatch"):
         container.verify_container(p, key)
 
 
@@ -209,7 +248,7 @@ def test_safe_read_member_bounds_actual_decompressed_bytes() -> None:
         zf.writestr("tracks/x.ento", payload)
     zf2 = zipfile.ZipFile(buf)
     assert zf2.getinfo("tracks/x.ento").compress_size < 100_000  # declared-size spoof surface
-    with pytest.raises(ValueError, match="exceeds uncompressed size limit"):
+    with pytest.raises(ContainerError, match="exceeds uncompressed size limit"):
         safe_read_member(zf2, "tracks/x.ento", max_bytes=1024)
     assert safe_read_member(zf2, "tracks/x.ento", max_bytes=10_000_000) == payload
 
@@ -229,7 +268,7 @@ def test_validate_zip_archive_rejects_aggregate_overflow(tmp_path: Path) -> None
                     take = min(remaining, len(chunk))
                     handle.write(chunk[:take])
                     remaining -= take
-    with pytest.raises(ValueError, match="aggregate limit"):
+    with pytest.raises(ContainerError, match="aggregate limit"):
         security.validate_zip_archive(path)
 
 
@@ -254,10 +293,32 @@ def test_decrypt_does_not_mask_non_crypto_errors() -> None:
     """ISC-10: only an AEAD auth failure is reported as 'authentication tag
     mismatch'; a shape error raises its own message, undisguised."""
     track_key = derive_track_key(crypto.generate_master_key(), "eeg")
-    nonce, tag, ct = encrypt_payload(track_key, b"payload", format_version="0.2.0")
+    binding = "0" * 64
+    nonce, tag, ct = encrypt_payload(
+        track_key,
+        b"payload",
+        track_id="eeg",
+        manifest_binding=binding,
+    )
     # genuine tamper -> InvalidTag -> remapped message
-    with pytest.raises(ValueError, match="authentication tag mismatch"):
-        decrypt_payload(track_key, nonce, tag, ct[:-1] + bytes([ct[-1] ^ 0xFF]), format_version="0.2.0")
+    with pytest.raises(IntegrityError, match="authentication tag mismatch"):
+        decrypt_payload(
+            track_key,
+            nonce,
+            tag,
+            ct[:-1] + bytes([ct[-1] ^ 0xFF]),
+            format_version="0.5.0",
+            track_id="eeg",
+            manifest_binding=binding,
+        )
     # shape error must NOT be relabeled as a tag mismatch
-    with pytest.raises(ValueError, match="nonce must be 16 bytes"):
-        decrypt_payload(track_key, b"short", tag, ct, format_version="0.2.0")
+    with pytest.raises(ValueError, match="nonce must be 12 bytes"):
+        decrypt_payload(
+            track_key,
+            b"short",
+            tag,
+            ct,
+            format_version="0.5.0",
+            track_id="eeg",
+            manifest_binding=binding,
+        )

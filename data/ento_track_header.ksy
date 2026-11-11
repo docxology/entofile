@@ -3,9 +3,9 @@ meta:
   file-extension: ento
   endian: be
   doc: |
-    ENTO default per-track blob: nonce(12) || tag(16) || ciphertext.
-    format_version 0.4.0: tag is AES-256-GCM authentication tag (AEAD).
-    compatibility format 0.2.0 uses a 16-byte nonce and is parsed by code dispatch.
+    ENTO 0.5.0 per-track blob: nonce(12) || tag(16) || ciphertext.
+    The tag is the AES-256-GCM authentication tag (AEAD), with the exported
+    manifest binding and track ID in the associated data.
     crypto_suite: aes-256-gcm.
 seq:
   - id: nonce

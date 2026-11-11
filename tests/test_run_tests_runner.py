@@ -64,8 +64,7 @@ def test_runner_notifies_missing_artifacts_on_stderr(tmp_path: Path) -> None:
     json.loads(completed.stdout)
 
 
-@pytest.mark.parametrize("release_path", ("release/release_manifest.json", "output/release/release_manifest.json"))
-def test_runner_stays_silent_when_artifacts_present(tmp_path: Path, release_path: str) -> None:
+def test_runner_stays_silent_when_artifacts_present(tmp_path: Path) -> None:
     """Once the required generated outputs exist, the notice is suppressed."""
     _write_temp_project(
         tmp_path,
@@ -74,7 +73,7 @@ def test_runner_stays_silent_when_artifacts_present(tmp_path: Path, release_path
     )
     for rel in (
         "output/reports/container_verification.json",
-        release_path,
+        "release/release_manifest.json",
         "output/data/transmission_manifest.json",
         "output/reports/conformance_report.json",
     ):
@@ -201,6 +200,33 @@ def test_runner_preserves_success_json_contract(tmp_path: Path) -> None:
     assert summary["all_passed"] is True
     assert summary["collected"] == 1
     assert summary["source"] == "pytest"
+
+
+def test_runner_failure_preserves_output_diagnostics(tmp_path: Path) -> None:
+    _write_temp_project(
+        tmp_path,
+        "def test_failure():\n"
+        "    print('RUNNER_STDOUT_MARKER')\n"
+        "    assert False, 'RUNNER_ASSERTION_MARKER'\n",
+    )
+
+    completed = subprocess.run(
+        _runner_command(tmp_path, timeout=10.0),
+        capture_output=True,
+        text=True,
+        timeout=15.0,
+        check=False,
+    )
+
+    assert completed.returncode == 1
+    stdout_report = json.loads(completed.stdout)
+    assert stdout_report == _report(tmp_path)
+    summary = stdout_report["summary"]
+    assert summary["all_passed"] is False
+    assert summary["collected"] == 1
+    assert "test_failure" in summary["detail"]
+    assert "RUNNER_STDOUT_MARKER" in summary["detail"]
+    assert "RUNNER_ASSERTION_MARKER" in summary["detail"]
 
 
 def test_runner_launch_failure_writes_fail_closed_report(tmp_path: Path) -> None:

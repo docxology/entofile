@@ -4,12 +4,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from src.cli import build_parser, cmd_genkey, cmd_inspect, main
 
 
 def test_build_parser_has_subcommands() -> None:
     parser = build_parser()
     assert "genkey" in parser.format_help()
+
+
+def test_pack_rejects_removed_format_option() -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(
+            ["pack", "-k", "key", "-o", "out", "--format", "0.4.0"]
+        )
 
 
 def test_cmd_genkey(tmp_path: Path) -> None:

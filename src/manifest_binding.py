@@ -19,7 +19,6 @@ from typing import Any
 from .errors import IntegrityError
 from .models import Manifest
 
-MANIFEST_BINDING_FORMAT = "0.5.0"
 MANIFEST_BINDING_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -74,8 +73,6 @@ def compute_manifest_binding(manifest: Manifest) -> str:
 
 def validate_manifest_binding(manifest: Manifest) -> None:
     """Validate the required 0.5.0 binding, failing closed on mismatch."""
-    if manifest.format_version != MANIFEST_BINDING_FORMAT:
-        return
     binding = manifest.manifest_binding
     if binding is None or not MANIFEST_BINDING_PATTERN.fullmatch(binding):
         raise IntegrityError("0.5.0 manifest_binding is missing or malformed")

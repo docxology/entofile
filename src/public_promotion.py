@@ -6,18 +6,13 @@ import hashlib
 import json
 import re
 import subprocess
-import sys
+import tomllib
 import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
 
 import yaml
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib  # type: ignore[no-redef]
 
 from . import crypto
 from .paths import release_manifest_path
@@ -37,7 +32,6 @@ CORE_CURRENT_DEFAULT_DOCS = (
     "SECURITY.md",
     "docs/operator_checklist.md",
     "docs/entofile-threat-model.md",
-    "tests/test_format_0_3_0.py",
 )
 PUBLIC_DEFAULT_FORMAT_SURFACES = (*CORE_CURRENT_DEFAULT_DOCS,
     "README.md",
@@ -45,7 +39,6 @@ PUBLIC_DEFAULT_FORMAT_SURFACES = (*CORE_CURRENT_DEFAULT_DOCS,
     ".github/ISSUE_TEMPLATE/bug_report.yml",
     "docs/security.md",
     "docs/architecture.md",
-    "docs/format_migration.md",
     "ISA.md",
     # 2026-06-10: both carried stale 0.2.0-default wording that this checker
     # missed because they were not scanned — scan every root-level doc that
@@ -178,7 +171,7 @@ def check_public_promotion_metadata(
         "cff_doi": str(cff.get("doi")) == str(publication.get("doi")),
         "pyproject_author": project_author0.get("name") == author0.get("name")
         and project_author0.get("email") == author0.get("email"),
-        "pyproject_license_file": project.get("license") == {"file": "LICENSE"},
+        "pyproject_license_file": project.get("license") == "MIT",
         "release_manifest_present": bool(release),
         "release_manifest_ok": release.get("ok") is True,
         "release_manifest_home": release.get("planned_public_home")
@@ -355,10 +348,11 @@ def _machine_path_hits(root: Path) -> dict[str, list[str]]:
 def _security_policy_current_default(text: str) -> bool:
     """Validate that SECURITY.md references the current default wire format."""
     normalised = _normalise_text(text)
+    plain = normalised.replace("`", "")
     return (
         crypto.FORMAT_VERSION in text
-        and "default wire format" in normalised
-        and "compatibility" in normalised
+        and ("0.5.0 only" in plain or "only 0.5.0" in plain)
+        and "compatibility format" not in normalised
         and not _stale_default_phrase_hits({"SECURITY.md": text})
     )
 

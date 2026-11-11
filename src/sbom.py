@@ -9,7 +9,7 @@ checker pins against ``CITATION.cff`` — never hardcoded.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -65,7 +65,7 @@ def build_cyclonedx_skeleton(
         "specVersion": SBOM_SPEC_VERSION,
         "version": 1,
         "metadata": {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "component": {
                 "type": "application",
                 "name": SBOM_APPLICATION_NAME,

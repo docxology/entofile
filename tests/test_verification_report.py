@@ -64,7 +64,7 @@ def test_report_negative_control_rejects_bad_container(tmp_path: Path) -> None:
         key,
         tracks,
         observability_level=ObservabilityLevel.AUDITABLE,
-        format_version="0.4.0",
+        format_version="0.5.0",
     )
     control = _negative_control([sample])
     assert control["available"] is True
@@ -103,7 +103,7 @@ def test_negative_control_survives_null_tracks_manifest(tmp_path: Path) -> None:
 
     source = tmp_path / "null_tracks.ento.zip"
     with zipfile.ZipFile(source, "w") as zf:
-        zf.writestr("manifest.json", json.dumps({"format_version": "0.4.0", "tracks": None}))
+        zf.writestr("manifest.json", json.dumps({"format_version": "0.5.0", "tracks": None}))
     control = _negative_control([source])
     # Crafting succeeds (no tracks to strip); the verifier must reject the
     # schema-invalid container, so the control fires.
@@ -121,7 +121,7 @@ def test_report_builder_records_schema_invalid_sample_as_failure(tmp_path: Path)
     bench.mkdir(parents=True)
     sample = bench / "medium_3.ento.zip"
     with zipfile.ZipFile(sample, "w") as zf:
-        zf.writestr("manifest.json", json.dumps({"format_version": "0.4.0", "tracks": None}))
+        zf.writestr("manifest.json", json.dumps({"format_version": "0.5.0", "tracks": None}))
     report = build_container_verification_report(tmp_path)
     assert report["ok"] is False
     assert report["sample_count"] == 1

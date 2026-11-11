@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from src.errors import ContainerError
 from src.security import safe_output_path, validate_track_id
 
 
@@ -19,7 +20,7 @@ def test_validate_track_id_accepts_fixture_ids() -> None:
     ["../escape", "eeg/extra", "..", "UPPER", "has space", ""],
 )
 def test_validate_track_id_rejects_unsafe(track_id: str) -> None:
-    with pytest.raises(ValueError, match="invalid track id"):
+    with pytest.raises(ContainerError, match="invalid track id"):
         validate_track_id(track_id)
 
 

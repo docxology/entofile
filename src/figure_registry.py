@@ -34,7 +34,7 @@ _VISUAL_CONTRACTS: Final[dict[str, tuple[str, str, str]]] = {
         "Host-state timing snapshot; not a cross-host performance superiority claim.",
     ),
     "fig:expansion_ratio": (
-        "Shows per-fixture ciphertext expansion under the default profile.",
+        "Shows per-fixture ciphertext expansion under ENTO 0.5.0.",
         "Data-derived plaintext and ciphertext byte counts from fixture tracks.",
         "Small-track overhead is expected; do not generalize the ratio to all payload sizes.",
     ),
@@ -74,7 +74,7 @@ _VISUAL_CONTRACTS: Final[dict[str, tuple[str, str, str]]] = {
         "The body includes padding; the stack is byte composition, not runtime cost.",
     ),
     "fig:expansion_law": (
-        "Binds measured expansion ratios to the version-aware closed-form model.",
+        "Binds measured expansion ratios to the current-format closed-form model.",
         "Fixture byte counts, format version, and `expansion_ratio_model` residuals.",
         "The law covers stored member bytes, not compression or transport overhead.",
     ),
@@ -88,19 +88,9 @@ _VISUAL_CONTRACTS: Final[dict[str, tuple[str, str, str]]] = {
         "Coefficient of variation by benchmark metric and fingerprint column class.",
         "Zero CV is a generated-matrix property, not proof that every future metric is deterministic.",
     ),
-    "fig:format_ladder": (
-        "Summarizes the supported wire-format ladder and default writer choice.",
-        "Code-owned supported-format constants and hardening features.",
-        "Compatibility support does not mean older formats are the current default.",
-    ),
-    "fig:format_compatibility_matrix": (
-        "Makes read/write/default and hardening features explicit per format.",
-        "Supported format dispatch, nonce policy, AAD policy, and padding policy.",
-        "A yes/no cell is capability metadata, not an interoperability certification.",
-    ),
     "fig:length_leakage_profile": (
-        "Contrasts exact legacy length leakage with default PADME bucket disclosure.",
-        "Version-aware member-size model over small plaintext lengths.",
+        "Shows the exact bucket sizes disclosed by the current wire format.",
+        "The 0.5.0 member-size model over small plaintext lengths.",
         "PADME hides exact length only to buckets; ZIP metadata remains visible.",
     ),
     "fig:conformance_outcomes": (
@@ -403,7 +393,7 @@ def _build_figure_specs() -> tuple[FigureSpec, ...]:
         summary=(
             f"Per-track ciphertext decomposed into its two parts: the fixed {_TRACK_HEADER_BYTES}-byte {FORMAT_VERSION} "
             "AEAD header (nonce plus authentication tag, bottom segment) and the variable ciphertext body (top "
-            "segment), stacked per fixture track. The body includes PADME length padding under the default profile, "
+            f"segment), stacked per fixture track. The body includes mandatory PADME length padding under ENTO {FORMAT_VERSION}, "
             "so the bar shows both fixed authentication overhead and bucketed length-hiding overhead."
         ),
         label="fig:crypto_overhead",
@@ -416,11 +406,10 @@ def _build_figure_specs() -> tuple[FigureSpec, ...]:
     )
     expansion_law = _registered_spec(
         summary=(
-            "Measured ciphertext expansion ratio (markers, one per fixture track) overlaid on the version-aware "
-            f"model. For the default {FORMAT_VERSION} profile, r(n) = (H + PADME(n + 8)) / n because the encrypted body carries "
-            "an eight-byte original-length prefix before PADME bucketing; unpadded compatibility formats reduce to "
-            "r(n) = (H + n) / n. The maximum absolute residual is reported as a fidelity badge, confirming a "
-            "spec-fixed identity rather than a statistical fit."
+            "Measured ciphertext expansion ratio (markers, one per fixture track) overlaid on the current-format "
+            f"model. For ENTO {FORMAT_VERSION}, r(n) = (H + PADME(n + 8)) / n because the encrypted body carries "
+            "an eight-byte original-length prefix before PADME bucketing. The maximum absolute residual is reported "
+            "as a fidelity badge, confirming a spec-fixed identity rather than a statistical fit."
         ),
         label="fig:expansion_law",
         filename="expansion_law.png",
@@ -449,45 +438,11 @@ def _build_figure_specs() -> tuple[FigureSpec, ...]:
         condition_prefix=MEDIUM_TRACK_PREFIX,
         observability_level=AUDITABLE_LEVEL,
     )
-    format_ladder = _registered_spec(
-        summary=(
-            f"ENTO format ladder for the supported AES-256-GCM wire formats: compatibility 0.2.0, 0.3.0, 0.3.1, and 0.4.0, "
-            f"followed by the current default {FORMAT_VERSION} profile with exported-manifest context binding; the padded "
-            "profiles use PADME length padding."
-        ),
-        label="fig:format_ladder",
-        filename="format_ladder.png",
-        generator_name="generate_format_ladder_figure",
-        kind="ladder",
-        manuscript_section="security",
-        figsize_key="wide",
-        caption=(
-            f"ENTO format ladder for supported AES-256-GCM wire formats. The default write format is {FORMAT_VERSION} "
-            "with exported-manifest context binding, while 0.2.0, 0.3.0, 0.3.1, and 0.4.0 remain "
-            "version-dispatched compatibility formats. "
-            "Filters: all benchmark rows. Data from `ento_benchmark_results.csv`. Generated by "
-            "`generate_format_ladder_figure` in `src/figures.py`."
-        ),
-    )
-    format_compatibility = _registered_spec(
-        summary=(
-            "Compatibility matrix for every supported ENTO wire format. It distinguishes read/write support from "
-            "the default writer choice and shows which formats carry the 12-byte nonce, associated-data binding, "
-            "and PADME length padding."
-        ),
-        label="fig:format_compatibility_matrix",
-        filename="format_compatibility_matrix.png",
-        generator_name="generate_format_compatibility_matrix_figure",
-        kind="heatmap",
-        manuscript_section="security",
-        figsize_key="wide",
-    )
     length_leakage = _registered_spec(
         summary=(
-            f"Track member bytes versus plaintext bytes for compatibility 0.2.0 and default {FORMAT_VERSION}. The 0.2.0 line rises "
-            f"one-for-one with plaintext length, while the {FORMAT_VERSION} step profile reveals only PADME buckets plus the "
-            "fixed AEAD header. The bucket size remains visible; this is mitigation of exact-length disclosure, "
-            "not total traffic-analysis resistance."
+            f"Track member bytes versus plaintext bytes for ENTO {FORMAT_VERSION}. The step profile reveals only "
+            "PADME buckets plus the fixed AEAD header. The bucket size remains visible; this is mitigation of "
+            "exact-length disclosure, not total traffic-analysis resistance."
         ),
         label="fig:length_leakage_profile",
         filename="length_leakage_profile.png",
@@ -622,8 +577,6 @@ def _build_figure_specs() -> tuple[FigureSpec, ...]:
         expansion_law,
         throughput_dispersion,
         determinism_cv,
-        format_ladder,
-        format_compatibility,
         length_leakage,
         conformance_outcomes,
         observability_redaction,

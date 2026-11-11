@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import zipfile
 from pathlib import Path
 
@@ -12,7 +11,7 @@ from src import container, crypto
 from src.conformance import (
     CONFORMANCE_KEY,
 )
-from src.errors import ContainerError, IntegrityError
+from src.errors import IntegrityError, ManifestError
 
 
 def test_conformance_fixture_malformed_json_rejected(tmp_path: Path) -> None:
@@ -22,15 +21,15 @@ def test_conformance_fixture_malformed_json_rejected(tmp_path: Path) -> None:
         zf.writestr("manifest.json", b"{ invalid json content ...")
         zf.writestr("tracks/alpha.ento", b"some bytes")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ManifestError):
         container.verify_container(bad_zip, require_integrity=True)
 
-    with pytest.raises((ContainerError, ValueError, json.JSONDecodeError)):
+    with pytest.raises(ManifestError):
         container.unpack_container(bad_zip, CONFORMANCE_KEY)
 
 
 def test_conformance_fixture_uncanonical_padding_rejected(tmp_path: Path) -> None:
-    """PADME padded formats (0.3.1, 0.4.0, 0.5.0) must strictly reject invalid/non-canonical padding."""
+    """ENTO 0.5.0 strictly rejects invalid and non-canonical PADMÉ padding."""
     track_key = crypto.derive_track_key(CONFORMANCE_KEY, "alpha")
 
     # 0.5.0 payload with corrupt padding length

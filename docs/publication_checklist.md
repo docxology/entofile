@@ -1,8 +1,8 @@
 # Publication readiness — entofile 0.5 paper release candidate
 
-Manuscript **0.5** documents default ENTO format **0.5.0** (AES-256-GCM,
-manifest-context AAD, PADMÉ). Compatibility formats are **0.2.0**, **0.3.0**,
-**0.3.1**, and **0.4.0**. Public source is `https://github.com/docxology/entofile`.
+Manuscript **0.5** documents ENTO format **0.5.0** only (AES-256-GCM,
+manifest-context AAD, mandatory PADMÉ). Every other wire version is rejected.
+Public source is `https://github.com/docxology/entofile`.
 The physical SDK consumer is `projects/working/entofile`.
 
 ## Required generation and certification
@@ -60,6 +60,6 @@ the signing procedure. Opt-in LLM stages remain disabled in project configuratio
 | Label | Value | Meaning |
 | --- | --- | --- |
 | Manuscript `paper.version` | 0.5 | Current paper release candidate |
-| ENTO default write | 0.5.0 | Current authenticated-manifest format |
-| Compatibility formats | 0.2.0, 0.3.0, 0.3.1, 0.4.0 | Explicit predecessor profiles |
+| ENTO wire format | 0.5.0 | Sole accepted authenticated-manifest format |
+| Python runtime | 3.15 | Sole supported interpreter |
 | Python package | 0.5.0 | Current package release line |

@@ -6,8 +6,8 @@
 - ENTO format version {{FORMAT_VERSION}} (suite {{CRYPTO_BACKEND_DEFAULT}})
 - Manuscript config version {{CONFIG_VERSION}} (paper version {{PAPER_VERSION}})
 
-The interpreter above describes manuscript hydration. Analysis and test jobs can
-use separate locked environments; it does not identify every benchmark process.
+The interpreter above describes manuscript hydration. Analysis, rendering, and
+test jobs all require Python 3.15 in their respective locked environments.
 
 ## Fixtures
 

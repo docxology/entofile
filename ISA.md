@@ -1,9 +1,9 @@
 ---
 project: entofile
-task: ENTO 0.5.0 default migration with 0.2.0-0.4.0 compatibility
+task: Python 3.15 and ENTO 0.5.0 clean break
 effort: E4
 phase: verify
-progress: 0.5.0 default migration implemented; full regenerated evidence, live endpoints, and clean-head parity green
+progress: active clean-break implementation and publication contract
 mode: algorithm
 started: 2026-05-28
 updated: 2026-07-15
@@ -13,8 +13,8 @@ updated: 2026-07-15
 
 > Historical note: this file records the 2026-05-28 to 2026-05-29 hardening
 > sequence that began with ENTO format 0.2.0. It is not current release
-> guidance. The 0.5.0 release uses wire format 0.5.0 as the default while
-> retaining 0.2.0, 0.3.0, 0.3.1, and 0.4.0 as compatibility formats.
+> guidance. The active implementation requires Python 3.15 and accepts ENTO
+> 0.5.0 only; every other wire version is rejected.
 
 ## Problem
 

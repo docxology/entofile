@@ -1,10 +1,11 @@
-"""Tests for ENTO cryptography."""
+"""Tests for ENTO 0.5.0 cryptography."""
 
 from __future__ import annotations
 
 import pytest
 
 from src.crypto import (
+    FORMAT_VERSION,
     MASTER_KEY_SIZE,
     TAG_SIZE,
     decrypt_payload,
@@ -13,6 +14,9 @@ from src.crypto import (
     generate_master_key,
     hkdf_sha256,
 )
+from src.errors import IntegrityError
+
+_BINDING = "a" * 64
 
 
 def test_hkdf_is_deterministic() -> None:
@@ -28,10 +32,20 @@ def test_encrypt_decrypt_round_trip() -> None:
     track_key = derive_track_key(master, "eeg")
     plaintext = b"hello ento container"
     nonce, tag, ciphertext = encrypt_payload(
-        track_key, plaintext, format_version="0.4.0", track_id="eeg"
+        track_key,
+        plaintext,
+        format_version=FORMAT_VERSION,
+        track_id="eeg",
+        manifest_binding=_BINDING,
     )
     recovered = decrypt_payload(
-        track_key, nonce, tag, ciphertext, format_version="0.4.0", track_id="eeg"
+        track_key,
+        nonce,
+        tag,
+        ciphertext,
+        format_version=FORMAT_VERSION,
+        track_id="eeg",
+        manifest_binding=_BINDING,
     )
     assert recovered == plaintext
 
@@ -41,11 +55,21 @@ def test_wrong_key_rejected() -> None:
     track_key = derive_track_key(master, "eeg")
     wrong_key = derive_track_key(generate_master_key(), "eeg")
     nonce, tag, ciphertext = encrypt_payload(
-        track_key, b"secret", format_version="0.4.0", track_id="eeg"
+        track_key,
+        b"secret",
+        format_version=FORMAT_VERSION,
+        track_id="eeg",
+        manifest_binding=_BINDING,
     )
-    with pytest.raises(ValueError, match="authentication tag mismatch"):
+    with pytest.raises(IntegrityError, match="authentication tag mismatch"):
         decrypt_payload(
-            wrong_key, nonce, tag, ciphertext, format_version="0.4.0", track_id="eeg"
+            wrong_key,
+            nonce,
+            tag,
+            ciphertext,
+            format_version=FORMAT_VERSION,
+            track_id="eeg",
+            manifest_binding=_BINDING,
         )
 
 
@@ -53,18 +77,23 @@ def test_tamper_detection() -> None:
     master = generate_master_key()
     track_key = derive_track_key(master, "vcf")
     nonce, tag, ciphertext = encrypt_payload(
-        track_key, b"payload", format_version="0.4.0", track_id="vcf"
+        track_key,
+        b"payload",
+        format_version=FORMAT_VERSION,
+        track_id="vcf",
+        manifest_binding=_BINDING,
     )
     corrupted = bytearray(ciphertext)
     corrupted[0] ^= 0xFF
-    with pytest.raises(ValueError, match="authentication tag mismatch"):
+    with pytest.raises(IntegrityError, match="authentication tag mismatch"):
         decrypt_payload(
             track_key,
             nonce,
             tag,
             bytes(corrupted),
-            format_version="0.4.0",
+            format_version=FORMAT_VERSION,
             track_id="vcf",
+            manifest_binding=_BINDING,
         )
 
 
@@ -74,5 +103,11 @@ def test_master_key_length() -> None:
 
 def test_tag_size() -> None:
     track_key = derive_track_key(generate_master_key(), "x")
-    _, tag, _ = encrypt_payload(track_key, b"x", format_version="0.4.0", track_id="x")
+    _, tag, _ = encrypt_payload(
+        track_key,
+        b"x",
+        format_version=FORMAT_VERSION,
+        track_id="x",
+        manifest_binding=_BINDING,
+    )
     assert len(tag) == TAG_SIZE

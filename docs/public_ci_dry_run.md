@@ -8,7 +8,8 @@ artifacts, or mutate Zenodo.
 
 ## Non-Publishing Contract
 
-- Run on pull requests and pushes to `main` (see `.github/workflows/ci.yml`).
+- Run on pull requests, pushes to `main`, explicit manual dispatches, and a weekly
+  scheduled regression check (see `.github/workflows/ci.yml`).
 - Use read-only repository permissions by default.
 - Upload temporary CI artifacts only when needed for review; do not publish
   release assets.
@@ -17,14 +18,14 @@ artifacts, or mutate Zenodo.
 - Keep signing commands documented but disabled unless a release operator
   explicitly runs the public release workflow.
 
-## Local Command to CI Job Map
+## Local Command to CI Stage Map
 
-| Local command | CI job | Purpose | Publish side effect |
+| Local command | CI stage | Purpose | Publish side effect |
 | --- | --- | --- | --- |
 | `uv run python scripts/run_tests.py` | `test` | Certify live project tests and coverage from source, writing the structured sidecar. | None |
-| `uvx ruff check src/ tests/ scripts/` | `lint` | Lint gate. | None |
+| `uv run ruff check src/ tests/ scripts/` | `lint` | Lint gate. | None |
 | `uv run --extra dev mypy src/` | `lint` | Type gate — MUST use the dev extra so stub packages (`types-PyYAML`, `types-jsonschema`) are installed; a stub-less invocation errors out early and silently shrinks the checked surface (this hid 13 real errors until 2026-06-10). | None |
-| `grep -r "unittest.mock\\|MagicMock\\|@patch" tests/` | `test` | Preserve the no-mock evidence boundary. | None |
+| `./run.sh no-mocks` | `test` | Fail on prohibited mock usage or scanner errors; preserve the no-mock evidence boundary. | None |
 | `uv run python scripts/ento_analysis.py` | `analysis` | Regenerate benchmark and validation reports. | None |
 | `uv run python scripts/export_sbom.py` | `supply-chain` | Generate the CycloneDX SBOM surface for review. | None |
 | `uv run python scripts/generate_conformance_fixtures.py` | `conformance` | Rebuild deterministic known-good and known-bad fixtures. | None |
@@ -39,7 +40,7 @@ artifacts, or mutate Zenodo.
 ## Executable workflow
 
 `.github/workflows/ci.yml` is the executable source of truth, with immutable action
-and SDK pins and Python 3.10/3.12/3.14 consumer cells. It renders genuine PDF/HTML,
+and SDK pins and a single Python 3.15 consumer cell. It renders genuine PDF/HTML,
 runs the complete test suite, then rehydrates measured values and certifies live
 tests in the SDK environment. The complete current-output snapshot and stage 04
 validation precede the final outer `release/` envelope and checksum verification.
@@ -47,7 +48,15 @@ No template-render-dependent test is excluded. See
 [`rendering_pipeline.md`](rendering_pipeline.md) for the matching local sequence;
 do not use an abbreviated example that tests before generating its prerequisites.
 
-The live endpoint command remains a separate manual job; run it before publishing
-to confirm the promoted public home, DOI, and Zenodo record resolve. Artifact
-signing also stays outside this dry run; see
-[`provenance_signing.md`](provenance_signing.md).
+Pull-request updates cancel only superseded runs for the same pull request.
+Maintainers can also dispatch the workflow manually. A weekly Monday 09:17 UTC run
+checks the locked source against fresh hosted-image, Python-patch, and native-package state.
+On failure, explicitly listed public reports, rendered deliverables, and release metadata
+are retained from both the project and pinned SDK clone as temporary CI diagnostics
+for seven days; they are not release assets.
+
+The live endpoint command runs only through the separately dispatched
+[`public-endpoints` workflow](../.github/workflows/public-endpoints.yml); it never
+runs on push or pull request. Run it before publishing to confirm the promoted
+public home, DOI, and Zenodo record resolve. Artifact signing also stays outside
+this dry run; see [`provenance_signing.md`](provenance_signing.md).

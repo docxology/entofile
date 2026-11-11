@@ -1,9 +1,8 @@
 """ENTO AES-256-GCM via the ``cryptography`` package.
 
-Version-aware AEAD core. The nonce length and associated-data are supplied by the
-caller (``src/crypto.py`` derives them from ``format_version``): 0.2.0 uses a
-16-byte nonce and no AAD; 0.3.0-0.4.0 bind ``format_version`` + ``track_id``;
-0.5.0 additionally binds the canonical exported-manifest context.
+The facade supplies the current 12-byte nonce size and manifest-context associated
+data. Explicit nonce sizes remain available at this raw primitive boundary for
+version-independent AES test vectors.
 """
 
 from __future__ import annotations
@@ -16,7 +15,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from .errors import IntegrityError
 
-NONCE_SIZE: Final[int] = 16
+NONCE_SIZE: Final[int] = 12
 TAG_SIZE: Final[int] = 16
 
 
@@ -59,7 +58,7 @@ def decrypt_payload(
     nonce_size: int = NONCE_SIZE,
     aad: bytes | None = None,
 ) -> bytes:
-    """Decrypt AES-256-GCM payload. Raises ValueError on auth failure."""
+    """Decrypt AES-256-GCM payload. Raises IntegrityError on auth failure."""
     if len(track_key) != 32:
         raise ValueError("track key must be 32 bytes")
     if len(nonce) != nonce_size:

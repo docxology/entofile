@@ -10,6 +10,10 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
+import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -28,6 +32,22 @@ from src.publication import (
 _INSIDE_LIVE_RUN = bool(os.environ.get(_LIVE_RUN_ENV))
 
 
+@contextmanager
+def _live_run_environment(value: str | None) -> Iterator[None]:
+    previous = os.environ.get(_LIVE_RUN_ENV)
+    if value is None:
+        os.environ.pop(_LIVE_RUN_ENV, None)
+    else:
+        os.environ[_LIVE_RUN_ENV] = value
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop(_LIVE_RUN_ENV, None)
+        else:
+            os.environ[_LIVE_RUN_ENV] = previous
+
+
 def _forged_green_project(root: Path) -> None:
     (root / "output" / "reports").mkdir(parents=True)
     (root / "output" / "reports" / "test_results.json").write_text(
@@ -38,6 +58,27 @@ def _forged_green_project(root: Path) -> None:
 def test_live_command_clears_pytest_cache(tmp_path: Path) -> None:
     command = _live_test_command(tmp_path / "junit.xml", tmp_path / "coverage.json")
     assert "--cache-clear" in command
+
+
+def test_audit_rejects_invalid_timeout(tmp_path: Path) -> None:
+    script = Path(__file__).resolve().parent.parent / "scripts" / "audit_publication_readiness.py"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--project-root",
+            str(tmp_path),
+            "--check",
+            "--live-test-timeout",
+            "0",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=10,
+    )
+    assert completed.returncode == 2
+    assert "--live-test-timeout must be a positive finite number" in completed.stderr
 
 
 def test_live_output_tail_is_bounded() -> None:
@@ -76,26 +117,21 @@ def test_live_summary_fail_closed_on_no_tests(tmp_path: Path) -> None:
     assert summary["source"] == "live"
 
 
-def test_live_summary_refuses_recursion_when_guard_set(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_live_summary_refuses_recursion_when_guard_set(tmp_path: Path) -> None:
     """When the recursion-guard env is already set, the live runner refuses (fail-closed)
     instead of spawning a nested pytest."""
-    monkeypatch.setenv(_LIVE_RUN_ENV, "1")
-    summary = _run_live_test_summary(tmp_path)
+    with _live_run_environment("1"):
+        summary = _run_live_test_summary(tmp_path)
     assert summary["all_passed"] is False
     assert "recursion guard" in summary["detail"]
 
 
-def test_live_summary_passes_on_a_real_green_temp_project(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_live_summary_passes_on_a_real_green_temp_project(tmp_path: Path) -> None:
     """A minimal real temp project with a passing test + a covered module must yield
     all_passed True and a numeric coverage — proves the parser binds real success,
     not just fail-closed on everything."""
     # This is an isolated temp project, so it is safe to exercise the subprocess
     # path even when the enclosing certifying suite has the recursion guard set.
-    monkeypatch.delenv(_LIVE_RUN_ENV, raising=False)
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "__init__.py").write_text("")
     (tmp_path / "src" / "mod.py").write_text("def add(a, b):\n    return a + b\n")
@@ -106,7 +142,8 @@ def test_live_summary_passes_on_a_real_green_temp_project(
     (tmp_path / "pyproject.toml").write_text(
         "[tool.pytest.ini_options]\npythonpath = ['.']\n"
     )
-    summary = _run_live_test_summary(tmp_path)
+    with _live_run_environment(None):
+        summary = _run_live_test_summary(tmp_path)
     assert summary["all_passed"] is True, summary
     assert summary["collected"] >= 1
     assert isinstance(summary["project_coverage"], float)
@@ -126,21 +163,79 @@ def test_live_summary_fails_on_a_real_failing_temp_project(tmp_path: Path) -> No
         assert summary["collected"] >= 1
 
 
-def test_live_summary_kills_timed_out_process_group(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """A timeout must terminate pytest descendants instead of hanging on open pipes."""
-    from src import publication
+@pytest.mark.skipif(os.name != "posix", reason="POSIX process-group contract")
+def test_live_summary_kills_timed_out_process_group(tmp_path: Path) -> None:
+    """A timeout must terminate pytest and its descendants within bounded cleanup."""
+    from tests.test_run_tests_runner import _HANGING_TEST, _assert_process_gone
 
-    monkeypatch.delenv(_LIVE_RUN_ENV, raising=False)
-    monkeypatch.setattr(publication, "_LIVE_RUN_TIMEOUT_S", 0.05)
     (tmp_path / "tests").mkdir()
-    (tmp_path / "tests" / "test_slow.py").write_text(
-        "import time\n\n\ndef test_slow():\n    time.sleep(10)\n"
-    )
-    summary = _run_live_test_summary(tmp_path)
+    (tmp_path / "tests" / "test_slow.py").write_text(_HANGING_TEST)
+    with _live_run_environment(None):
+        summary = _run_live_test_summary(tmp_path, timeout=5.0)
     assert summary["all_passed"] is False
     assert "subprocess failed" in summary["detail"]
+    _assert_process_gone(int((tmp_path / "descendant.pid").read_text()))
+
+
+@pytest.mark.skipif(
+    _INSIDE_LIVE_RUN, reason="side-file fallback is bypassed inside a live certifying run"
+)
+def test_sdk_validation_report_is_accepted_by_evidence_fallback(tmp_path: Path) -> None:
+    from src.publication import _evidence_issues
+
+    reports = tmp_path / "output" / "reports"
+    reports.mkdir(parents=True)
+    (reports / "validation_report.json").write_text(
+        json.dumps(
+            {
+                "summary": {"all_passed": True, "failed": 0},
+                "checks": {"PDF validation": True, "Markdown validation": True},
+                "figure_issues": [],
+                "output_statistics": {"evidence_issues": []},
+            }
+        )
+    )
+    issues, source = _evidence_issues(tmp_path)
+    assert source == "side-file"
+    assert issues == []
+
+
+@pytest.mark.skipif(
+    _INSIDE_LIVE_RUN, reason="side-file fallback is bypassed inside a live certifying run"
+)
+def test_failed_sdk_report_is_an_evidence_issue(tmp_path: Path) -> None:
+    from src.publication import _evidence_issues
+
+    reports = tmp_path / "output" / "reports"
+    reports.mkdir(parents=True)
+    (reports / "validation_report.json").write_text(
+        json.dumps(
+            {
+                "summary": {"all_passed": False, "failed": 1},
+                "checks": {"PDF validation": False},
+                "figure_issues": ["broken figure"],
+            }
+        )
+    )
+    issues, source = _evidence_issues(tmp_path)
+    assert source == "side-file"
+    assert "broken figure" in issues
+
+
+@pytest.mark.skipif(
+    _INSIDE_LIVE_RUN, reason="side-file fallback is bypassed inside a live certifying run"
+)
+def test_failed_standalone_report_is_an_evidence_issue(tmp_path: Path) -> None:
+    from src.publication import _evidence_issues
+
+    reports = tmp_path / "output" / "reports"
+    reports.mkdir(parents=True)
+    (reports / "validation_report.json").write_text(
+        json.dumps({"ok": False, "issues": ["No manuscript markdown files found"]})
+    )
+    issues, source = _evidence_issues(tmp_path)
+    assert source == ("live" if _INSIDE_LIVE_RUN else "side-file")
+    assert "No manuscript markdown files found" in issues
 
 
 def test_certifying_path_runs_live_conformance(tmp_path: Path) -> None:

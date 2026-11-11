@@ -6,12 +6,10 @@ Manuscript authoring reference. Project overlay: [`../manuscript/SYNTAX.md`](man
 
 | Token | Meaning |
 | --- | --- |
-| `FORMAT_VERSION` | `0.5.0` |
-| `FORMAT_VERSION_PREVIOUS` | Explicit compatibility profile `0.4.0` |
-| `FORMAT_VERSION_NEXT` | Deprecated source-compatible alias for current `0.5.0` |
-| `FORMAT_NEXT_AAD_TEMPLATE` | 0.5.0 AAD template |
-| `FORMAT_VERSIONS_COMPATIBILITY` | Prior supported wire formats |
-| `FORMAT_DEFAULT_EXPANSION_MODEL` | Default format expansion-law wording |
+| `FORMAT_VERSION` | Sole ENTO wire format (`0.5.0`) |
+| `FORMAT_AAD_TEMPLATE` | 0.5.0 manifest-context AAD template |
+| `FORMAT_BINDING_DESCRIPTION` | Description of the authenticated manifest context |
+| `FORMAT_DEFAULT_EXPANSION_MODEL` | Current format expansion-law wording |
 | `CONFIG_BENCHMARK_REPETITIONS` | Benchmark repetitions |
 | `CONFIG_BENCHMARK_PILOT_REPETITIONS` | Pilot repetition baseline |
 | `CONFIG_BENCHMARK_REPETITION_SCALE` | Repetition multiplier relative to the pilot setting |

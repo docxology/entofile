@@ -1,10 +1,10 @@
 # entofile threat model
 
-AppSec-oriented threat model for ENTO (`projects/working/entofile`). Packs default to `format_version` **0.5.0** (AES-256-GCM with AAD, PADMÉ padding, and authenticated exported-manifest context); compatibility formats **0.2.0**, **0.3.0**, **0.3.1**, and **0.4.0** are version-dispatched and supported for write/read.
+AppSec-oriented threat model for ENTO (`projects/working/entofile`). Only `format_version` **0.5.0** is accepted: AES-256-GCM with AAD, mandatory PADMÉ padding, and authenticated exported-manifest context. Every other wire version is rejected.
 
 ## Executive summary
 
-ENTO is an offline CLI/library for encrypted research ZIP containers. Top risks are **hostile-archive ingestion** (ZIP/member tampering, path escape via track IDs), **integrity bypass**, and **operational key handling** (no in-repo HSM/signing). The default 0.5.0 write path, 0.4.0 compatibility path, and prior compatibility paths use audited AEAD (`cryptography`); residual gaps include unsigned ZIP metadata, visible padded bucket sizes, optional proof at level 0, and no replay timestamps.
+ENTO is an offline CLI/library for encrypted research ZIP containers. Top risks are **hostile-archive ingestion** (ZIP/member tampering, path escape via track IDs), **integrity bypass**, and **operational key handling** (no in-repo HSM/signing). The 0.5.0 read/write path uses audited AEAD (`cryptography`); residual gaps include unsigned ZIP metadata, visible padded bucket sizes, optional proof at level 0, and no replay timestamps.
 
 ### Integrity model — what actually authenticates (read first)
 
@@ -30,48 +30,22 @@ matched — corruption detection), or `"unverified"` (keyless, digests absent). 
 `require_integrity=True` to fail closed on `"unverified"`. For adversarial assurance, always
 verify (or unpack) **with the key**.
 
-### Format ladder
+### Current wire profile
 
-Default writes use 0.5.0. The compatibility 0.4.0 profile and legacy formats remain selectable via `pack --format 0.4.0|0.3.1|0.3.0|0.2.0` / `pack_container(..., format_version=...)`; verify/unpack dispatch on the manifest's `format_version`.
+ENTO 0.5.0 is the only accepted format. The `pack` CLI has no format selector,
+and readers reject every other manifest version. Each track uses a fresh random
+96-bit (12-byte) GCM nonce and AAD of
+`ento:0.5.0:manifest:{manifest_binding}:track:{track_id}`. This binds the format,
+track id, and exported manifest projection to the authentication tag. The public
+binding is not a signature of origin.
 
-**0.3.0** changes two things on the wire:
-
-- **96-bit (12-byte) nonce** — the SP 800-38D-recommended GCM nonce length (replaces 0.2.0's 16-byte nonce). Still a fresh CSPRNG draw per encryption.
-- **AEAD associated data** = `ento:0.3.0:track:<track_id>` — binds the **format version** and **track id** to the authentication tag. A format downgrade (rewriting the manifest to `0.2.0`) or a cross-track relabel now fails the GCM tag, closing the unauthenticated-header gap for fields with a stable, reconstructible value. Manifest fields with no decrypt-time analogue (creator, timestamps) remain unauthenticated — sign externally if origin authentication is required.
-
-**0.3.1** = 0.3.0 **+ PADMÉ length-padding** (AAD = `ento:0.3.1:track:<track_id>`). Each track's plaintext is length-prefixed and padded up to a PADMÉ bucket [@nikitin2019purb] before encryption, so the on-disk ciphertext size reveals only the bucket, not the exact plaintext length — closing the length side-channel (below). PADMÉ overhead is O(log log L) (≈6% at 4 KiB). The padding scheme is bound by the version in the AAD, so a padded↔unpadded downgrade fails authentication. Use 0.3.1 when length analysis is in scope (e.g. SEALED exports of low-entropy/enumerated payloads).
-
-**0.4.0** is the previous compatibility profile: it promotes the 0.3.1 security
-profile with AAD = `ento:0.4.0:track:<track_id>`.
-**0.5.0** is the default, keeps the same binary layout, and additionally carries a
-`manifest_binding` over the exported manifest projection. Every track binds
-`ento:0.5.0:manifest:{manifest_binding}:track:{track_id}` as GCM AAD. This
-authenticates the metadata context used for interpretation when the key is
-available; the public binding is still not a signature of origin.
-AES-GCM-SIV is a future-format candidate when deployments cannot bound nonce
-uniqueness assumptions, but ENTO does not implement it in 0.5.0 [@rfc8452].
-
-### Nonce and AAD (legacy compatibility format 0.2.0)
-
-- **16-byte nonce, randomly generated.** Each nonce is `secrets.token_bytes(16)` — a fresh CSPRNG
-  draw per encryption, never a counter (so there is no counter-reuse hazard). Standard AES-GCM uses
-  a 96-bit (12-byte) nonce; the 16-byte nonce exercises GCM's GHASH-based J0 derivation, a
-  deliberate deviation from SP 800-38D §8.2. Because nonces are random and 128-bit, the
-  birthday-bound collision margin is *larger* than the 96-bit case: stay below ~2⁴⁸ messages **per
-  track key** for a <2⁻³² collision probability (the per-track HKDF derivation means this budget is
-  per track, not global). It is **frozen** for legacy 0.2.0 compatibility; 0.3.0 introduced the
-  96-bit nonce/AAD profile and 0.5.0 is the current default. A repeated GCM nonce under the same key is still a catastrophic
-  misuse condition, not a recoverable validation warning [@joux2006forbidden; @bock2016nonce].
-- **What "key-authenticated" covers.** In 0.2.0 GCM with no AAD authenticates the **track plaintext** only.
-  The track_id is bound via the HKDF `info` label, so cross-track swaps fail. Unkeyed manifest
-  header fields (`format_version`, `observability_level`, `creator`) are **not** authenticated at
-  any level; a keyed verify still cannot be downgraded by mutating them, because the integrity
-  level is derived from the decrypt attempt, not read from the header.
-- **No AAD.** Tracks are encrypted with `associated_data=None`. Track context is bound via the
-  HKDF `info` label (above) rather than GCM AAD, so a cross-track ciphertext swap is already
-  rejected by key derivation. Binding `format_version`/manifest fields as explicit AAD is a
-  defense-in-depth improvement introduced in 0.3.0 and retained in the 0.4.0 compatibility path (0.5.0 additionally binds the exported manifest context; it changes
-  the authenticated input and would not decrypt existing 0.2.0 containers).
+Every plaintext is length-prefixed and padded to a canonical PADMÉ bucket before
+encryption [@nikitin2019purb]. Keyed verification authenticates the padding and
+metadata context; keyless binding checks remain corruption detection only.
+Nonce reuse under one key is catastrophic, so fresh CSPRNG draws and per-track
+HKDF separation are mandatory [@joux2006forbidden; @bock2016nonce].
+AES-GCM-SIV is a possible separate research direction when deployments cannot
+bound nonce uniqueness, but ENTO does not implement it [@rfc8452].
 
 ## Scope and assumptions
 
@@ -170,7 +144,7 @@ flowchart LR
 5. **Extra member injection** — Hidden tracks/malware file in ZIP → **Mitigated:** member-set equality check (`assert_zip_members_match_manifest`).
 6. **Key exfil via world-readable genkey** — Local user reads key → **Partially mitigated:** `chmod 0600` on genkey; operator discipline required.
 7. **Sealed export metadata leak** — Level 0 still exposes track filenames in ZIP → Residual risk documented in manuscript §08.
-8. **Sealed plaintext-length disclosure** — at format 0.2.0/0.3.0, SEALED zeroes the manifest `byte_length`, but AES-GCM is length-preserving and containers are ZIP_STORED, so each track's plaintext length is still recoverable from its on-disk member size (`member_size − nonce − 16`). Formats 0.3.1, 0.4.0, and default 0.5.0 PADMÉ-pad the plaintext so the member size reveals only a bucket. Bucket size remains visible and should be treated as residual metadata.
+8. **Sealed plaintext-length disclosure** — ENTO 0.5.0 PADMÉ-pads every plaintext, so the on-disk member size reveals a bucket rather than exact length. Non-sealed manifests still expose `byte_length`, and bucket size remains visible even under SEALED export; both are residual metadata.
 
 ## Threat model table
 
@@ -183,7 +157,7 @@ flowchart LR
 | TM-005 | Weak crypto implementation | Confidentiality break | GCM regression vectors + tamper benchmarks | Not FIPS-validated deployment | HSM + FIPS module selection | medium |
 | TM-006 | No artifact signing | Supply-chain swap | Optional CycloneDX SBOM via `scripts/export_sbom.py` | No in-repo Sigstore/provenance policy | Sign releases and SBOMs externally using NIST C-SCRM / SLSA / in-toto style controls [@nist2022sp800161r1; @slsa2024levels; @torresarias2019intoto] | medium |
 | TM-007 | Key mishandling | Key theft | genkey CSPRNG, chmod 600 | No HSM/KMS or cryptoperiod policy | KMS/HSM integration and key-management policy outside the file format [@nistsp80057pt1r5] | high |
-| TM-008 | Sealed plaintext-length disclosure | Metadata inference | Default `0.5.0` plus compatibility `0.3.1`/`0.4.0` PADMÉ padding; explicit residual docs for `0.2.0`/`0.3.0` | Bucket size remains visible; exact length leaks in unpadded formats | Use a padded format for length-sensitive sealed exports | medium |
+| TM-008 | Sealed plaintext-length disclosure | Metadata inference | Mandatory ENTO `0.5.0` PADMÉ padding; sealed export zeroes `byte_length` | Bucket size remains visible; non-sealed manifests disclose exact length | Use sealed export and external traffic controls when bucket leakage is sensitive | medium |
 
 ## Criticality calibration
 

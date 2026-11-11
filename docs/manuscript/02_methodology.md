@@ -9,9 +9,8 @@ comes from successful keyed authentication, not from unkeyed JSON digests
 [@rfc5116; @dworkin2007gcm; @mcgrew2004gcm]. Third, wall-clock benchmark columns
 depend on host load and must be measured with dispersion rather than turned into
 reproducibility anchors. Fourth, the paper release label and wire-format string
-are distinct: paper {{PAPER_VERSION}} documents default wire format
-{{FORMAT_VERSION}}, while {{FORMAT_VERSIONS_COMPATIBILITY}} remain compatibility
-formats.
+are distinct: paper {{PAPER_VERSION}} documents wire format {{FORMAT_VERSION}},
+the only version accepted by the reference implementation.
 
 ## Container layout
 
@@ -41,7 +40,7 @@ byte 0                {{NONCE_BYTES}}                 {{TRACK_HEADER_BYTES}}    
        {{NONCE_BYTES}} bytes           {{TAG_BYTES}} bytes              variable length
 ```
 
-The first {{NONCE_BYTES}} bytes are the AES-256-GCM nonce and the next {{TAG_BYTES}} bytes are the authentication tag for `format_version` **{{FORMAT_VERSION}}** (a fixed {{TRACK_HEADER_BYTES}}-byte header in total), followed by the ciphertext body. Under the default profile, that body is the PADMÉ-padded plaintext with an original-length prefix; compatibility formats without padding keep a length-preserving body. The default {{FORMAT_VERSION}} AAD also carries the canonical binding of the exported manifest view. The canonical machine-readable definition is the Kaitai Struct spec in `data/ento_track_header.ksy`, using the `.ksy` declarative binary-format language [@kaitai2026]. Decryption recomputes and verifies the tag *before* releasing any plaintext — a corrupted or forged byte makes the whole track fail closed ([@sec:security_verification]). This layout fixes the version-aware ciphertext-expansion law {{FORMAT_DEFAULT_EXPANSION_MODEL}} ([@eq:expansion_law] in [@sec:formal_model]).
+The first {{NONCE_BYTES}} bytes are the AES-256-GCM nonce and the next {{TAG_BYTES}} bytes are the authentication tag for `format_version` **{{FORMAT_VERSION}}** (a fixed {{TRACK_HEADER_BYTES}}-byte header in total), followed by the ciphertext body. That body is always the PADMÉ-padded plaintext with an original-length prefix. The {{FORMAT_VERSION}} AAD also carries the canonical binding of the exported manifest view. The canonical machine-readable definition is the Kaitai Struct spec in `data/ento_track_header.ksy`, using the `.ksy` declarative binary-format language [@kaitai2026]. Decryption recomputes and verifies the tag *before* releasing any plaintext — a corrupted or forged byte makes the whole track fail closed ([@sec:security_verification]). This layout fixes the version-aware ciphertext-expansion law {{FORMAT_DEFAULT_EXPANSION_MODEL}} ([@eq:expansion_law] in [@sec:formal_model]).
 
 ### Worked example
 
@@ -64,10 +63,9 @@ HKDF-SHA256 [@krawczyk2010hkdf; @nistfips1804] (`info =
 "ento:track:{track_id}"`). HKDF is used here as a key-separation tool: one
 master key enters the container workflow, but each track receives a distinct
 subkey labelled by its track id. Master keys are {{MASTER_KEY_BYTES}} random
-bytes from `genkey`. The default writer emits format {{FORMAT_VERSION}}; the
-decrypt path is version-dispatched across {{COUNT_SUPPORTED_FORMATS}} supported
-AES-256-GCM formats so default and compatibility containers remain readable. A
-fresh nonce is drawn per encryption under each per-track key because GCM treats
+bytes from `genkey`. Readers and writers accept only format {{FORMAT_VERSION}}
+and reject every other version before cryptographic processing. A fresh nonce
+is drawn per encryption under each per-track key because GCM treats
 the nonce like a one-time label for that key; reusing it can expose plaintext
 relationships and enable forgeries [@joux2006forbidden; @bock2016nonce].
 Nonce-misuse-resistant AEADs such as AES-GCM-SIV are a relevant future design
@@ -76,8 +74,7 @@ they are not implemented in ENTO {{FORMAT_VERSION}} [@rfc8452].
 
 | `format_version` | Encryption | Library |
 | --- | --- | --- |
-| {{FORMAT_VERSION}} (default) | AES-256-GCM with associated-data binding and PADMÉ padding [@nistfips197; @rfc5116; @dworkin2007gcm; @mcgrew2004gcm; @nikitin2019purb] | `cryptography` (`src/crypto_gcm.py`) |
-| {{FORMAT_VERSIONS_COMPATIBILITY}} (compatibility) | Version-dispatched AES-256-GCM profiles, including no-AAD, AAD-bound, and PADMÉ-padded variants | `cryptography` (`src/crypto_gcm.py`) |
+| {{FORMAT_VERSION}} | AES-256-GCM with associated-data binding and mandatory PADMÉ padding [@nistfips197; @rfc5116; @dworkin2007gcm; @mcgrew2004gcm; @nikitin2019purb] | `cryptography` (`src/crypto_gcm.py`) |
 
 AEAD means the ciphertext and selected cleartext context are checked together.
 For {{FORMAT_VERSION}}, the associated data contains the format version, the
@@ -98,7 +95,7 @@ Pinned regression vectors in `data/test_vectors/` lock HKDF and GCM backends acr
 
 ## Manifest schema
 
-`manifest.json` validates against Draft-07 JSON Schema in `data/ento_manifest_schema.json`. The schema accepts the supported format set ({{FORMAT_VERSIONS_SUPPORTED}}); the default writer uses **{{FORMAT_VERSION}}** unless a compatibility format is selected explicitly. Required fields include `observability_level` and per-track `type`, `sha256_plaintext`, `sha256_ciphertext`, and `byte_length`. Current format {{FORMAT_VERSION}} additionally requires `manifest_binding`, computed from the exported view using ENTO's documented strict JSON profile. Proof export hashes the exact JSON bytes emitted by `manifest_to_json`; the JCS specification defines a general JSON canonicalization scheme, but ENTO does not claim JCS interoperability in this release [@rfc8785].
+`manifest.json` validates against Draft-07 JSON Schema in `data/ento_manifest_schema.json`. The schema accepts only {{FORMAT_VERSION}} and requires the top-level `manifest_binding`, computed from the exported view using ENTO's documented strict JSON profile. Other required fields include `observability_level` and per-track `type`, `sha256_plaintext`, `sha256_ciphertext`, and `byte_length`. Proof export hashes the exact JSON bytes emitted by `manifest_to_json`; the JCS specification defines a general JSON canonicalization scheme, but ENTO does not claim JCS interoperability in this release [@rfc8785].
 
 ## Manifest footprint across tracks
 

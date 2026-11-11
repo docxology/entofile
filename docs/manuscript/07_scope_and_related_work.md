@@ -1,6 +1,6 @@
 # Scope and related work {#sec:scope}
 
-ENTO intentionally scopes out streaming servers, network transport, and ledger-specific proof verification. It specifies the default authenticated-context on-disk layout for **{{FORMAT_VERSION}}**, schema-valid supported format values ({{FORMAT_VERSIONS_SUPPORTED}}), and a reference Python implementation with offline verify and unpack.
+ENTO intentionally scopes out streaming servers, network transport, and ledger-specific proof verification. It specifies **{{FORMAT_VERSION}}** as the sole authenticated-context on-disk layout, rejects every other wire version, and provides a Python 3.15 reference implementation with offline verify and unpack.
 
 ## Related formats
 

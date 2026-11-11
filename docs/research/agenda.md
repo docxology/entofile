@@ -1,7 +1,7 @@
 # ENTO Research Agenda
 
-This agenda is the current research source of truth for the 0.5.0 release
-and its authenticated-manifest-context default. It
+This agenda is the current research source of truth for the Python 3.15,
+ENTO 0.5.0-only implementation and its authenticated-manifest-context contract. It
 separates claims that the reference implementation can establish from
 deployment, interoperability, and publication claims that require new
 experiments or external controls.
@@ -48,14 +48,15 @@ Competing hypotheses:
   ambiguities.
 
 Experiment: publish canonical JSON vectors, fixture hashes, expected outcomes,
-and a second implementation; compare pack/decrypt/verify behavior across all
-formats, malformed JSON, duplicate members, path escapes, and schema versions.
+and a second implementation; compare pack/decrypt/verify behavior across the
+0.5.0 fixture matrix, malformed JSON, duplicate members, path escapes, and
+explicit rejection of every other schema version.
 
 Metrics: case-level outcome parity, byte-level vector parity, rejected-hostile-
 input parity, and unexplained divergence count.
 
 Falsification: any unexplained byte or verdict divergence after protocol review.
-Stop rule: stop the compatibility claim until every divergence is classified.
+Stop rule: stop the interoperability claim until every divergence is classified.
 
 ### RQ-2 — Streaming safety
 
@@ -86,11 +87,11 @@ Stop rule: stop immediately on a verify-before-release violation.
 
 ### RQ-3 — Leakage and observability
 
-Question: What information remains visible at each format and observability level?
+Question: What information remains visible at each ENTO 0.5.0 observability level?
 
-Owner: DAF. Control: matched plaintexts in all supported formats and all four
-export levels. Repetition rationale: at least 30 matched size/content pairs per
-format and level, observed three times. Limits: archive-only measurements do not
+Owner: DAF. Control: matched plaintexts in ENTO 0.5.0 at all four export levels.
+Repetition rationale: at least 30 matched size/content pairs per level, observed
+three times. Limits: archive-only measurements do not
 model side channels, traffic analysis, or operator metadata.
 
 Competing hypotheses:
@@ -103,7 +104,7 @@ Competing hypotheses:
 
 Experiment: generate matched plaintexts with controlled content, sizes, track
   counts, and metadata; compare archive bytes, ZIP metadata, manifests, and
-  proof exports across all formats and levels.
+  proof exports across all ENTO 0.5.0 export levels.
 
 Metrics: observable field inventory, distinguishable-size classes, bucket width,
   manifest byte deltas, and attacker classification accuracy.
@@ -117,8 +118,8 @@ Stop rule: downgrade the claim to the measured leakage boundary.
 Question: Are the cryptographic primitives, nonce rules, AAD, and canonical
 padding independently reproducible and safely constrained?
 
-Owner: DAF. Control: pinned RFC/NIST vectors plus the ENTO 0.4.0/0.5.0 vectors,
-with legacy verdicts replayed unchanged. Repetition rationale: three independent
+Owner: DAF. Control: pinned RFC/NIST vectors plus the ENTO 0.5.0 vectors and
+explicit non-0.5.0 rejection cases. Repetition rationale: three independent
 implementations or language bindings must reproduce every fixed vector. Limits:
 vector parity does not prove nonce custody, random-source quality, or production
 key management.
@@ -126,18 +127,18 @@ key management.
 Competing hypotheses:
 
 - H4-A: standard HKDF/AES-GCM vectors plus ENTO-specific vectors fully specify the
-  current profiles.
+  current profile.
 - H4-B: the wire description omits an edge needed by an independent implementer.
 - H4-C: nonce-management assumptions are the dominant deployment risk and require
   an alternate profile rather than more prose.
 
 Experiment: add RFC/NIST known-answer vectors, cross-language vectors, nonce
-  uniqueness checks, downgrade tests, canonical-padding negatives, and profile
-  review for nonce-misuse-resistant alternatives.
+  uniqueness checks, old/unknown-version rejection cases, canonical-padding
+  negatives, and review of nonce-misuse-resistant alternatives.
 
-Metrics: vector parity, duplicate nonce count, downgrade rejection rate, and
-  unresolved specification questions.
-Falsification: any vector, nonce, downgrade, or canonical-padding mismatch.
+Metrics: vector parity, duplicate nonce count, non-current-version rejection
+  rate, and unresolved specification questions.
+Falsification: any vector, nonce, version-rejection, or canonical-padding mismatch.
 Stop rule: freeze profile claims until the mismatch is resolved.
 
 ### RQ-5 — Custody and recovery boundary
@@ -223,44 +224,48 @@ Metrics: field preservation, digest preservation, round-trip data equality,
 Falsification: any unreported data, digest, or metadata loss in a round trip.
 Stop rule: document the loss boundary before adding an extension.
 
-### RQ-8 — 0.5.0 default-migration validation
+### RQ-8 — 0.5.0 clean-break validation
 
-Question: Does making 0.5.0 the default prevent metadata reinterpretation while
-preserving redaction behavior and the earlier wire contracts?
+Question: Does accepting only 0.5.0 prevent metadata reinterpretation and reject
+every older or unknown wire version while preserving current redaction behavior?
 
 Competing hypotheses:
 
 - H8-A: binding the canonical exported manifest projection into every track's
   GCM AAD rejects creator, timestamp, observability, ordering, descriptor, and
   rebound-manifest mutations under a supplied key.
-- H8-B: the binding improves interpretation integrity but introduces
-  canonicalization or compatibility failures that are not present in 0.4.0.
+- H8-B: strict schema and cryptographic validation reject every non-0.5.0 input
+  without weakening current AEAD, padding, digest, or ZIP negative controls.
 - H8-C: even a correct public binding cannot establish origin; an external
   signature over the container or release bundle remains necessary.
 
-Control: 0.4.0 containers with format-plus-track AAD but no manifest-context
-binding, plus fixed 0.2.0/0.3.0/0.3.1 vectors.
+Control: valid 0.5.0 containers at every export level, paired with fixtures
+whose version labels are changed to older or unknown values without adding any
+reader support for those versions.
 
 Experiment: enumerate all four observability levels and each authenticated
 manifest field class; mutate each field once with the old binding, then
-recompute the public binding while retaining the original ciphertext. Run the
-fixed vector in independent implementations and compare canonical bytes,
-bindings, tags, decrypt verdicts, and legacy verdicts.
+recompute the public binding while retaining the original ciphertext. Verify
+that every non-0.5.0 label is rejected explicitly. Run the fixed 0.5.0 vector in
+independent implementations and compare canonical bytes, bindings, tags, and
+decrypt verdicts.
 
 Metrics: keyed mutation rejection rate, rebound-manifest rejection rate,
-redaction-level binding parity, independent vector byte parity, legacy verdict
-parity, canonicalization divergence count, and median pack overhead bytes.
-Generate at least three independent containers per level and field class; use
-three implementation repetitions before any interoperability claim.
+redaction-level binding parity, independent vector byte parity,
+non-current-version rejection rate, canonicalization divergence count, and
+median pack overhead bytes. Generate at least three independent containers per
+level and field class; use three implementation repetitions before any
+interoperability claim.
 
 Falsification: any keyed mutation accepted, any level that cannot round-trip,
-any legacy verdict change, or any unexplained canonicalization divergence.
+any non-0.5.0 input accepted, or any unexplained canonicalization divergence.
 Stopping rule: stop on the first such result and freeze profile claims until
 the discrepancy is classified and resolved.
 
-Limits: this cycle can show metadata-context authentication under a supplied
-key. It cannot prove origin, signature validity, KMS/HSM custody, streaming
-safety, or equivalence with RO-Crate, BagIt, HDF5, Zarr, or another ecosystem.
+Limits: this cycle can show metadata-context authentication and strict version
+rejection under a supplied key. It cannot prove origin, signature validity,
+KMS/HSM custody, streaming safety, or equivalence with RO-Crate, BagIt, HDF5,
+Zarr, or another ecosystem.
 
 ## Output contract
 

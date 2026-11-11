@@ -43,18 +43,17 @@ class ConformanceCase:
     description: str
 
 
-GOOD_CASES: tuple[ConformanceCase, ...] = tuple(
+GOOD_CASES: tuple[ConformanceCase, ...] = (
     ConformanceCase(
-        case_id=f"good-{version}",
-        filename=f"good-{version}.ento.zip",
+        case_id=f"good-{crypto.FORMAT_VERSION}",
+        filename=f"good-{crypto.FORMAT_VERSION}.ento.zip",
         category="known-good",
-        format_version=version,
+        format_version=crypto.FORMAT_VERSION,
         expected_verify_with_key=True,
         expected_verify_without_key=True,
         expected_unpack=True,
-        description=f"Valid ENTO {version} container with one auditable track.",
-    )
-    for version in crypto.SUPPORTED_FORMAT_VERSIONS
+        description=f"Valid ENTO {crypto.FORMAT_VERSION} container with one auditable track.",
+    ),
 )
 
 BAD_CASES: tuple[ConformanceCase, ...] = (
@@ -62,7 +61,7 @@ BAD_CASES: tuple[ConformanceCase, ...] = (
         case_id="bad-tamper",
         filename="bad-tamper.ento.zip",
         category="known-bad",
-        format_version=crypto.FORMAT_VERSION_LATEST,
+        format_version=crypto.FORMAT_VERSION,
         expected_verify_with_key=False,
         expected_verify_without_key=False,
         expected_unpack=False,
@@ -100,12 +99,12 @@ def generate_conformance_fixtures(output_dir: Path) -> Path:
     entries: list[dict[str, Any]] = []
     for case in GOOD_CASES:
         path = output_dir / case.filename
-        _write_good_container(path, case.format_version)
+        _write_good_container(path)
         entries.append(_manifest_entry(case, path))
 
-    good_latest = output_dir / f"good-{crypto.FORMAT_VERSION_LATEST}.ento.zip"
+    good_current = output_dir / f"good-{crypto.FORMAT_VERSION}.ento.zip"
     bad_tamper = output_dir / "bad-tamper.ento.zip"
-    bad_tamper.write_bytes(good_latest.read_bytes())
+    bad_tamper.write_bytes(good_current.read_bytes())
     _flip_first_track_byte(bad_tamper)
     entries.append(_manifest_entry(BAD_CASES[0], bad_tamper))
 
@@ -306,42 +305,29 @@ def _manifest_entry(case: ConformanceCase, path: Path) -> dict[str, Any]:
     }
 
 
-def _fixed_nonce(format_version: str) -> bytes:
-    """Return deterministic test nonce for conformance vector generation."""
-    size = crypto.nonce_size_for(format_version)
-    return bytes(range(1, size + 1))
+def _fixed_nonce() -> bytes:
+    """Return the deterministic 12-byte nonce for conformance vector generation."""
+    return bytes(range(1, crypto.NONCE_SIZE + 1))
 
 
-def _write_good_container(path: Path, format_version: str) -> None:
-    """Write a valid known-good container fixture for the given format version."""
+def _write_good_container(path: Path) -> None:
+    """Write a valid, padded and manifest-bound ENTO 0.5.0 container fixture."""
     track = CONFORMANCE_TRACK
     track_key = crypto.derive_track_key(CONFORMANCE_KEY, track.track_id)
-    plaintext = (
-        pad_payload(track.payload)
-        if crypto.pads_payload(format_version)
-        else track.payload
-    )
+    plaintext = pad_payload(track.payload)
     template = Manifest(
-        format_version=format_version,
+        format_version=crypto.FORMAT_VERSION,
         created=CONFORMANCE_CREATED,
         creator="entofile-conformance",
         observability_level=ObservabilityLevel.AUDITABLE,
-        tracks=(
-            build_track_descriptor(
-                track, b"", observability=3
-            ),
-        ),
+        tracks=(build_track_descriptor(track, b"", observability=3),),
     )
-    manifest_binding = (
-        compute_manifest_binding(template)
-        if crypto.requires_manifest_binding(format_version)
-        else None
-    )
+    manifest_binding = compute_manifest_binding(template)
     nonce, tag, ciphertext = crypto.encrypt_payload(
         track_key,
         plaintext,
-        _nonce=_fixed_nonce(format_version),
-        format_version=format_version,
+        _nonce=_fixed_nonce(),
+        format_version=crypto.FORMAT_VERSION,
         track_id=track.track_id,
         manifest_binding=manifest_binding,
     )
@@ -352,7 +338,7 @@ def _write_good_container(path: Path, format_version: str) -> None:
         ciphertext=ciphertext,
     )
     manifest = Manifest(
-        format_version=format_version,
+        format_version=crypto.FORMAT_VERSION,
         created=CONFORMANCE_CREATED,
         creator="entofile-conformance",
         observability_level=ObservabilityLevel.AUDITABLE,
@@ -374,7 +360,7 @@ def _write_good_container(path: Path, format_version: str) -> None:
 
 def _write_duplicate_member_container(path: Path) -> None:
     """Write an invalid container fixture containing duplicate ZIP member entries."""
-    _write_good_container(path, crypto.FORMAT_VERSION)
+    _write_good_container(path)
     with zipfile.ZipFile(path, "a", compression=zipfile.ZIP_STORED) as zf:
         info = zipfile.ZipInfo("tracks/alpha.ento", date_time=(2026, 1, 1, 0, 0, 0))
         info.compress_type = zipfile.ZIP_STORED
@@ -400,6 +386,9 @@ def _write_path_escape_container(path: Path) -> None:
             }
         ],
     }
+    manifest["manifest_binding"] = compute_manifest_binding(
+        Manifest.from_dict(manifest)
+    )
     _write_zip(
         path,
         {

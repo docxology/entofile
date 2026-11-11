@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 from src.analysis import validate_generated_outputs
+from src.crypto import FORMAT_VERSION
 from src.figure_registry import register_with_infrastructure
+from src.manifest_binding import compute_manifest_binding
 from src.models import Manifest, ObservabilityLevel, ProofExport, ProofLink, TrackDescriptor
 from src.ontology import default_resolution
 from src.proof import export_proof, verify_proof_chain
@@ -34,8 +37,8 @@ def test_default_resolution_blockchain() -> None:
 
 
 def test_verify_proof_chain_failure() -> None:
-    manifest = Manifest(
-        format_version="0.2.0",
+    template = Manifest(
+        format_version=FORMAT_VERSION,
         created="2026-01-01T00:00:00Z",
         creator="test",
         observability_level=ObservabilityLevel.AUDITABLE,
@@ -48,6 +51,9 @@ def test_verify_proof_chain_failure() -> None:
                 byte_length=1,
             ),
         ),
+    )
+    manifest = replace(
+        template, manifest_binding=compute_manifest_binding(template)
     )
     proof = export_proof(manifest)
     bad = ProofExport(

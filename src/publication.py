@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import signal
 import subprocess
 import sys
 import tempfile
@@ -14,7 +13,9 @@ from typing import Any
 
 from .analysis import validate_generated_outputs
 from .crypto import FORMAT_VERSION, MASTER_KEY_SIZE, NONCE_SIZE, TAG_SIZE
+from .output_gates import validation_report_is_green
 from .test_results import parse_test_summary
+from .test_runner import _stream_text, _terminate_and_reap
 
 # Env flag set inside the live test subprocess so the meta-test that triggers a live
 # run does not recurse (it skips when this is set). See tests/test_publication_live.py.
@@ -38,16 +39,20 @@ def _live_test_command(junit: Path, cov_json: Path) -> list[str]:
     ]
 
 
-def _output_tail(*streams: str | None, limit: int = _LIVE_DIAGNOSTIC_LIMIT) -> str:
+def _output_tail(
+    *streams: str | bytes | None, limit: int = _LIVE_DIAGNOSTIC_LIMIT
+) -> str:
     """Return bounded child output for a useful, non-amplifying failure detail."""
-    text = "\n".join(stream.strip() for stream in streams if stream and stream.strip())
+    text = "\n".join(
+        _stream_text(stream).strip() for stream in streams if stream and stream.strip()
+    )
     if len(text) <= limit:
         return text
     return f"[truncated {len(text) - limit} characters] {text[-limit:]}"
 
 
 def _with_live_diagnostics(
-    summary: dict[str, Any], stdout: str | None, stderr: str | None
+    summary: dict[str, Any], stdout: str | bytes | None, stderr: str | bytes | None
 ) -> dict[str, Any]:
     """Attach tail stderr/stdout diagnostics to test summary."""
     if summary.get("all_passed") is True:
@@ -83,7 +88,9 @@ def _read_yaml(path: Path) -> dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
-def _run_live_test_summary(project_root: Path) -> dict[str, Any]:
+def _run_live_test_summary(
+    project_root: Path, *, timeout: float = _LIVE_RUN_TIMEOUT_S
+) -> dict[str, Any]:
     """Re-derive the test summary by ACTUALLY running pytest — never trust a side file.
 
     Closes the F1 oracle-false-assurance residual: ``test_results.json`` is written by
@@ -114,6 +121,8 @@ def _run_live_test_summary(project_root: Path) -> dict[str, Any]:
         cov_json = Path(td) / "coverage.json"
         cmd = _live_test_command(junit, cov_json)
         env = {**os.environ, _LIVE_RUN_ENV: "1"}
+        stdout: str | bytes | None = None
+        stderr: str | bytes | None = None
         try:
             proc = subprocess.Popen(
                 cmd,
@@ -125,18 +134,13 @@ def _run_live_test_summary(project_root: Path) -> dict[str, Any]:
                 start_new_session=os.name != "nt",
             )
             try:
-                stdout, stderr = proc.communicate(timeout=_LIVE_RUN_TIMEOUT_S)
+                stdout, stderr = proc.communicate(timeout=timeout)
             except subprocess.TimeoutExpired as exc:
-                try:
-                    if os.name == "nt":
-                        proc.kill()
-                    else:
-                        os.killpg(proc.pid, signal.SIGKILL)
-                except OSError:
-                    pass
-                stdout, stderr = proc.communicate()
+                stdout, stderr, cleanup_detail = _terminate_and_reap(proc)
                 tail = _output_tail(stderr, stdout)
                 detail = f"subprocess failed: {exc}"
+                if cleanup_detail:
+                    detail += f"; {cleanup_detail}"
                 if tail:
                     detail += f"; output tail: {tail}"
                 return {
@@ -236,6 +240,15 @@ def _evidence_issues(project_root: Path) -> tuple[list[str], str]:
                 "validation_report.json is stale (older than manuscript/claim_ledger); re-run the pipeline"
             ], "side-file (stale)"
         validation = _read_json(report_path)
+        if not validation_report_is_green(validation):
+            raw_issues = validation.get("issues") or validation.get("figure_issues")
+            if isinstance(raw_issues, list) and raw_issues:
+                return [str(issue) for issue in raw_issues], "side-file"
+            summary = validation.get("summary")
+            failed = summary.get("failed") if isinstance(summary, dict) else None
+            if failed:
+                return [f"{failed} SDK validation checks failed"], "side-file"
+            return ["standalone manuscript validation failed"], "side-file"
         stats = validation.get("output_statistics")
         side_issues = (
             stats.get("evidence_issues", []) if isinstance(stats, dict) else []
@@ -310,7 +323,10 @@ def _na_valued_tokens(variables_json_text: str) -> set[str]:
 
 
 def check_publication_readiness(
-    project_root: Path, *, live_tests: bool = False
+    project_root: Path,
+    *,
+    live_tests: bool = False,
+    live_test_timeout: float = _LIVE_RUN_TIMEOUT_S,
 ) -> dict[str, object]:
     """Return structured gate results for the configured manuscript release.
 
@@ -321,6 +337,8 @@ def check_publication_readiness(
     path), the side file is read — but ``tests_source`` records "side-file" so a caller
     can tell certification from a convenience read. The certifying path NEVER returns a
     green test verdict from the side file alone.
+
+    ``live_test_timeout`` bounds the real pytest subprocess in seconds on the certifying path.
     """
     root = project_root.resolve()
     checks: dict[str, bool] = {}
@@ -328,7 +346,7 @@ def check_publication_readiness(
     warnings: list[str] = []
 
     if live_tests:
-        summary = _run_live_test_summary(root)
+        summary = _run_live_test_summary(root, timeout=live_test_timeout)
         tests_source = "live"
     else:
         summary = _read_json(root / "output" / "reports" / "test_results.json").get(

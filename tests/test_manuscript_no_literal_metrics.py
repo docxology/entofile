@@ -16,15 +16,13 @@ _TOKEN_BLOCK = re.compile(r"\{\{[A-Z][A-Z0-9_]*\}\}")
 # Every crypto/format constant has a canonical source in src/crypto.py and a
 # manuscript token; a bare literal here is unvalidated and can silently drift.
 _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    # Generic semantic-version shape: forward-safe — catches ANY bare X.Y.Z
-    # (a future 0.3.2 / 0.4.0), not just the enumerated current versions. Every
-    # ENTO format version has a token (FORMAT_VERSION / FORMAT_VERSION_HARDENED_FIRST
-    # / FORMAT_VERSION_LATEST), so a bare X.Y.Z in a body section is always a drift risk.
+    # Every ENTO format version must come from FORMAT_VERSION rather than a
+    # hand-maintained literal that can drift from the implementation.
     ("bare X.Y.Z version", re.compile(r"(?<!\{\{)\b\d+\.\d+\.\d+\b(?!\}\})")),
     ("tamper rate 1.0", re.compile(r"(?<!\{\{)1\.0(?!\}\})")),
     ("observability level 3", re.compile(r"level\s+3\b", re.I)),
     ("16-byte header", re.compile(r"16-byte", re.I)),
-    # Hardened nonce size: must come from NONCE_BYTES_HARDENED.
+    # Current nonce size: must come from NONCE_BYTES.
     ("12-byte nonce", re.compile(r"12-byte", re.I)),
 )
 
@@ -55,7 +53,7 @@ def test_manuscript_sections_avoid_bare_metric_literals(
 
 
 # Spelled-out cardinalities that must be injected (COUNT_* tokens), not literals,
-# so adding a level / hardened format / integrity value can't leave prose stale.
+# so adding an observability or integrity value can't leave prose stale.
 # Maps a forbidden bare-count regex to the token that should replace it.
 _COUNT_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
@@ -63,10 +61,6 @@ _COUNT_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         re.compile(
             r"\b(two|three|four|five|\d+)\s+graded\s+observability\s+levels?\b", re.I
         ),
-    ),
-    (
-        "COUNT_HARDENED_FORMATS",
-        re.compile(r"\b(one|two|three|four|\d+)\s+opt-in\s+hardened\b", re.I),
     ),
     (
         "COUNT_INTEGRITY_LEVELS",

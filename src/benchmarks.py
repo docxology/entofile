@@ -11,6 +11,7 @@ from zipfile import ZipFile
 
 from .container import pack_container_bytes, unpack_container
 from .crypto import FORMAT_VERSION, generate_master_key, sha256_hex
+from .errors import IntegrityError
 from .fixtures import load_fixture_tracks
 from .manifest import manifest_to_json
 from .models import Manifest, ObservabilityLevel, PlainTrack
@@ -108,7 +109,7 @@ def benchmark_track(
                     data = bytes(corrupted)
                 zout.writestr(name, data)
         unpack_container(bad_path, master_key)
-    except ValueError:
+    except IntegrityError:
         tamper_detected = True
     finally:
         bad_path.unlink(missing_ok=True)
@@ -177,7 +178,7 @@ def benchmark_tracks(
                     data = bytes(corrupted)
                 zout.writestr(name, data)
         unpack_container(bad_path, master_key)
-    except ValueError:
+    except IntegrityError:
         tamper_detected = True
     finally:
         bad_path.unlink(missing_ok=True)

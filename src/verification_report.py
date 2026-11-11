@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import json
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 
 import jsonschema
 
 from .container import verify_container
+from .errors import EntofileError
+from .manifest_binding import compute_manifest_binding
+from .models import Manifest
 
 
 def _benchmark_samples(project_root: Path) -> list[Path]:
@@ -41,10 +44,8 @@ def build_container_verification_report(project_root: Path) -> dict[str, object]
             # proven separately by the key-based benchmark (tamper_detection_rate).
             outcome = verify_container(sample, require_integrity=True)
             entry.update(outcome)
-        except (ValueError, OSError, jsonschema.ValidationError) as exc:
-            # ValidationError: verify_container surfaces a schema-invalid
-            # manifest as a raw jsonschema error; that is a refusal of the
-            # container, not a report-builder crash.
+        except (EntofileError, ValueError, OSError, jsonschema.ValidationError) as exc:
+            # Invalid domain/schema input is a container refusal, not a builder crash.
             entry["ok"] = False
             entry["error"] = str(exc)
         results.append(entry)
@@ -60,7 +61,7 @@ def build_container_verification_report(project_root: Path) -> dict[str, object]
         and bool(negative_control.get("rejected"))
     )
     return {
-        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "generated_at": datetime.now(UTC).replace(microsecond=0).isoformat(),
         "sample_count": len(results),
         "integrity_basis": "digest-only (keyless); adversarial integrity requires the master key",
         "passed_samples": sum(1 for r in results if r.get("ok")),
@@ -99,11 +100,14 @@ def _negative_control(samples: list[Path]) -> dict[str, object]:
         # Strip every ciphertext digest -> integrity becomes "unverified" keyless.
         # ``or []`` (not a .get default): an explicit ``"tracks": null`` returns
         # None from .get even with a default, and must not crash the control.
-        for track in manifest.get("tracks") or []:
+        tracks = manifest.get("tracks") or []
+        for track in tracks:
             track["sha256_ciphertext"] = ""
             track["sha256_plaintext"] = ""
+        if tracks:
+            manifest["manifest_binding"] = compute_manifest_binding(Manifest.from_dict(manifest))
         members["manifest.json"] = (json.dumps(manifest)).encode("utf-8")
-        # A stripped manifest has no proof binding; drop the now-stale proof member.
+        # Drop the proof member whose hashes bind the original, unstripped manifest.
         members.pop("proof/chain.json", None)
         buf = BytesIO()
         with zipfile.ZipFile(buf, "w") as zout:
@@ -133,7 +137,7 @@ def _negative_control(samples: list[Path]) -> dict[str, object]:
             "rejected": rejected,
             "integrity": outcome.get("integrity"),
         }
-    except (ValueError, OSError, KeyError, jsonschema.ValidationError) as exc:
+    except (EntofileError, ValueError, OSError, KeyError, jsonschema.ValidationError) as exc:
         # A raised error on the crafted bad container IS a valid rejection: the
         # verifier refused the tampered bytes (schema refusal included).
         return {

@@ -12,6 +12,46 @@ from src import crypto
 from src.artifact_manifest import compute_sha256
 from src.release_bundle import RELEASE_FILES, build_release_bundle
 
+EXPECTED_RELEASE_PATHS = {
+    "output/pdf/entofile_combined.pdf",
+    "output/web/index.html",
+    "output/reports/sbom.cyclonedx.json",
+    "output/reports/artifact_manifest.json",
+    "output/reports/validation_report.json",
+    "output/reports/benchmark_validation.json",
+    "output/reports/container_verification.json",
+    "output/reports/conformance_report.json",
+    "output/reports/figure_layout_report.json",
+    "output/data/ento_benchmark_results.csv",
+    "output/data/manuscript_variables.json",
+    "output/data/transmission_manifest.json",
+    "output/conformance/conformance_manifest.json",
+    "docs/manuscript/config.yaml",
+    "docs/manuscript/references.bib",
+    "docs/evidence_provenance.md",
+    "docs/publication_checklist.md",
+    "docs/public_release_checklist.md",
+    "docs/public_ci_dry_run.md",
+    "docs/provenance_signing.md",
+    "docs/methods.md",
+    "docs/format_0_5_0.md",
+    "docs/research/agenda.md",
+    "experiment_plan.yaml",
+    "docs/figure_registry.md",
+    "docs/output_inventory.md",
+    "docs/research/reproducible_figures_crypto_vectors.md",
+    "docs/redteam_publish_0.4.md",
+    "docs/redteam_publish_0.5.md",
+    "docs/redteam_claim_scholarship_audit_0.4.md",
+    "docs/redteam_repo_visual_audit_0.4.md",
+    "README.md",
+    "TODO.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CITATION.cff",
+    "CONTRIBUTING.md",
+}
+
 
 def _write_release_fixture(root: Path) -> None:
     (root / "docs" / "manuscript").mkdir(parents=True)
@@ -33,6 +73,13 @@ publication:
         path.write_text(f"{release_file.path}\n", encoding="utf-8")
 
 
+def test_release_file_registry_is_complete_required_and_unique() -> None:
+    paths = [release_file.path for release_file in RELEASE_FILES]
+    assert set(paths) == EXPECTED_RELEASE_PATHS
+    assert len(paths) == len(set(paths))
+    assert all(release_file.required for release_file in RELEASE_FILES)
+
+
 def test_release_bundle_manifest_and_checksums(tmp_path: Path) -> None:
     _write_release_fixture(tmp_path)
     manifest_path = build_release_bundle(tmp_path)
@@ -41,8 +88,8 @@ def test_release_bundle_manifest_and_checksums(tmp_path: Path) -> None:
     assert payload["release_label"] == "0.4"
     assert payload["planned_public_home"] == "https://github.com/docxology/entofile"
     assert payload["wire_format_default"] == crypto.FORMAT_VERSION
-    assert payload["supported_wire_formats"] == list(crypto.SUPPORTED_FORMAT_VERSIONS)
-    assert payload["source_dirty"] is False
+    assert payload["supported_wire_formats"] == ["0.5.0"]
+    assert "source_dirty" not in payload
     assert payload["source_dirty_project"] is False
     assert payload["source_dirty_repository"] is False
     paths = {entry["path"] for entry in payload["entries"]}
@@ -105,7 +152,6 @@ def test_release_bundle_dirty_status_is_project_scoped(tmp_path: Path) -> None:
     manifest_path = build_release_bundle(project)
     payload = json.loads(manifest_path.read_text(encoding="utf-8"))
 
-    assert payload["source_dirty"] is False
     assert payload["source_dirty_project"] is False
     assert payload["source_dirty_repository"] is True
 

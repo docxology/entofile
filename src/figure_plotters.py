@@ -217,135 +217,25 @@ def plot_tamper(rows: list[dict[str, str]], ax: Axes, _spec: FigureSpec) -> None
     ax.legend(loc="lower right", framealpha=0.95)
 
 
-def plot_format_ladder(
-    _rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
-) -> None:
-    """Show the supported ENTO format ladder and what each step hardens."""
-    from .crypto import FORMAT_VERSION, FORMAT_VERSION_LATEST
-
-    rows = [
-        ("0.2.0", "compat", "16 B nonce\nno AAD\nno padding"),
-        ("0.3.0", "compat", "12 B nonce\nformat+track AAD\nno padding"),
-        ("0.3.1", "compat", "12 B nonce\nformat+track AAD\nPADME padding"),
-        ("0.4.0", "compat", "12 B nonce\nformat+track AAD\nPADME padding"),
-        (FORMAT_VERSION, "default", "12 B nonce\nmanifest+track AAD\nPADME padding"),
-    ]
-    colors = color_cycle(len(rows))
-    y = list(range(len(rows)))
-    ax.barh(y, [1.0] * len(rows), color=colors, alpha=0.86)
-    ax.set_yticks(y, labels=[item[0] for item in rows])
-    ax.set_xlim(0, 1)
-    ax.set_xticks([])
-    ax.set_xlabel("")
-    ax.set_title(plot_title("ENTO format ladder", spec))
-    for idx, (version, role, detail) in enumerate(rows):
-        marker = "latest" if version == FORMAT_VERSION_LATEST else role
-        if version == FORMAT_VERSION:
-            marker = "default"
-        ax.text(
-            0.03,
-            idx,
-            f"{marker}",
-            va="center",
-            ha="left",
-            color="white",
-            fontweight="bold",
-        )
-        ax.text(
-            0.28,
-            idx,
-            detail,
-            va="center",
-            ha="left",
-            color="white",
-            fontsize=8,
-        )
-    ax.invert_yaxis()
-    ax.grid(False)
-    ax.spines["left"].set_visible(False)
-    ax.spines["bottom"].set_visible(False)
-
-
-def plot_format_compatibility_matrix(
-    _rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
-) -> None:
-    """Matrix of read/write and hardening properties for supported formats."""
-    from . import crypto
-
-    formats = list(crypto.SUPPORTED_FORMAT_VERSIONS)
-    columns = ["Read", "Write", "Default", "12 B nonce", "AAD", "PADME"]
-    matrix: list[list[int]] = []
-    for version in formats:
-        matrix.append(
-            [
-                1,
-                1,
-                1 if version == crypto.FORMAT_VERSION else 0,
-                1 if crypto.nonce_size_for(version) == 12 else 0,
-                1
-                if crypto.track_aad(
-                    version,
-                    "alpha",
-                    manifest_binding="0" * 64
-                    if crypto.requires_manifest_binding(version)
-                    else None,
-                )
-                is not None
-                else 0,
-                1 if crypto.pads_payload(version) else 0,
-            ]
-        )
-    cmap = ListedColormap(["#D8D8D8", active_palette()[2]])
-    ax.imshow(matrix, cmap=cmap, vmin=0, vmax=1, aspect="auto")
-    ax.set_xticks(range(len(columns)), labels=columns, rotation=25, ha="right")
-    ax.set_yticks(range(len(formats)), labels=formats)
-    ax.set_title(plot_title("Format compatibility matrix", spec))
-    for row_idx, row in enumerate(matrix):
-        for col_idx, value in enumerate(row):
-            ax.text(
-                col_idx,
-                row_idx,
-                "yes" if value else "no",
-                ha="center",
-                va="center",
-                fontsize=8,
-                color="white" if value else "black",
-                fontweight="bold" if value else "normal",
-            )
-    ax.grid(False)
-
-
 def plot_length_leakage_profile(
     _rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
-    """Compare exact-length leakage with PADME bucketed member sizes."""
-    from . import crypto
+    """Show the exact PADME bucket disclosure for the current wire format."""
     from .padding import padme
 
     sizes = list(range(1, 257))
-    legacy = [crypto.nonce_size_for("0.2.0") + TAG_SIZE + n for n in sizes]
-    default = [
-        crypto.nonce_size_for(crypto.FORMAT_VERSION) + TAG_SIZE + padme(n + 8)
-        for n in sizes
-    ]
-    ax.plot(
-        sizes,
-        legacy,
-        color=active_palette()[3],
-        linewidth=line_width(),
-        label="0.2.0 exact length",
-    )
+    member_sizes = [NONCE_SIZE + TAG_SIZE + padme(n + 8) for n in sizes]
     ax.step(
         sizes,
-        default,
+        member_sizes,
         where="post",
         color=active_palette()[2],
         linewidth=line_width(),
-        label="0.4.0 PADME bucket",
+        label=f"{FORMAT_VERSION} PADME bucket",
     )
     ax.set_xlabel("Plaintext bytes")
     ax.set_ylabel("Track member bytes")
-    ax.set_title(plot_title("Length leakage profile", spec))
+    ax.set_title(plot_title(f"{FORMAT_VERSION} bucket disclosure", spec))
     ax.legend(loc="upper left", framealpha=0.95)
     _prune_edge_ticks(ax, x=True, y=True)
 
@@ -443,7 +333,9 @@ def plot_release_evidence_map(
     ax.set_yticks(y, labels=[item[0] for item in evidence])
     ax.set_xlim(0, 1)
     ax.set_xticks([])
-    ax.set_title(plot_title("0.4 release evidence map", spec))
+    ax.set_title(
+        plot_title(f"{FORMAT_VERSION.rsplit('.', 1)[0]} release evidence map", spec)
+    )
     for idx, (_name, role) in enumerate(evidence):
         ax.text(
             0.04,
@@ -464,7 +356,7 @@ def plot_release_evidence_map(
 def plot_security_control_matrix(
     _rows: list[dict[str, str]], ax: Axes, spec: FigureSpec
 ) -> None:
-    """Threat-control coverage matrix used by the 0.4 security section."""
+    """Threat-control coverage matrix used by the 0.5 security section."""
     threats = [
         "TM-001 path escape",
         "TM-002 ciphertext tamper",
@@ -760,10 +652,10 @@ def plot_observability_tradeoff(
 
 
 def plot_expansion_law(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -> None:
-    """Measured expansion ratio vs the version-aware expansion model.
+    """Measured expansion ratio vs the current-format expansion model.
 
     Overlays per-track measured ``expansion_ratio`` (markers) on the analytic
-    ``expansion_ratio_model``. For default 0.5.0 the body is PADME bucketed, so
+    ``expansion_ratio_model``. For ENTO 0.5.0 the body is PADME bucketed, so
     the curve is a step profile rather than the old unpadded ``1 + H/n`` line.
     """
     from .benchmark_stats import (
@@ -782,7 +674,7 @@ def plot_expansion_law(rows: list[dict[str, str]], ax: Axes, spec: FigureSpec) -
     measured = [float(row["expansion_ratio"]) for row in ordered]
     track_ids = [row["track_id"] for row in ordered]
 
-    format_version = ordered[0].get("format_version", FORMAT_VERSION)
+    format_version = ordered[0]["format_version"]
     # Integer model curve across the observed plaintext range.
     lo, hi = min(sizes), max(sizes)
     span = hi - lo or hi

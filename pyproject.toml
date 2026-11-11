@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=77.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,9 +7,10 @@ name = "entofile"
 version = "0.5.0"
 description = "ENTO format 0.5.0 authenticated omnitrack research containers"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Daniel Ari Friedman", email = "daniel@activeinference.institute" }]
-requires-python = ">=3.11"
+requires-python = ">=3.15,<3.16"
 dependencies = [
     "numpy>=1.24.0",
     "matplotlib>=3.7.0",
@@ -18,7 +19,6 @@ dependencies = [
     "cryptography>=48.0.0",
     "qrcode[pil]>=8.0",
     "python-barcode>=0.15.1",
-    "tomli>=2.0.0; python_version < '3.11'",
 ]
 
 [project.scripts]
@@ -35,7 +35,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["src", "src.resources"]
+packages = ["src", "src.resources", "src.resources.fixtures"]
 
 [tool.setuptools.package-dir]
 "" = "."
@@ -57,14 +57,12 @@ markers = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py315"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 ignore = [
     "E501",
-    "UP017",  # timezone.utc is correct for Python 3.10 compat
-    "UP036",  # version block for tomllib compat is intentional
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -74,7 +72,7 @@ ignore = [
 # The reproducible "mypy clean" gate: `uv run --extra dev mypy src/`.
 # Stub packages (types-PyYAML, types-jsonschema) ship in the dev extra so a
 # stub-less invocation cannot silently shrink the checked surface.
-python_version = "3.10"
+python_version = "3.15"
 files = ["src"]
 warn_redundant_casts = true
 warn_unused_ignores = false
@@ -82,7 +80,7 @@ no_implicit_optional = true
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["qrcode", "qrcode.*", "barcode", "barcode.*", "infrastructure.*", "tomli", "tomllib"]
+module = ["qrcode", "qrcode.*", "barcode", "barcode.*", "infrastructure.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]

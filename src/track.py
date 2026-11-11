@@ -15,13 +15,9 @@ def encrypt_track(
     format_version: str = FORMAT_VERSION,
     manifest_binding: str | None = None,
 ) -> EncryptedTrack:
-    """Encrypt a plaintext track with per-track derived key.
-
-    For 0.3.0+ the track_id and format_version are bound as AEAD associated data;
-    0.3.1, 0.4.0, and 0.5.0 additionally PADMÉ-pad the plaintext. Format 0.5.0
-    also requires the exported manifest binding."""
+    """PADMÉ-pad and encrypt a track with current manifest-context AAD."""
     track_key = crypto.derive_track_key(master_key, track.track_id)
-    plaintext = padding.pad_payload(track.payload) if crypto.pads_payload(format_version) else track.payload
+    plaintext = padding.pad_payload(track.payload)
     nonce, tag, ciphertext = crypto.encrypt_payload(
         track_key,
         plaintext,
@@ -44,7 +40,7 @@ def decrypt_track(
     format_version: str,
     manifest_binding: str | None = None,
 ) -> bytes:
-    """Decrypt and authenticate a track payload (un-padding padded formats)."""
+    """Decrypt, authenticate, and unpad a current-format track payload."""
     track_key = crypto.derive_track_key(master_key, encrypted.track_id)
     plaintext = crypto.decrypt_payload(
         track_key,
@@ -55,7 +51,7 @@ def decrypt_track(
         track_id=encrypted.track_id,
         manifest_binding=manifest_binding,
     )
-    return padding.unpad_payload(plaintext) if crypto.pads_payload(format_version) else plaintext
+    return padding.unpad_payload(plaintext)
 
 
 def parse_track_bytes(
@@ -64,7 +60,7 @@ def parse_track_bytes(
     *,
     format_version: str = FORMAT_VERSION,
 ) -> EncryptedTrack:
-    """Parse nonce + tag(16) + ciphertext from raw bytes (nonce length is format-aware)."""
+    """Parse current nonce + tag(16) + ciphertext from raw track bytes."""
     nonce_size = crypto.nonce_size_for(format_version)
     min_size = nonce_size + crypto.TAG_SIZE
     if len(data) < min_size:

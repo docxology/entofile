@@ -18,7 +18,7 @@ does not truncate an existing destination.
 - Do not write plaintext outside the selected output directory.
 - Do not release unauthenticated plaintext before the relevant AEAD tag has
   verified.
-- Keep manifest schema compatibility explicit.
+- Accept only the ENTO 0.5.0 manifest schema and reject every other version.
 - Preserve duplicate-member, path, and size-limit checks before extraction.
 
 ## Candidate Direction

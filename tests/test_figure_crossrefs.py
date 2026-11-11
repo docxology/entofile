@@ -22,10 +22,8 @@ def _combined_manuscript() -> str:
 
 def test_each_figure_label_has_crossref_in_manuscript() -> None:
     referenced = set(_CROSSREF_RE.findall(_combined_manuscript()))
-    missing = [
-        spec.label.removeprefix("fig:") for spec in FIGURE_SPECS if spec.label.removeprefix("fig:") not in referenced
-    ]
-    assert not missing, f"Missing [@fig:...] cross-references for: {missing}"
+    registered = {spec.label.removeprefix("fig:") for spec in FIGURE_SPECS}
+    assert referenced == registered
 
 
 def test_each_figure_label_has_image_definition() -> None:
@@ -37,10 +35,8 @@ def test_each_figure_label_has_image_definition() -> None:
     passes while the PDF shows '??'.
     """
     defined = set(_IMAGE_DEF_RE.findall(_combined_manuscript()))
-    missing = [
-        spec.label.removeprefix("fig:") for spec in FIGURE_SPECS if spec.label.removeprefix("fig:") not in defined
-    ]
-    assert not missing, f"Registered figures with no ![...]{{#fig:...}} image definition (would render 'fig. ??'): {missing}"
+    registered = {spec.label.removeprefix("fig:") for spec in FIGURE_SPECS}
+    assert defined == registered
 
 
 def test_every_figure_reference_resolves_to_a_definition() -> None:

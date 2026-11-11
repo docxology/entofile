@@ -75,8 +75,5 @@ class ProjectPaths:
 
 
 def release_manifest_path(project_root: Path) -> Path:
-    """Prefer the outer release envelope; read legacy inventories compatibly."""
-    current = project_root / "release" / "release_manifest.json"
-    if current.exists() or current.is_symlink():
-        return current
-    return project_root / "output" / "release" / "release_manifest.json"
+    """Return the release manifest in the outer release envelope."""
+    return project_root / "release" / "release_manifest.json"
