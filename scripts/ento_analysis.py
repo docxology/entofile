@@ -15,4 +15,4 @@ for path in (PROJECT_ROOT, PROJECT_ROOT.parent.parent):
 from src.analysis import main  # noqa: E402
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

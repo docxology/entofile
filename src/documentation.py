@@ -12,7 +12,7 @@ def build_api_reference_markdown(project_root: Path | None = None) -> str:
         "# entofile API reference\n\n"
         "Core modules under `src/`:\n\n"
         "- `crypto` — AES-256-GCM, HKDF-SHA256 per-track derivation "
-        "(default format 0.5.0; compatibility 0.2.0/0.3.0/0.3.1/0.4.0)\n"
+        "(ENTO wire format 0.5.0 only)\n"
         "- `container` — ZIP pack/unpack\n"
         "- `manifest` — JSON Schema validation\n"
         "- `benchmarks` — throughput and tamper benchmarks\n"

@@ -3,32 +3,36 @@
 from __future__ import annotations
 
 import zipfile
+from dataclasses import replace
 
 import pytest
 
 from src.container import pack_container
 from src.crypto import generate_master_key
+from src.manifest_binding import compute_manifest_binding
 from src.models import Manifest, ObservabilityLevel, TrackDescriptor
 from src.observability import filter_manifest, include_proof_chain
 from src.ontology import default_resolution
 from tests.fixtures import load_fixture_tracks
 
 
-def _sample_manifest() -> Manifest:
-    track = TrackDescriptor(
-        id="eeg",
-        type="ento:timeseries.eeg",
-        sha256_plaintext="a" * 64,
-        sha256_ciphertext="b" * 64,
-        byte_length=10,
-    )
-    return Manifest(
-        format_version="0.2.0",
+def _sample_manifest(track: TrackDescriptor | None = None) -> Manifest:
+    if track is None:
+        track = TrackDescriptor(
+            id="eeg",
+            type="ento:timeseries.eeg",
+            sha256_plaintext="a" * 64,
+            sha256_ciphertext="b" * 64,
+            byte_length=10,
+        )
+    manifest = Manifest(
+        format_version="0.5.0",
         created="2026-01-01T00:00:00Z",
         creator="test",
         observability_level=ObservabilityLevel.AUDITABLE,
         tracks=(track,),
     )
+    return replace(manifest, manifest_binding=compute_manifest_binding(manifest))
 
 
 def test_auditable_passthrough() -> None:
@@ -53,13 +57,7 @@ def test_typed_hides_resolution_and_plaintext_hash() -> None:
         byte_length=10,
         resolution=default_resolution("ento:timeseries.eeg"),
     )
-    manifest = Manifest(
-        format_version="0.2.0",
-        created="2026-01-01T00:00:00Z",
-        creator="test",
-        observability_level=ObservabilityLevel.AUDITABLE,
-        tracks=(track,),
-    )
+    manifest = _sample_manifest(track)
     filtered = filter_manifest(manifest, ObservabilityLevel.TYPED)
     assert filtered.tracks[0].resolution is None
     assert filtered.tracks[0].sha256_plaintext == ""
@@ -75,13 +73,7 @@ def test_resolved_keeps_resolution() -> None:
         byte_length=10,
         resolution=default_resolution("ento:timeseries.eeg"),
     )
-    manifest = Manifest(
-        format_version="0.2.0",
-        created="2026-01-01T00:00:00Z",
-        creator="test",
-        observability_level=ObservabilityLevel.AUDITABLE,
-        tracks=(track,),
-    )
+    manifest = _sample_manifest(track)
     filtered = filter_manifest(manifest, ObservabilityLevel.RESOLVED)
     assert filtered.tracks[0].resolution is not None
     assert filtered.tracks[0].sha256_plaintext == ""

@@ -1,0 +1,28 @@
+name: Public Endpoint Diagnostics
+
+on:
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.15"
+
+permissions:
+  contents: read
+
+jobs:
+  public-endpoints:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install locked runtime dependencies
+        run: uv sync --locked
+      - name: Check promoted public endpoints
+        run: >-
+          uv run python scripts/check_public_promotion_metadata.py --check
+          --require-public-endpoints --live-public-endpoints

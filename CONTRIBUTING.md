@@ -1,12 +1,9 @@
 # Contributing
 
-ENTO changes should preserve the current compatibility boundary unless a
-proposal explicitly targets a future breaking release:
-
-- Default writes use format `0.5.0`.
-- `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0` remain compatibility formats.
-- Existing CLI stdout/stderr and exit behavior remain compatible.
-- Keyed `verify` before `unpack` is the safe operator workflow.
+ENTO uses Python 3.15 and wire format `0.5.0` only. All reads and writes must
+reject every other format version explicitly. Preserve the current CLI
+stdout/stderr and exit behavior, and keep keyed `verify` before `unpack` as the
+safe operator workflow.
 
 ## Local Checks
 
@@ -14,8 +11,9 @@ Run focused tests for the surface you touch, then run the project gate before a
 release-candidate render:
 
 ```bash
+uv sync --locked --extra dev
 uv run pytest tests/ --cov=src --cov-fail-under=90 -q
-grep -r "unittest.mock\\|MagicMock\\|@patch" tests/ || echo "Clean"
+./run.sh no-mocks
 uv run python scripts/ento_analysis.py
 uv run python scripts/generate_conformance_fixtures.py
 uv run python scripts/verify_conformance_fixtures.py
@@ -28,8 +26,8 @@ Render from the sibling template checkout:
 
 ```bash
 cd <template-checkout>
-uv run --locked python scripts/pipeline/stage_03_render.py --project working/entofile
-uv run --locked python scripts/pipeline/stage_04_validate.py --project working/entofile
+uv run --no-sync --locked --python 3.15 python scripts/pipeline/stage_03_render.py --project working/entofile
+uv run --no-sync --locked --python 3.15 python scripts/pipeline/stage_04_validate.py --project working/entofile
 ```
 
 ## Security Changes

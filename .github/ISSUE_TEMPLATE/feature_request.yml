@@ -16,18 +16,18 @@ body:
       label: Scope
       options:
         - "documentation"
-        - "CLI compatibility-preserving"
-        - "conformance"
+        - "Python 3.15 CLI or SDK"
+        - "ENTO 0.5.0 conformance"
         - "benchmark or visualization"
-        - "security hardening"
-        - "future breaking format"
+        - "security review"
+        - "research outside the current wire format"
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Proposal
-      description: Describe the change and any compatibility constraints.
+      description: Describe the change and how it preserves the Python 3.15 and ENTO 0.5.0-only contract, or identify it as separate research.
     validations:
       required: true
   - type: textarea

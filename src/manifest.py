@@ -47,9 +47,11 @@ def validate_manifest_dict(
     data: dict[str, Any], project_root: Path | None = None
 ) -> None:
     """Validate manifest dict against JSON Schema."""
-    jsonschema.validate(data, load_schema(project_root))
-    if data.get("format_version") == "0.5.0":
-        validate_manifest_binding(Manifest.from_dict(data))
+    try:
+        jsonschema.validate(data, load_schema(project_root))
+    except jsonschema.ValidationError as exc:
+        raise ManifestError(str(exc)) from exc
+    validate_manifest_binding(Manifest.from_dict(data))
 
 
 def manifest_to_json(manifest: Manifest, *, indent: int = 2) -> str:
@@ -64,11 +66,12 @@ def manifest_from_json(text: str, *, project_root: Path | None = None) -> Manife
     can coerce values such as ``byte_length`` or discard unknown fields. Duplicate
     object keys are rejected to avoid parser last-wins ambiguity.
     """
-    parsed = parse_json_object(text, source="manifest JSON")
+    try:
+        parsed = parse_json_object(text, source="manifest JSON")
+    except ValueError as exc:
+        raise ManifestError(str(exc)) from exc
     validate_manifest_dict(parsed, project_root)
-    manifest = Manifest.from_dict(parsed)
-    validate_manifest_binding(manifest)
-    return manifest
+    return Manifest.from_dict(parsed)
 
 
 def build_track_descriptor(

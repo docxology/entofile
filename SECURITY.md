@@ -5,14 +5,12 @@ ENTO is published at `https://github.com/docxology/entofile`; the maintainer's
 
 ## Supported Scope
 
-The 0.5.0 release documents ENTO format `0.5.0` as the default wire format:
-AES-256-GCM with 12-byte nonces, PADME length padding, and an authenticated
-exported-manifest context in each track's AAD. Formats `0.2.0`, `0.3.0`,
-`0.3.1`, and `0.4.0` remain supported
-compatibility formats for explicit read/write testing. Security reports should
-identify the affected format version, command, and whether the issue is in
-container parsing, cryptography, documentation, generated artifacts, or the
-release process.
+The supported release runs on Python 3.15 and accepts ENTO format `0.5.0` only:
+AES-256-GCM with 12-byte nonces, mandatory PADME length padding, and an
+authenticated exported-manifest context in each track's AAD. Every other wire
+version is rejected. Security reports should identify the command and whether
+the issue is in container parsing, cryptography, documentation, generated
+artifacts, or the release process.
 
 ## Reporting
 

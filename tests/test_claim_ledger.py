@@ -19,37 +19,6 @@ def test_claim_ledger_format_version() -> None:
     assert "working/entofile" in claims["format-version"]["source"]
 
 
-def test_claim_ledger_format_version_latest() -> None:
-    root = Path(__file__).resolve().parent.parent
-    ledger = yaml.safe_load(
-        (root / "data" / "claim_ledger.yaml").read_text(encoding="utf-8")
-    )
-    claims = {c["claim_id"]: c for c in ledger["claims"]}
-    import json as _json
-
-    from src import crypto
-
-    latest = claims["format-version-latest"]["value"]
-    assert latest == crypto.FORMAT_VERSION_LATEST
-    assert latest in crypto.SUPPORTED_FORMAT_VERSIONS
-    schema = _json.loads(
-        (root / "data" / "ento_manifest_schema.json").read_text(encoding="utf-8")
-    )
-    assert latest in schema["properties"]["format_version"]["enum"]
-
-
-def test_claim_ledger_format_version_next_alias() -> None:
-    root = Path(__file__).resolve().parent.parent
-    ledger = yaml.safe_load(
-        (root / "data" / "claim_ledger.yaml").read_text(encoding="utf-8")
-    )
-    claims = {c["claim_id"]: c for c in ledger["claims"]}
-    from src import crypto
-
-    assert claims["format-version-next"]["value"] == crypto.FORMAT_VERSION_NEXT
-    assert crypto.requires_manifest_binding(crypto.FORMAT_VERSION_NEXT)
-
-
 def test_figure_dpi_matches_figures_module() -> None:
     root = Path(__file__).resolve().parent.parent
     ledger = yaml.safe_load(

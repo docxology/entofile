@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import platform
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -24,9 +24,6 @@ from .benchmark_stats import (
 from .container import REPORTED_INTEGRITY_LEVELS
 from .crypto import (
     FORMAT_VERSION,
-    FORMAT_VERSION_LATEST,
-    FORMAT_VERSION_NEXT,
-    FORMAT_VERSION_PREVIOUS,
     MASTER_KEY_SIZE,
     SUPPORTED_FORMAT_VERSIONS,
     TAG_SIZE,
@@ -68,7 +65,20 @@ _THROUGHPUT_SPEC_LABEL = "fig:throughput_benchmark"
 _EXPANSION_SPEC_LABEL = "fig:expansion_ratio"
 _OBSERVABILITY_SPEC_LABEL = "fig:observability_manifest_size"
 _BENCHMARK_PILOT_REPETITIONS = 3
-_NO_MOCK_PATTERNS = ("unittest.mock", "MagicMock", "@patch")
+_NO_MOCK_PATTERNS = (
+    "unittest.mock",
+    "from unittest import mock",
+    "MagicMock",
+    "AsyncMock",
+    "PropertyMock",
+    "Mock(",
+    "@patch",
+    "patch.object",
+    "mock.patch",
+    "create_autospec",
+    "monkeypatch",
+    "MonkeyPatch",
+)
 
 
 def benchmark_rows_per_repetition(cfg: ExperimentConfig) -> int:
@@ -129,8 +139,11 @@ def _no_mock_status(project_root: Path) -> str:
     tests_root = project_root / "tests"
     if not tests_root.is_dir():
         return "tests directory missing"
+    test_files = sorted(tests_root.rglob("*.py"))
+    if not test_files:
+        return "no Python test files"
     hits: list[str] = []
-    for path in sorted(tests_root.rglob("*.py")):
+    for path in test_files:
         text = path.read_text(encoding="utf-8")
         for pattern in _NO_MOCK_PATTERNS:
             if pattern in text:
@@ -224,88 +237,23 @@ def generate_variables(
     throughput_df = throughput_summary.n - 1 if throughput_summary else None
     repetition_scale = cfg.benchmark_repetitions / float(_BENCHMARK_PILOT_REPETITIONS)
 
-    # Format ladder, derived from crypto (never hand-written in prose):
-    # compatibility versions are every supported version except the default,
-    # ordered by SEMANTIC version (parse to int tuple) so "first"/"latest" stay
-    # correct even past 0.3.10 — a plain string sort would mis-order 0.3.10 < 0.3.2.
-    def _semver_key(v: str) -> tuple[int, ...]:
-        """Convert semver string to integer tuple for sorting."""
-        return tuple(int(p) for p in v.split("."))
-
-    def _join_versions(versions: tuple[str, ...]) -> str:
-        """Format a list of version strings into English list."""
-        if not versions:
-            return "N/A"
-        if len(versions) == 1:
-            return versions[0]
-        if len(versions) == 2:
-            return " and ".join(versions)
-        return ", ".join(versions[:-1]) + f" and {versions[-1]}"
-
-    sorted_versions = tuple(sorted(SUPPORTED_FORMAT_VERSIONS, key=_semver_key))
-    compatibility_versions = tuple(v for v in sorted_versions if v != FORMAT_VERSION)
-    # FORMAT_VERSION_NEXT is a compatibility alias retained for older consumers;
-    # there is no unimplemented forward profile in the current release.
-    forward_versions: tuple[str, ...] = ()
-    hardened_versions = tuple(v for v in sorted_versions if v != "0.2.0")
-    hardened_join = _join_versions(hardened_versions)
-    compatibility_join = _join_versions(compatibility_versions)
-    # The hardened nonce size (12 for 0.3.x) read through the canonical resolver.
-    hardened_nonce = (
-        nonce_size_for(FORMAT_VERSION_LATEST)
-        if hardened_versions
-        else nonce_size_for(FORMAT_VERSION)
-    )
     default_nonce = nonce_size_for(FORMAT_VERSION)
     default_header_bytes = default_nonce + TAG_SIZE
 
     variables: dict[str, str] = {
         "FORMAT_VERSION": FORMAT_VERSION,
-        "FORMAT_VERSION_HARDENED_FIRST": hardened_versions[0]
-        if hardened_versions
-        else "N/A",
-        "FORMAT_VERSION_LATEST": FORMAT_VERSION_LATEST,
-        "FORMAT_VERSION_PREVIOUS": FORMAT_VERSION_PREVIOUS,
-        "FORMAT_VERSION_NEXT": FORMAT_VERSION_NEXT,
-        # Canonical current-profile names; retain the NEXT aliases below for
-        # manuscript consumers that adopted the pre-default 0.5.0 vocabulary.
         "FORMAT_AAD_TEMPLATE": (
             f"ento:{FORMAT_VERSION}:manifest:{{manifest_binding}}:track:{{track_id}}"
         ),
         "FORMAT_BINDING_DESCRIPTION": (
             "canonical SHA-256 of the exported manifest context in every track tag"
         ),
-        "FORMAT_NEXT_AAD_TEMPLATE": (
-            f"ento:{FORMAT_VERSION}:manifest:{{manifest_binding}}:track:{{track_id}}"
-        ),
-        "FORMAT_NEXT_BINDING_DESCRIPTION": (
-            "canonical SHA-256 of the exported manifest context in every track tag"
-        ),
-        "FORMAT_VERSIONS_HARDENED": hardened_join,
-        "FORMAT_VERSIONS_COMPATIBILITY": compatibility_join,
-        # This is a structural state, not a missing metric. Use descriptive
-        # prose rather than a sentinel that the publication gate would reject.
-        "FORMAT_VERSIONS_FORWARD": (
-            _join_versions(forward_versions)
-            if forward_versions
-            else "not applicable (current profile)"
-        ),
         "FORMAT_VERSIONS_SUPPORTED": ", ".join(SUPPORTED_FORMAT_VERSIONS),
-        "NONCE_BYTES_HARDENED": str(hardened_nonce),
         "FORMAT_DEFAULT_HEADER_BYTES": str(default_header_bytes),
         "FORMAT_DEFAULT_PADS": "yes" if pads_payload(FORMAT_VERSION) else "no",
-        "FORMAT_DEFAULT_EXPANSION_MODEL": (
-            "r(n) = (H + PADME(n + 8)) / n"
-            if pads_payload(FORMAT_VERSION)
-            else "r(n) = (H + n) / n"
-        ),
-        "FORMAT_LATEST_PADS": "yes" if pads_payload(FORMAT_VERSION_LATEST) else "no",
-        # Derived counts so spelled-out cardinalities in prose cannot drift when a
-        # level or hardened format is added (len() of the canonical sources).
+        "FORMAT_DEFAULT_EXPANSION_MODEL": "r(n) = (H + PADME(n + 8)) / n",
+        # Derived counts so spelled-out cardinalities in prose cannot drift.
         "COUNT_OBSERVABILITY_LEVELS": str(len(obs_levels)) if obs_levels else "N/A",
-        "COUNT_HARDENED_FORMATS": str(len(hardened_versions)),
-        "COUNT_COMPATIBILITY_FORMATS": str(len(compatibility_versions)),
-        "COUNT_FORWARD_FORMATS": str(len(forward_versions)),
         "COUNT_SUPPORTED_FORMATS": str(len(SUPPORTED_FORMAT_VERSIONS)),
         "COUNT_INTEGRITY_LEVELS": str(len(REPORTED_INTEGRITY_LEVELS)),
         "CRYPTO_BACKEND_DEFAULT": crypto_backend_for_format(FORMAT_VERSION),
@@ -426,12 +374,12 @@ def generate_variables(
         if registry_path.is_file()
         else "N/A",
         "CONFIG_HASH": config_hash,
-        "CONFIG_VERSION": str((manuscript_config.get("paper") or {}).get("version", "0.4")),
+        "CONFIG_VERSION": str((manuscript_config.get("paper") or {}).get("version", "0.5")),
         "CONFIG_FIRST_AUTHOR": first_author,
         "CONFIG_KEYWORDS": ", ".join(str(k) for k in keywords) if keywords else "N/A",
         "PYTHON_VERSION": platform.python_version(),
         "PLATFORM": platform.platform(),
-        "GENERATION_TIMESTAMP": datetime.now(timezone.utc)
+        "GENERATION_TIMESTAMP": datetime.now(UTC)
         .replace(microsecond=0)
         .isoformat(),
         "FIXTURE_TRACK_COUNT": str(len(FIXTURE_MAPPING)),

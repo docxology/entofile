@@ -4,11 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import jsonschema
 import pytest
 
 from src.container import pack_container, pack_container_bytes, verify_container
-from src.errors import ContainerError
+from src.errors import ContainerError, ManifestError
 from src.models import PlainTrack
 
 
@@ -19,7 +18,7 @@ def _tracks(count: int) -> tuple[PlainTrack, ...]:
 def test_invalid_manifest_preserves_existing_destination(tmp_path: Path) -> None:
     destination = tmp_path / "existing.zip"
     destination.write_bytes(b"original")
-    with pytest.raises(jsonschema.ValidationError):
+    with pytest.raises(ManifestError):
         pack_container(destination, bytes(32), _tracks(1), creator=123)
     assert destination.read_bytes() == b"original"
     assert sorted(path.name for path in tmp_path.iterdir()) == ["existing.zip"]

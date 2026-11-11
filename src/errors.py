@@ -7,11 +7,11 @@ class EntofileError(Exception):
     """Base class for errors intentionally exposed by the ENTO API."""
 
 
-class ManifestError(EntofileError, ValueError):
+class ManifestError(EntofileError):
     """Manifest JSON/schema/semantic validation failed."""
 
 
-class ContainerError(EntofileError, ValueError):
+class ContainerError(EntofileError):
     """Container structure or ZIP policy failed."""
 
 
@@ -19,7 +19,7 @@ class IntegrityError(ContainerError):
     """Authenticated content, digest, proof, or length binding failed."""
 
 
-class ConfigurationError(EntofileError, ValueError):
+class ConfigurationError(EntofileError):
     """Project or experiment configuration is invalid."""
 
 

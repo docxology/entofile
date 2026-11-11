@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from statistics import StatisticsError, mean, stdev
 
 from .benchmark_filters import is_tamper_detected
-from .crypto import FORMAT_VERSION, TAG_SIZE, nonce_size_for, pads_payload
+from .crypto import FORMAT_VERSION, TAG_SIZE, nonce_size_for
 from .figure_registry import FigureSpec, filter_rows_for_spec
 from .padding import padme
 
@@ -79,7 +79,7 @@ def benchmark_data_fingerprint(
     ``pack_throughput_mib_s``) — so it can never be reproduced by a reader and is at
     best a one-run provenance stamp. This fingerprint covers ONLY the run-invariant
     columns (:data:`DETERMINISTIC_BENCHMARK_COLUMNS`): ciphertext expansion follows the
-    version-aware expansion model, manifest sizes are fixed by the export schema, and
+    ENTO 0.5.0 expansion model, manifest sizes are fixed by the export schema, and
     tamper outcomes are deterministic. It is therefore a genuine reproducibility anchor
     — a reader who regenerates the pipeline obtains the identical value, and a mismatch
     signals real corruption of the deterministic data rather than timing noise.
@@ -229,8 +229,8 @@ def field_summary(
     return summary_stats(values)
 
 
-#: Fixed per-track AEAD header for the default format: ``nonce || tag``. Padded
-#: formats add PADMÉ bucketed plaintext after this header.
+#: Fixed per-track AEAD header for ENTO 0.5.0: ``nonce || tag``. The plaintext
+#: is always serialized with its length prefix and PADMÉ-bucketed.
 TRACK_HEADER_BYTES = nonce_size_for(FORMAT_VERSION) + TAG_SIZE
 
 
@@ -240,21 +240,25 @@ def expansion_ratio_model(
     format_version: str = FORMAT_VERSION,
     header_bytes: int | None = None,
 ) -> float:
-    """Version-aware ciphertext-expansion ratio for one track.
+    """Ciphertext-expansion ratio for one ENTO 0.5.0 track.
 
-    Unpadded formats store ``nonce || tag || ciphertext`` with AES-GCM preserving
-    plaintext length, so ``r(n) = (H + n) / n``. Padded formats first serialize the
-    plaintext as ``uint64_len || payload || zero padding`` to the PADMÉ bucket, so
-    ``r(n) = (H + padme(n + 8)) / n``. This remains a spec identity, not a fit.
+    The plaintext is serialized as ``uint64_len || payload || zero padding`` to
+    the PADMÉ bucket, so ``r(n) = (H + padme(n + 8)) / n``. This is a spec
+    identity, not a fit. Legacy format versions are rejected.
     """
+    if format_version != FORMAT_VERSION:
+        raise ValueError(f"unsupported format_version: {format_version!r}")
     if plaintext_bytes <= 0:
         raise ValueError("plaintext_bytes must be positive")
     if int(plaintext_bytes) != plaintext_bytes:
         raise ValueError("plaintext_bytes must be an integer byte count")
     n = int(plaintext_bytes)
-    header = header_bytes if header_bytes is not None else nonce_size_for(format_version) + TAG_SIZE
-    body = padme(n + 8) if pads_payload(format_version) else n
-    return (header + body) / n
+    header = (
+        header_bytes
+        if header_bytes is not None
+        else nonce_size_for(format_version) + TAG_SIZE
+    )
+    return (header + padme(n + 8)) / n
 
 
 def max_expansion_ratio_residual(rows: list[dict[str, str]]) -> float:
@@ -264,7 +268,7 @@ def max_expansion_ratio_residual(rows: list[dict[str, str]]) -> float:
             float(row["expansion_ratio"])
             - expansion_ratio_model(
                 int(row["plaintext_bytes"]),
-                format_version=row.get("format_version", FORMAT_VERSION),
+                format_version=row["format_version"],
             )
         )
         for row in rows

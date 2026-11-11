@@ -13,11 +13,11 @@ from pathlib import Path
 import pytest
 import yaml
 
+from src.errors import ConfigurationError
 from src.experiment_config import (
     _ALLOWED_VIZ_KEYS,
     ALLOWED_HEATMAP_CMAPS,
     NAMED_PALETTES,
-    ConfigError,
     load_experiment_config,
     viz_config_field_names,
 )
@@ -46,7 +46,7 @@ def test_unknown_viz_key_is_rejected_loudly(tmp_path: Path) -> None:
     root = _write_config(
         tmp_path, {"dpi": 120, "colour": "blue"}
     )  # typo'd British spelling
-    with pytest.raises(ConfigError) as exc:
+    with pytest.raises(ConfigurationError) as exc:
         load_experiment_config(root)
     assert "colour" in str(exc.value)
     assert "Valid keys" in str(exc.value)
@@ -59,7 +59,7 @@ def test_unknown_experiment_key_is_rejected_loudly(tmp_path: Path) -> None:
         yaml.dump({"experiment": {"benchmark_reps": 5}}),
         encoding="utf-8",  # should be benchmark_repetitions
     )
-    with pytest.raises(ConfigError) as exc:
+    with pytest.raises(ConfigurationError) as exc:
         load_experiment_config(tmp_path)
     assert "benchmark_reps" in str(exc.value)
 
@@ -88,7 +88,7 @@ def test_every_new_viz_knob_round_trips_from_yaml(tmp_path: Path) -> None:
 
 def test_unknown_palette_rejected(tmp_path: Path) -> None:
     root = _write_config(tmp_path, {"palette": "neon"})
-    with pytest.raises(ConfigError) as exc:
+    with pytest.raises(ConfigurationError) as exc:
         load_experiment_config(root)
     assert "neon" in str(exc.value)
 
@@ -97,7 +97,7 @@ def test_unknown_heatmap_cmap_rejected(tmp_path: Path) -> None:
     root = _write_config(
         tmp_path, {"heatmap_cmap": "jet"}
     )  # jet is not colorblind-safe
-    with pytest.raises(ConfigError) as exc:
+    with pytest.raises(ConfigurationError) as exc:
         load_experiment_config(root)
     assert "jet" in str(exc.value)
 
@@ -117,7 +117,7 @@ def test_allowed_cmaps_are_colorblind_safe_set() -> None:
 
 def test_mistyped_boolean_is_rejected_instead_of_truthiness_coercion(tmp_path: Path) -> None:
     root = _write_config(tmp_path, {"annotate_values": "false"})
-    with pytest.raises(ConfigError, match="must be true or false"):
+    with pytest.raises(ConfigurationError, match="must be true or false"):
         load_experiment_config(root)
 
 
@@ -125,7 +125,7 @@ def test_malformed_experiment_section_is_rejected(tmp_path: Path) -> None:
     manuscript = tmp_path / "docs" / "manuscript"
     manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text("experiment: false\n", encoding="utf-8")
-    with pytest.raises(ConfigError, match="experiment must be a mapping"):
+    with pytest.raises(ConfigurationError, match="experiment must be a mapping"):
         load_experiment_config(tmp_path)
 
 
@@ -135,7 +135,7 @@ def test_invalid_observability_level_is_rejected(tmp_path: Path) -> None:
     (manuscript / "config.yaml").write_text(
         "experiment:\n  observability_levels: [0, 4]\n", encoding="utf-8"
     )
-    with pytest.raises(ConfigError, match="unique values from 0 to 3"):
+    with pytest.raises(ConfigurationError, match="unique values from 0 to 3"):
         load_experiment_config(tmp_path)
 
 
@@ -145,7 +145,7 @@ def test_null_observability_level_is_rejected(tmp_path: Path) -> None:
     (manuscript / "config.yaml").write_text(
         "experiment:\n  observability_levels: [null]\n", encoding="utf-8"
     )
-    with pytest.raises(ConfigError, match="must be an integer"):
+    with pytest.raises(ConfigurationError, match="must be an integer"):
         load_experiment_config(tmp_path)
 
 

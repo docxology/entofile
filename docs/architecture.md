@@ -1,6 +1,6 @@
 # ENTO architecture
 
-Normative on-disk specification for the entofile reference implementation. **ENTO** stands for **EN**crypted, **T**yped, **O**mnitrack: a flat ZIP archive that seals each of an arbitrary number of typed tracks under authenticated encryption. Default format **0.5.0** uses AES-256-GCM with a 12-byte nonce, PADMÉ length padding, and exported-manifest context binding in track AAD. Compatibility formats **0.2.0**, **0.3.0**, **0.3.1**, and **0.4.0** remain version-dispatched and readable/writable.
+Normative on-disk specification for the entofile reference implementation. **ENTO** stands for **EN**crypted, **T**yped, **O**mnitrack: a flat ZIP archive that seals each of an arbitrary number of typed tracks under authenticated encryption. ENTO **0.5.0** is the only accepted wire format. It uses AES-256-GCM with a 12-byte nonce, mandatory PADMÉ length padding, and exported-manifest context binding in track AAD. Every other format version is rejected.
 
 An ENTO file is plain ZIP, so any archive tool can list its members even without the key; only the per-track payloads are encrypted. A reader's path is always *verify, then unpack* — integrity is checked before any plaintext is released.
 
@@ -16,7 +16,7 @@ proof/chain.json   # optional when observability >= 1
 
 | Field | Size | Description |
 | --- | --- | --- |
-| nonce | 16 for `0.2.0`; 12 for `0.3.0`/`0.3.1`/`0.4.0`/`0.5.0` | GCM nonce |
+| nonce | 12 | GCM nonce |
 | tag | 16 | GCM AEAD authentication tag |
 | ciphertext | variable | Authenticated payload |
 
@@ -41,10 +41,9 @@ See [`security.md`](security.md) and manuscript `02c_security_verification.md`.
 ## Manifest
 
 Validated by [`data/ento_manifest_schema.json`](../data/ento_manifest_schema.json).
-`format_version` enum: `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`, `0.5.0`. The default
-writer emits `0.5.0`; the prior formats remain explicit compatibility choices
-and are version-dispatched on read. See [`format_0_5_0.md`](format_0_5_0.md) for the
-canonical binding contract.
+The `format_version` enum contains only `0.5.0`, and `manifest_binding` is a
+required top-level field. Readers and writers reject every other wire version.
+See [`format_0_5_0.md`](format_0_5_0.md) for the canonical binding contract.
 
 Track `type` URIs in `src/ontology.py`:
 

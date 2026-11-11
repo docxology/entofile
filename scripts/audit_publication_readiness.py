@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -35,13 +36,25 @@ def main() -> int:
         help="Read test_results.json instead of re-running pytest live (display-only; "
         "NOT for certification — the side file is not trusted on the --check path)",
     )
+    parser.add_argument(
+        "--live-test-timeout",
+        type=float,
+        default=600.0,
+        help="Certifying pytest timeout in seconds (default: 600)",
+    )
     args = parser.parse_args()
+    if not math.isfinite(args.live_test_timeout) or args.live_test_timeout <= 0:
+        parser.error("--live-test-timeout must be a positive finite number")
 
     # The certifying path (--check) re-derives the test/coverage verdict live so a stale
     # or forged test_results.json cannot certify a red project (F1 oracle false-assurance).
     # --no-live-tests opts into the side-file read for a quick display pass only.
     live = args.check
-    result = check_publication_readiness(args.project_root, live_tests=live)
+    result = check_publication_readiness(
+        args.project_root,
+        live_tests=live,
+        live_test_timeout=args.live_test_timeout,
+    )
     print(json.dumps(result, indent=2))
     if args.check and not result["ok"]:
         return 1

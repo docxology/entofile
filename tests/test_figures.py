@@ -11,8 +11,7 @@ from src.analysis import run_benchmark_pipeline
 from src.experiment_config import load_experiment_config
 from src.figure_registry import FIGURE_SPECS, caption_token, visual_contract_for_spec
 
-EXPECTED_0_4_FIGURES = {
-    "fig:format_compatibility_matrix",
+EXPECTED_SECURITY_FIGURES = {
     "fig:length_leakage_profile",
     "fig:conformance_outcomes",
     "fig:observability_redaction_matrix",
@@ -48,7 +47,10 @@ def test_figure_registry_matches_generators(
     assert len(registry) == len(FIGURE_SPECS)
     labels = {spec.label for spec in FIGURE_SPECS}
     filenames = {spec.filename for spec in FIGURE_SPECS}
-    assert labels >= EXPECTED_0_4_FIGURES
+    assert labels >= EXPECTED_SECURITY_FIGURES
+    assert labels.isdisjoint(
+        {"fig:format_ladder", "fig:format_compatibility_matrix"}
+    )
     assert len(labels) == len(filenames) == len(FIGURE_SPECS)
     cfg = load_experiment_config(root)
     for spec in FIGURE_SPECS:

@@ -1,10 +1,10 @@
 # Related formats and security norms
 
-Research notes distilled for ENTO manuscript prose: default format 0.5.0 plus
-compatibility formats 0.2.0, 0.3.0, 0.3.1, and 0.4.0. Sources verified against public
-specifications and DOIs listed in `docs/manuscript/references.bib`.
+Research notes distilled for ENTO manuscript prose on Python 3.15 with wire
+format 0.5.0 only. Sources verified against public specifications and DOIs
+listed in `docs/manuscript/references.bib`.
 
-The default 0.5.0 profile adds authenticated exported-manifest context to each
+ENTO 0.5.0 authenticates exported-manifest context in each
 track's GCM associated data. It is an ENTO profile, not an equivalence claim with
 any ecosystem below; interoperability remains governed by the
 preregistered agenda in [`agenda.md`](agenda.md).
@@ -38,13 +38,13 @@ ENTO adopts ZIP [@zipappnote2024] as the transport envelope (like BagIt’s flat
 Per-track keys derive via HKDF-SHA256 [@krawczyk2010hkdf; @nistfips1804]
 with domain-separated `info` strings. Payload encryption uses AES-256-GCM
 [@nistfips197; @rfc5116; @dworkin2007gcm; @mcgrew2004gcm] with a 96-bit nonce,
-associated data, and a 128-bit authentication tag in the default 0.5.0 format,
+associated data, and a 128-bit authentication tag in ENTO 0.5.0,
 consistent with fail-closed guidance in [@ferguson2010cryptography]. The release
 notes explicitly keep nonce uniqueness in scope because GCM nonce reuse admits
 practical forgery attacks [@joux2006forbidden; @bock2016nonce]. AES-GCM-SIV is
 the relevant standards-track nonce-misuse-resistant AEAD to evaluate for a
-future ENTO profile if deployments cannot make fresh-nonce assumptions, but it
-is not implemented in the 0.5.0 default profile [@rfc8452].
+separate research design if deployments cannot make fresh-nonce assumptions,
+but it is not implemented in ENTO 0.5.0 [@rfc8452].
 
 ## Reproducibility and supply-chain norms
 
@@ -62,15 +62,15 @@ and signing mechanisms, not as properties of an `.ento.zip` archive
 [@nist2022sp800161r1; @slsa2024levels; @sigstore2026cosign; @torresarias2019intoto;
 @rfc9052].
 
-## Implications for ENTO format 0.5.0 and compatibility formats
+## Implications for ENTO format 0.5.0
 
 | Concern | RO-Crate / BagIt / Frictionless | HDF5 / Zarr | MKV / EPUB | OpenTDF | ENTO |
 | --- | --- | --- | --- | --- | --- |
 | Preservation-system role | Metadata/transfer layer; not repository operations | Storage substrate | Publication/media package | Policy package | File envelope only; OAIS/PREMIS remain external |
 | Typed multimodal tracks | Partial (files + roles) | Array-centric | Media-centric | Document-centric | URI registry + resolution |
-| Per-track AEAD | No | Optional filters | No | Policy-bound | Required header; default `0.5.0` binds format + track + exported manifest context; `0.4.0` remains compatibility |
+| Per-track AEAD | No | Optional filters | No | Policy-bound | Required header; ENTO `0.5.0` only binds format + track + exported manifest context |
 | Graded export | Metadata profiles | N/A | N/A | Policy attributes | Observability levels 0–3 |
-| Length hiding | No | Chunk-dependent | No | Policy-dependent | Default `0.5.0` PADMÉ padding; `0.3.1`/`0.4.0` compatibility |
+| Length hiding | No | Chunk-dependent | No | Policy-dependent | Mandatory ENTO `0.5.0` PADMÉ padding to buckets |
 | Stdlib-oriented reference | N/A | N/A | N/A | No | Offline Python CLI with ZIP transport |
 
 Future interoperability tests may export ENTO plaintext tracks into HDF5 or RO-Crate without changing the 0.5.0 on-disk ciphertext layout.

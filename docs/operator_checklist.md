@@ -55,20 +55,16 @@ verification and decrypts before writing plaintext, but operational procedures
 should still run explicit keyed `verify` first so failures are logged and
 reviewable before any output directory is populated.
 
-## Format Selection
+## Format Policy
 
-- default / `--format 0.5.0`: 12-byte nonce, PADME length padding, and canonical
-  exported-manifest binding in every track's GCM AAD.
-- compatibility / `--format 0.4.0`: previous 12-byte nonce, format+track AAD,
-  and PADME length padding; use when a reader has not adopted 0.5.0.
-- `--format 0.2.0`: legacy compatibility baseline from the earlier paper line.
-- `--format 0.3.0`: compatibility 12-byte nonce plus AAD binding for
-  `format_version` and `track_id`.
-- `--format 0.3.1`: compatibility `0.3.0` plus PADME length padding.
+ENTO 0.5.0 is the only accepted wire format. Every container uses a 12-byte
+nonce, mandatory PADME length padding, and canonical exported-manifest binding
+in every track's GCM AAD. The `pack` command has no format selector, and readers
+reject every other version explicitly.
 
-Use `0.5.0` for new sealed exports where metadata reinterpretation under a supplied
-key is in scope; the public binding does not replace external origin signatures.
-The 0.4.0 compatibility writer is available for older readers.
+Use sealed exports when metadata disclosure must be minimized. The public
+binding does not replace external origin signatures, and PADME bucket sizes
+remain visible.
 
 ## Automation Sidecars
 

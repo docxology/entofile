@@ -190,18 +190,21 @@ def _write_standalone_validation_report(root: Path) -> None:
         file_issues: list[str] = []
         if not content.strip():
             file_issues.append("empty file")
-        # Check for unresolved tokens
+        # Template tokens are expected before hydration and must not fail analysis.
         import re
 
+        file_warnings: list[str] = []
         tokens = re.findall(r"\{\{[A-Z_]+\}\}", content)
         if tokens:
-            file_issues.append(f"unresolved tokens: {', '.join(set(tokens))}")
+            file_warnings.append(f"template tokens pending hydration: {', '.join(set(tokens))}")
         checked_files.append({
             "file": md_file.name,
             "lines": len(content.splitlines()),
             "issues": file_issues,
+            "warnings": file_warnings,
         })
         issues.extend(f"{md_file.name}: {i}" for i in file_issues)
+        warnings.extend(f"{md_file.name}: {warning}" for warning in file_warnings)
 
     # Check references.bib
     bib_path = manuscript_dir / "references.bib"
@@ -253,13 +256,14 @@ def validate_generated_outputs(
     return validate_all_outputs(project_root, live_containers=live_containers)
 
 
-def main() -> None:
-    """CLI entry point for running the entofile benchmark pipeline and gates."""
+def main() -> int:
+    """Run the benchmark pipeline and return a validation-derived exit status."""
     root = Path(__file__).resolve().parent.parent
     run_benchmark_pipeline(root, strict=True)
     result = validate_generated_outputs(root)
     print(json.dumps(result, indent=2))
+    return 0 if result["ok"] is True else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

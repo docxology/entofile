@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from .conformance import EXPECTED_CASES
+from .figure_registry import FIGURE_SPECS
 from .structured_data import atomic_write_json
+
+_REGISTERED_FIGURE_FILENAMES = frozenset(spec.filename for spec in FIGURE_SPECS)
+_CONFORMANCE_FILENAMES = frozenset(case.filename for case in EXPECTED_CASES)
 
 _IGNORED_OUTPUT_PARTS = frozenset(
     {".checkpoints", ".pipeline", "hitl", "logs", "snapshots", "__pycache__"}
@@ -30,10 +35,11 @@ _STABLE_REPORT_FILES = frozenset(
         "conformance_report.json",
         "figure_layout_report.json",
         "sbom.cyclonedx.json",
+        "validation_report.json",
     }
 )
 _STABLE_DATA_FILES = frozenset(
-    {"ento_benchmark_results.csv", "manuscript_variables.json"}
+    {"ento_benchmark_results.csv", "manuscript_variables.json", "transmission_manifest.json"}
 )
 
 
@@ -58,7 +64,7 @@ def write_artifact_manifest(project_root: Path) -> Path:
     output_dir = root / "output"
     report_path = output_dir / "reports" / "artifact_manifest.json"
     stage_dir = output_dir / ".pipeline" / "artifacts"
-    timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    timestamp = datetime.now(UTC).isoformat(timespec="seconds")
     entries: list[dict[str, Any]] = []
 
     if output_dir.is_symlink():
@@ -120,7 +126,9 @@ def _is_stable_release_artifact(path: Path, output_dir: Path) -> bool:
         return False
     top = rel_parts[0]
     if top == "figures":
-        return path.suffix == ".png" or path.name == "figure_registry.json"
+        return (
+            path.suffix == ".png" and path.name in _REGISTERED_FIGURE_FILENAMES
+        ) or path.name == "figure_registry.json"
     if top == "docs":
         return path.suffix in {".md", ".json", ".txt"}
     if top == "reports":
@@ -128,5 +136,5 @@ def _is_stable_release_artifact(path: Path, output_dir: Path) -> bool:
     if top == "data":
         return len(rel_parts) == 2 and path.name in _STABLE_DATA_FILES
     if top == "conformance":
-        return path.suffix == ".zip" or path.name == "conformance_manifest.json"
+        return path.name in _CONFORMANCE_FILENAMES or path.name == "conformance_manifest.json"
     return False

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from . import crypto
 from .manifest import manifest_from_json, manifest_to_json
@@ -29,7 +29,7 @@ def export_proof(manifest: Manifest) -> ProofExport:
         )
         previous = entry_hash
     created = (
-        datetime.now(timezone.utc)
+        datetime.now(UTC)
         .replace(microsecond=0)
         .isoformat()
         .replace("+00:00", "Z")

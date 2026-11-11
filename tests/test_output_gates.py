@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from src.artifact_manifest import write_artifact_manifest
 from src.output_gates import (
     benchmark_artifacts_ok,
@@ -13,18 +15,27 @@ from src.output_gates import (
     validate_all_outputs,
 )
 
+VALID_BENCHMARK_CSV = (
+    "format_version,condition,track_id,track_type,plaintext_bytes,ciphertext_bytes,"
+    "expansion_ratio,pack_seconds,unpack_seconds,pack_throughput_mib_s,tamper_detected,"
+    "observability_level,manifest_bytes\n"
+    "0.5.0,small_tracks_r0,eeg,ento:timeseries.eeg,42,74,1.76,0.01,0.001,0.5,True,3,512\n"
+)
+
 
 def _write_minimal_outputs(root: Path) -> None:
     (root / "output" / "data").mkdir(parents=True, exist_ok=True)
     (root / "output" / "reports").mkdir(parents=True, exist_ok=True)
     (root / "output" / "figures").mkdir(parents=True, exist_ok=True)
     (root / "output" / "data" / "ento_benchmark_results.csv").write_text(
-        "condition,track_id\nsmall_tracks_r0,eeg\n",
-        encoding="utf-8",
+        VALID_BENCHMARK_CSV, encoding="utf-8"
     )
     (root / "output" / "reports" / "benchmark_validation.json").write_text(
         json.dumps({"status": "pass", "tamper_detection_rate": 1.0}) + "\n",
         encoding="utf-8",
+    )
+    (root / "output" / "reports" / "validation_report.json").write_text(
+        json.dumps({"ok": True, "issues": []}), encoding="utf-8"
     )
     (root / "output" / "reports" / "container_verification.json").write_text(
         json.dumps(
@@ -65,6 +76,90 @@ def test_malformed_reports_fail_closed(tmp_path: Path) -> None:
     )
     assert benchmark_report_ok(tmp_path) == (False, {})
     assert validate_all_outputs(tmp_path)["registry_provenance_ok"] is False
+
+
+@pytest.mark.parametrize(
+    "content",
+    (
+        "condition,track_id\nsmall_tracks_r0,eeg\n",
+        VALID_BENCHMARK_CSV.split("\n", 1)[0] + "\n",
+        VALID_BENCHMARK_CSV.replace("0.5.0", "0.4.0", 1),
+    ),
+)
+def test_benchmark_artifacts_reject_invalid_csv(tmp_path: Path, content: str) -> None:
+    _write_minimal_outputs(tmp_path)
+    (tmp_path / "output" / "data" / "ento_benchmark_results.csv").write_text(
+        content, encoding="utf-8"
+    )
+    assert benchmark_artifacts_ok(tmp_path) is False
+
+
+@pytest.mark.parametrize("tamper_rate", ("not-a-number", None))
+def test_validate_all_outputs_rejects_malformed_tamper_metric(
+    tmp_path: Path, tamper_rate: str | None
+) -> None:
+    _write_minimal_outputs(tmp_path)
+    (tmp_path / "output" / "reports" / "benchmark_validation.json").write_text(
+        json.dumps({"status": "pass", "tamper_detection_rate": tamper_rate}),
+        encoding="utf-8",
+    )
+    result = validate_all_outputs(tmp_path)
+    assert result["ok"] is False
+    assert result["tamper_detection_rate"] == 0.0
+
+
+def test_validate_all_outputs_rejects_failed_manuscript_validation(tmp_path: Path) -> None:
+    _write_minimal_outputs(tmp_path)
+    (tmp_path / "output" / "reports" / "validation_report.json").write_text(
+        json.dumps({"ok": False, "issues": ["No manuscript markdown files found"]}),
+        encoding="utf-8",
+    )
+    result = validate_all_outputs(tmp_path)
+    assert result["ok"] is False
+    assert result["validation_ok"] is False
+
+
+def test_validate_all_outputs_rejects_missing_manuscript_validation(
+    tmp_path: Path,
+) -> None:
+    _write_minimal_outputs(tmp_path)
+    (tmp_path / "output" / "reports" / "validation_report.json").unlink()
+    result = validate_all_outputs(tmp_path)
+    assert result["ok"] is False
+    assert result["validation_ok"] is False
+
+
+def test_validate_all_outputs_accepts_sdk_validation_report(tmp_path: Path) -> None:
+    _write_minimal_outputs(tmp_path)
+    (tmp_path / "output" / "reports" / "validation_report.json").write_text(
+        json.dumps(
+            {
+                "summary": {"all_passed": True, "failed": 0},
+                "checks": {"PDF validation": True, "Markdown validation": True},
+                "figure_issues": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    result = validate_all_outputs(tmp_path)
+    assert result["validation_ok"] is True
+
+
+def test_validate_all_outputs_rejects_failed_sdk_validation_report(tmp_path: Path) -> None:
+    _write_minimal_outputs(tmp_path)
+    (tmp_path / "output" / "reports" / "validation_report.json").write_text(
+        json.dumps(
+            {
+                "summary": {"all_passed": False, "failed": 1},
+                "checks": {"PDF validation": False, "Markdown validation": True},
+                "figure_issues": ["broken figure"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    result = validate_all_outputs(tmp_path)
+    assert result["ok"] is False
+    assert result["validation_ok"] is False
 
 
 def test_container_verification_report_ok_requires_file(tmp_path: Path) -> None:
@@ -178,7 +273,9 @@ def test_standalone_artifact_manifest_declares_actual_output_tree(
 ) -> None:
     """The working-project manifest should describe output/ directly, not stale template paths."""
     _write_minimal_outputs(tmp_path)
-    (tmp_path / "output" / "figures" / "format_ladder.png").write_bytes(b"png")
+    (tmp_path / "output" / "figures" / "length_leakage_profile.png").write_bytes(b"png")
+    (tmp_path / "output" / "figures" / "format_ladder.png").write_bytes(b"stale")
+    (tmp_path / "output" / "figures" / "format_compatibility_matrix.png").write_bytes(b"stale")
     (tmp_path / "output" / "figures" / "transmission_pairing.png").write_bytes(
         b"renderer-owned"
     )
@@ -186,7 +283,14 @@ def test_standalone_artifact_manifest_declares_actual_output_tree(
         b"renderer-owned"
     )
     (tmp_path / "output" / "conformance").mkdir(parents=True)
-    (tmp_path / "output" / "conformance" / "good-0.2.0.ento.zip").write_bytes(b"zip")
+    (tmp_path / "output" / "conformance" / "good-0.5.0.ento.zip").write_bytes(b"zip")
+    (tmp_path / "output" / "conformance" / "good-0.4.0.ento.zip").write_bytes(b"stale")
+    (tmp_path / "output" / "data" / "transmission_manifest.json").write_text(
+        json.dumps({"published": False}), encoding="utf-8"
+    )
+    (tmp_path / "output" / "reports" / "validation_report.json").write_text(
+        json.dumps({"ok": True, "issues": []}), encoding="utf-8"
+    )
     (tmp_path / "output" / "conformance" / "conformance_manifest.json").write_text(
         json.dumps({"cases": []}) + "\n",
         encoding="utf-8",
@@ -206,13 +310,18 @@ def test_standalone_artifact_manifest_declares_actual_output_tree(
     assert entries
     paths = {entry["path"] for entry in entries}
     assert "output/reports/artifact_manifest.json" not in paths
-    assert "output/figures/format_ladder.png" in paths
+    assert "output/figures/length_leakage_profile.png" in paths
+    assert "output/figures/format_ladder.png" not in paths
+    assert "output/figures/format_compatibility_matrix.png" not in paths
     assert "output/figures/transmission_pairing.png" not in paths
     assert "output/figures/transmission_integrity_strip.png" not in paths
     assert "output/conformance/conformance_manifest.json" in paths
-    assert "output/conformance/good-0.2.0.ento.zip" in paths
+    assert "output/conformance/good-0.5.0.ento.zip" in paths
+    assert "output/conformance/good-0.4.0.ento.zip" not in paths
+    assert "output/data/transmission_manifest.json" in paths
     assert "output/reports/conformance_report.json" in paths
     assert "output/reports/figure_layout_report.json" in paths
+    assert "output/reports/validation_report.json" in paths
     assert all(not path.startswith("projects/entofile/") for path in paths)
     assert all(entry["contract_match"] is True for entry in entries)
     stage_manifests = sorted(

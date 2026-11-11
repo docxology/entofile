@@ -3,8 +3,8 @@
 ## Release
 
 - Paper release:
-- Default wire format:
-- Supported opt-in formats:
+- Python runtime: 3.15
+- ENTO wire format: 0.5.0 only
 - Git commit:
 - DOI / archive target:
 
@@ -12,7 +12,7 @@
 
 - What changed:
 - What did not change:
-- Compatibility notes:
+- Explicit non-0.5.0 rejection coverage:
 
 ## Evidence
 
@@ -32,8 +32,9 @@
 - Known residual risks:
 - External signing/provenance:
 
-## Upgrade Guidance
+## Operator Guidance
 
-- Recommended format for default users:
-- Recommended format for length-sensitive users:
-- Migration cautions:
+- Required runtime: Python 3.15
+- Required wire format: ENTO 0.5.0
+- Length-sensitive export guidance:
+- External conversion boundary for older material:

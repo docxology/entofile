@@ -8,10 +8,10 @@ import zipfile
 from dataclasses import replace
 from pathlib import Path
 
-import jsonschema
 import pytest
 
 from src import container, crypto
+from src.errors import IntegrityError, ManifestError
 from src.manifest import manifest_to_json
 from src.manifest_binding import (
     canonical_manifest_binding_bytes,
@@ -44,8 +44,7 @@ def test_0_5_0_profile_contract_and_vector() -> None:
     manifest = _vector_manifest()
     binding = compute_manifest_binding(manifest)
     assert crypto.FORMAT_VERSION == "0.5.0"
-    assert crypto.FORMAT_VERSION_LATEST == "0.5.0"
-    assert crypto.FORMAT_VERSION_NEXT == "0.5.0"
+    assert crypto.SUPPORTED_FORMAT_VERSIONS == ("0.5.0",)
     assert crypto.requires_manifest_binding("0.5.0") is True
     assert crypto.nonce_size_for("0.5.0") == 12
     assert crypto.pads_payload("0.5.0") is True
@@ -142,7 +141,7 @@ def test_0_5_0_rejects_manifest_mutation_before_decryption(tmp_path: Path) -> No
     raw_manifest["creator"] = "attacker"
     tampered = tmp_path / "tampered.ento.zip"
     tampered.write_bytes(_rewrite_container(original, Manifest.from_dict(raw_manifest)))
-    with pytest.raises(ValueError, match="manifest binding mismatch"):
+    with pytest.raises(IntegrityError, match="manifest binding mismatch"):
         container.inspect_container(tampered)
 
 
@@ -163,11 +162,11 @@ def test_0_5_0_rejects_rebound_manifest_under_original_ciphertext(tmp_path: Path
     )
     tampered = tmp_path / "rebound.ento.zip"
     tampered.write_bytes(_rewrite_container(original, rebound))
-    with pytest.raises(ValueError, match="authentication tag mismatch"):
+    with pytest.raises(IntegrityError, match="authentication tag mismatch"):
         container.unpack_container(tampered, key)
 
 
-def test_0_5_0_relabelled_as_legacy_format_fails_keyed_unpack(tmp_path: Path) -> None:
+def test_0_5_0_relabelled_as_legacy_format_is_rejected(tmp_path: Path) -> None:
     key = crypto.generate_master_key()
     track = PlainTrack("alpha", "ento:blockchain.proof", b"payload")
     original = container.pack_container_bytes(key, (track,), format_version="0.5.0")
@@ -176,7 +175,7 @@ def test_0_5_0_relabelled_as_legacy_format_fails_keyed_unpack(tmp_path: Path) ->
     raw_manifest.pop("manifest_binding")
     tampered = tmp_path / "downgraded.ento.zip"
     tampered.write_bytes(_rewrite_container(original, Manifest.from_dict(raw_manifest)))
-    with pytest.raises(ValueError, match="authentication tag mismatch"):
+    with pytest.raises(ManifestError):
         container.unpack_container(tampered, key)
 
 
@@ -199,7 +198,7 @@ def test_0_5_0_rejects_empty_container(tmp_path: Path) -> None:
     path = tmp_path / "empty.ento.zip"
     with zipfile.ZipFile(path, "w", zipfile.ZIP_STORED) as zf:
         zf.writestr("manifest.json", manifest_to_json(manifest))
-    with pytest.raises(ValueError, match="at least one track"):
+    with pytest.raises(ManifestError):
         container.inspect_container(path)
 
 
@@ -216,7 +215,7 @@ def test_legacy_manifest_binding_field_is_rejected() -> None:
     raw["format_version"] = "0.4.0"
     from src.manifest import manifest_from_json
 
-    with pytest.raises(jsonschema.ValidationError):
+    with pytest.raises(ManifestError):
         manifest_from_json(json.dumps(raw))
 
 
@@ -225,7 +224,7 @@ def test_0_5_0_binding_is_required_when_legacy_manifest_is_relabelled() -> None:
     raw["format_version"] = "0.5.0"
     from src.manifest import manifest_from_json
 
-    with pytest.raises(jsonschema.ValidationError):
+    with pytest.raises(ManifestError):
         manifest_from_json(json.dumps(raw))
 
 
@@ -243,7 +242,7 @@ def test_0_5_0_rejects_wrong_binding_even_when_shape_is_valid() -> None:
 
     raw = _vector_manifest().to_dict()
     raw["manifest_binding"] = "0" * 64
-    with pytest.raises(ValueError, match="manifest binding mismatch"):
+    with pytest.raises(IntegrityError, match="manifest binding mismatch"):
         manifest_from_json(json.dumps(raw))
 
 
@@ -285,5 +284,5 @@ def test_manifest_binding_rejects_non_finite_and_malformed() -> None:
         tracks=base.tracks,
         manifest_binding="not-a-valid-hex-sha256",
     )
-    with pytest.raises(ValueError, match="manifest_binding is missing or malformed"):
+    with pytest.raises(IntegrityError, match="manifest_binding is missing or malformed"):
         validate_manifest_binding(malformed_binding_manifest)

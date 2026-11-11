@@ -1,4 +1,4 @@
-"""Validation that the version-aware ciphertext-expansion law holds."""
+"""Validation that the ENTO 0.5.0 ciphertext-expansion law holds."""
 
 from __future__ import annotations
 
@@ -23,12 +23,16 @@ def test_header_constant_matches_crypto() -> None:
 
 
 def test_expansion_model_closed_form() -> None:
-    # Current default 0.5.0: nonce(12) + tag(16) + PADME(length-prefix + plaintext).
+    # ENTO 0.5.0: nonce(12) + tag(16) + PADME(length-prefix + plaintext).
     for n in (32, 42, 64):
         expected = (28 + padding.padme(n + 8)) / n
         assert expansion_ratio_model(n) == pytest.approx(expected)
-    # Legacy 0.2.0 remains the simple unpadded identity.
-    assert expansion_ratio_model(64, format_version="0.2.0") == pytest.approx(1.5)
+
+
+@pytest.mark.parametrize("format_version", ("0.2.0", "0.3.0", "0.3.1", "0.4.0"))
+def test_expansion_model_rejects_legacy_formats(format_version: str) -> None:
+    with pytest.raises(ValueError, match="unsupported format_version"):
+        expansion_ratio_model(64, format_version=format_version)
 
 
 def test_expansion_model_rejects_nonpositive() -> None:
@@ -50,8 +54,7 @@ def test_measured_rows_satisfy_law_to_float_precision() -> None:
         pytest.skip("benchmark CSV not generated; run scripts/ento_analysis.py")
     rows = load_benchmark_csv(csv)
     assert rows, "benchmark CSV is empty"
-    if "format_version" not in rows[0]:
-        pytest.skip("benchmark CSV predates 0.4.0 format_version column")
+    assert {row["format_version"] for row in rows} == {FORMAT_VERSION}
     residual = max_expansion_ratio_residual(rows)
     # Identity, not a fit: residual must be at CSV-rounding / float noise level.
     assert residual < 1e-3, f"expansion law violated: max |residual| = {residual}"
@@ -65,6 +68,26 @@ def test_residual_negative_control() -> None:
         "plaintext_bytes": "64",
         "expansion_ratio": f"{good_ratio:.12f}",
     }
-    bad = {"plaintext_bytes": "64", "expansion_ratio": "9.9"}
+    bad = {
+        "format_version": FORMAT_VERSION,
+        "plaintext_bytes": "64",
+        "expansion_ratio": "9.9",
+    }
     assert max_expansion_ratio_residual([good]) < 1e-6
     assert max_expansion_ratio_residual([bad]) > 1.0
+
+
+def test_residual_rejects_missing_and_stale_format_versions() -> None:
+    row = {
+        "format_version": FORMAT_VERSION,
+        "plaintext_bytes": "64",
+        "expansion_ratio": f"{expansion_ratio_model(64):.12f}",
+    }
+    missing = dict(row)
+    del missing["format_version"]
+    with pytest.raises(KeyError):
+        max_expansion_ratio_residual([missing])
+
+    stale = dict(row, format_version="0.4.0")
+    with pytest.raises(ValueError, match="unsupported format_version"):
+        max_expansion_ratio_residual([stale])

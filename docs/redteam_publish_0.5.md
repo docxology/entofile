@@ -1,8 +1,9 @@
-# RedTeam migration ledger — ENTO 0.5.0 default
+# Historical RedTeam migration ledger — ENTO 0.5.0 default
 
-This ledger records the adversarial review for the 0.5.0 default migration. The
-older `redteam_publish_0.4.md` remains a historical record of the prior default
-cutover; it is not current release guidance.
+This ledger records the adversarial review for the historical 0.5.0 default
+migration. It is not current release guidance. The active clean break requires
+Python 3.15 and ENTO 0.5.0 only, rejecting every other wire version. The older
+`redteam_publish_0.4.md` remains a historical record of the prior cutover.
 
 ## Boundary
 

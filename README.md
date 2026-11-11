@@ -1,6 +1,6 @@
 # entofile
 
-**ENTO** (**EN**crypted, **T**yped, **O**mnitrack) format **0.5.0** reference implementation: a flat ZIP archive that bundles many independently typed research tracks — time series, genomics slices, spectrograms, provenance proofs — each sealed under per-track AES-256-GCM authenticated encryption, with graded observability levels and optional hash-chained proof export. The 0.5.0 default uses a 12-byte GCM nonce, PADMÉ length padding, and authenticated exported-manifest context in every track tag. Readers preserve compatibility with 0.2.0, 0.3.0, 0.3.1, and 0.4.0 and always *verify before unpack*.
+**ENTO** (**EN**crypted, **T**yped, **O**mnitrack) format **0.5.0** reference implementation: a flat ZIP archive that bundles many independently typed research tracks — time series, genomics slices, spectrograms, provenance proofs — each sealed under per-track AES-256-GCM authenticated encryption, with graded observability levels and optional hash-chained proof export. ENTO 0.5.0 is the only supported wire format. It uses a 12-byte GCM nonce, mandatory PADMÉ length padding, and authenticated exported-manifest context in every track tag. Always *verify before unpack*.
 
 Author: Daniel Ari Friedman (Active Inference Institute). DOI: [10.5281/zenodo.20396329](https://doi.org/10.5281/zenodo.20396329) (version) · [10.5281/zenodo.20396328](https://doi.org/10.5281/zenodo.20396328) (concept, always latest).
 
@@ -8,7 +8,7 @@ Author: Daniel Ari Friedman (Active Inference Institute). DOI: [10.5281/zenodo.2
 
 Requires [`uv`](https://docs.astral.sh/uv/); project dependencies resolve automatically on the first `uv run`.
 
-Python 3.10 and newer are supported. Installed wheels include the manifest schema,
+Python 3.15 is required. Installed wheels include the manifest schema,
 deterministic example tracks, and type marker, so container operations also work
 outside a source checkout:
 
@@ -26,7 +26,9 @@ or multiply-linked sidecars are rejected; JSON results are replaced atomically. 
 failure returns a nonzero exit code even if the primary operation completed.
 
 ```bash
-# From this project root — these run on a standalone clone:
+# From this project root — install the development tools once:
+uv sync --locked --extra dev
+# These validation commands run on a standalone clone:
 uv run python scripts/run_tests.py
 uv run python scripts/ento_analysis.py
 uv run python scripts/check_figure_layout.py

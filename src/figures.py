@@ -14,8 +14,6 @@ from .figure_plotters import (
     plot_expansion,
     plot_expansion_heatmap,
     plot_expansion_law,
-    plot_format_compatibility_matrix,
-    plot_format_ladder,
     plot_length_leakage_profile,
     plot_manifest_multitrack,
     plot_observability,
@@ -159,23 +157,6 @@ def generate_determinism_cv_figure(csv_path: Path, output_path: Path) -> Path:
     """Generate coefficient of variation determinism classification figure."""
     return _generate(
         csv_path, output_path, "fig:determinism_cv", plot_determinism_cv
-    )
-
-
-def generate_format_ladder_figure(csv_path: Path, output_path: Path) -> Path:
-    """Generate format security ladder figure."""
-    return _generate(csv_path, output_path, "fig:format_ladder", plot_format_ladder)
-
-
-def generate_format_compatibility_matrix_figure(
-    csv_path: Path, output_path: Path
-) -> Path:
-    """Generate format compatibility matrix figure."""
-    return _generate(
-        csv_path,
-        output_path,
-        "fig:format_compatibility_matrix",
-        plot_format_compatibility_matrix,
     )
 
 

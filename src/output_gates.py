@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 from typing import Any
 
+from .benchmarks import BenchmarkRow
+from .crypto import FORMAT_VERSION
 from .figure_registry import FIGURE_SPECS, caption_token, visual_contract_for_spec
 from .structured_data import read_json_object
+
+_BENCHMARK_CSV_FIELDS = tuple(BenchmarkRow.__dataclass_fields__)
 
 
 def _read_json_object(path: Path) -> dict[str, Any] | None:
@@ -19,16 +24,57 @@ def _read_json_object(path: Path) -> dict[str, Any] | None:
         return None
 
 
+def _benchmark_csv_ok(path: Path) -> bool:
+    """Require the canonical nonempty CSV schema and only current-format rows."""
+    try:
+        if not path.is_file() or path.is_symlink():
+            return False
+        with path.open(encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            if reader.fieldnames != list(_BENCHMARK_CSV_FIELDS):
+                return False
+            rows = list(reader)
+    except (OSError, UnicodeError, csv.Error):
+        return False
+    return bool(rows) and all(
+        row.get("format_version") == FORMAT_VERSION
+        and all(
+            isinstance(value, str) and bool(value.strip()) for value in row.values()
+        )
+        for row in rows
+    )
+
+
 def benchmark_artifacts_ok(project_root: Path) -> bool:
-    """Benchmark CSV and validation report exist."""
+    """Benchmark CSV matches its current schema and the validation report exists."""
     csv_path = project_root / "output" / "data" / "ento_benchmark_results.csv"
     report_path = project_root / "output" / "reports" / "benchmark_validation.json"
+    return _benchmark_csv_ok(csv_path) and report_path.is_file() and not report_path.is_symlink()
+
+
+def validation_report_is_green(report: dict[str, Any]) -> bool:
+    """Accept standalone and SDK validation schemas, failing closed on every error."""
+    if "ok" in report or "issues" in report:
+        return report.get("ok") is True and not report.get("issues")
+    summary = report.get("summary")
+    checks = report.get("checks")
     return (
-        csv_path.is_file()
-        and not csv_path.is_symlink()
-        and report_path.is_file()
-        and not report_path.is_symlink()
+        isinstance(summary, dict)
+        and summary.get("all_passed") is True
+        and summary.get("failed") == 0
+        and isinstance(checks, dict)
+        and bool(checks)
+        and all(value is True for value in checks.values())
+        and not report.get("figure_issues")
     )
+
+
+def validation_report_ok(project_root: Path) -> bool:
+    """Require standalone or SDK manuscript validation to report no issues."""
+    report = _read_json_object(
+        project_root / "output" / "reports" / "validation_report.json"
+    )
+    return report is not None and validation_report_is_green(report)
 
 
 def benchmark_report_ok(project_root: Path) -> tuple[bool, dict[str, Any]]:
@@ -162,7 +208,11 @@ def validate_all_outputs(
     ).is_file()
     registry_provenance_ok = figure_registry_metadata_ok(project_root)
     containers_ok = container_verification_report_ok(project_root, live=live_containers)
-    tamper_rate = float(report.get("tamper_detection_rate", 0.0)) if report else 0.0
+    validation_ok = validation_report_ok(project_root)
+    try:
+        tamper_rate = float(report.get("tamper_detection_rate", 0.0)) if report else 0.0
+    except (TypeError, ValueError):
+        tamper_rate = 0.0
     ok = (
         files_ok
         and figures_ok
@@ -170,12 +220,14 @@ def validate_all_outputs(
         and registry_provenance_ok
         and containers_ok
         and metrics_ok
+        and validation_ok
     )
     return {
         "ok": ok,
         "report": report,
         "tamper_detection_rate": tamper_rate,
         "figures_ok": figures_ok,
+        "validation_ok": validation_ok,
         "registry_ok": registry_ok,
         "registry_provenance_ok": registry_provenance_ok,
         "containers_ok": containers_ok,

@@ -9,7 +9,7 @@ import zipfile
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from hmac import compare_digest
 from io import BytesIO
 from pathlib import Path
@@ -85,7 +85,7 @@ def _read_manifest_from_zip(zf: zipfile.ZipFile) -> Manifest:
     # rejects duplicate keys and validates the requested schema before ``from_dict``
     # can coerce values or discard unknown fields.
     manifest = manifest_from_json(raw.decode("utf-8"))
-    if manifest.format_version in crypto.MANIFEST_BINDING_FORMATS and not manifest.tracks:
+    if not manifest.tracks:
         raise ContainerError("0.5.0 containers require at least one track")
     # Manifest-track uniqueness is a READ-path invariant too: a crafted container can
     # list a track id more than once even though the ZIP can hold only one member per
@@ -112,23 +112,13 @@ def _ciphertext_digests_present(manifest: Manifest) -> bool:
 def _reconcile_byte_length(
     manifest: Manifest, track_id: str, manifest_byte_length: int, plaintext: bytes
 ) -> None:
-    """Cross-check a track's declared ``byte_length`` against the decrypted plaintext.
+    """Reconcile the authenticated length declaration with decrypted plaintext.
 
-    ``byte_length`` is an unauthenticated manifest field; with the master key we hold
-    the *true* plaintext, so this is the one moment its declared length can be bound to
-    reality. Without this check a container with a rewritten ``byte_length`` (and no
-    proof chain to catch the manifest-digest change) verifies ``key-authenticated`` while
-    advertising a false size — the same manifest-field-unbound-to-reality class the
-    digest check closes for content. At the SEALED level redaction deliberately zeroes
-    ``byte_length`` (``observability.py``), so it cannot be reconciled against the real
-    plaintext length; instead it is bound to the redaction SENTINEL (``0``). Skipping
-    SEALED entirely would let an attacker key off the *unauthenticated*
-    ``observability_level`` header — claim SEALED while KEEPING real digests and a
-    rewritten non-zero ``byte_length`` — to smuggle a false size past a keyed verify as
-    ``key-authenticated``. Requiring the sentinel closes that, while every legitimately
-    produced SEALED container (``byte_length == 0``) still passes. The non-SEALED
-    comparison uses the *unpadded* plaintext, so 0.3.1/0.4.0 PADMÉ padding does not
-    affect it.
+    The 0.5.0 manifest binding authenticates ``byte_length``; this check also
+    ensures that a producer's declaration matches reality. SEALED redaction
+    deliberately replaces the length with the sentinel zero, so that level checks
+    the sentinel rather than the plaintext length. Other levels compare against
+    the unpadded plaintext, excluding PADMÉ padding from the declared size.
     """
     if manifest.observability_level == ObservabilityLevel.SEALED:
         if manifest_byte_length != 0:
@@ -240,10 +230,8 @@ def verify_container(
     - ``"key-authenticated"`` — every track decrypted under AES-256-GCM and any
       plaintext digests matched. This is the only level that resists an adversary
       who controls the container bytes. It authenticates **track plaintext content**
-      (and the track_id, bound via the HKDF key-derivation label). For 0.5.0, the
-      canonical exported manifest context is also bound into each track tag; for
-      earlier profiles, unkeyed manifest header fields such as format_version,
-      observability_level, and creator remain outside the GCM AAD. External
+      (and the track_id, bound via the HKDF key-derivation label). The canonical
+      exported manifest context is also bound into each track tag. External
       signatures are still required for origin. The level is derived from the
       decrypt attempt, never read from a manifest field, so header mutation cannot
       downgrade it.
@@ -275,7 +263,7 @@ def verify_container(
                 encrypted = track_mod.parse_track_bytes(
                     entry.id, raw, format_version=ctx.manifest.format_version
                 )
-                # decrypt_track raises ValueError on GCM authentication failure,
+                # decrypt_track raises IntegrityError on GCM authentication failure,
                 # so any ciphertext tamper is caught here regardless of digests.
                 plaintext = track_mod.decrypt_track(
                     master_key,
@@ -294,8 +282,8 @@ def verify_container(
                     ctx.manifest, entry.id, entry.byte_length, plaintext
                 )
             # Any decrypt/digest/byte_length failure above raises, so reaching
-            # here means every track authenticated; empty containers stay False.
-            key_authenticated = bool(ctx.manifest.tracks)
+            # here means every required track authenticated.
+            key_authenticated = True
 
         if key_authenticated:
             integrity = "key-authenticated"
@@ -354,7 +342,7 @@ def _build_manifest(
 def _utc_timestamp() -> str:
     """Return ISO 8601 UTC timestamp."""
     return (
-        datetime.now(timezone.utc)
+        datetime.now(UTC)
         .replace(microsecond=0)
         .isoformat()
         .replace("+00:00", "Z")
@@ -371,31 +359,31 @@ def _prepare_pack(
     format_version: str,
 ) -> tuple[Manifest, dict[str, EncryptedTrack], ObservabilityLevel]:
     """Build the manifest/encrypted payload pair shared by both pack facades."""
+    if format_version != FORMAT_VERSION:
+        raise ValueError(f"unsupported format_version: {format_version!r}")
     validate_plain_tracks(tracks)
-    if crypto.requires_manifest_binding(format_version) and not tracks:
+    if not tracks:
         raise ContainerError("0.5.0 containers require at least one track")
     level = observability_level if export_level is None else export_level
     validate_export_level(observability_level, level)
     created = _utc_timestamp()
-    manifest_binding: str | None = None
 
-    if crypto.requires_manifest_binding(format_version):
-        # The binding must cover the manifest view that is actually exported. A
-        # provisional descriptor is enough because the circular ciphertext digest
-        # is excluded from the canonical projection.
-        empty_encrypted = {
-            plain.track_id: EncryptedTrack(plain.track_id, b"", b"", b"")
-            for plain in tracks
-        }
-        template = _build_manifest(
-            tracks,
-            empty_encrypted,
-            creator=creator,
-            observability_level=observability_level,
-            format_version=format_version,
-            created=created,
-        )
-        manifest_binding = compute_manifest_binding(filter_manifest(template, level))
+    # The binding covers the manifest view that is actually exported. Provisional
+    # descriptors are sufficient because ciphertext digests are excluded from the
+    # canonical projection, breaking the AEAD/digest dependency cycle.
+    empty_encrypted = {
+        plain.track_id: EncryptedTrack(plain.track_id, b"", b"", b"")
+        for plain in tracks
+    }
+    template = _build_manifest(
+        tracks,
+        empty_encrypted,
+        creator=creator,
+        observability_level=observability_level,
+        format_version=format_version,
+        created=created,
+    )
+    manifest_binding = compute_manifest_binding(filter_manifest(template, level))
 
     encrypted = {
         plain.track_id: track_mod.encrypt_track(
@@ -445,12 +433,11 @@ def pack_container(
     export_level: ObservabilityLevel | None = None,
     format_version: str = FORMAT_VERSION,
 ) -> Manifest:
-    """Pack tracks into an ENTO ZIP at destination.
+    """Pack tracks into a 0.5.0 ENTO ZIP at destination.
 
-    ``format_version`` defaults to the 0.5.0 profile (standard nonce, AAD binding,
-    PADMÉ length padding, and exported-manifest context binding). Pass ``0.4.0``
-    explicitly for the previous compatibility profile, or another supported
-    version for a legacy container."""
+    The optional ``format_version`` argument accepts only ``0.5.0``; all other
+    versions are rejected. Tracks use 12-byte nonces, PADMÉ length padding, and
+    AEAD associated data bound to the exported manifest context."""
     full_manifest, encrypted, level = _prepare_pack(
         master_key,
         tracks,

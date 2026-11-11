@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -16,6 +17,7 @@ import yaml
 from src import crypto
 from src.cli import build_parser
 from src.figure_registry import FIGURE_SPECS
+from src.structured_data import read_toml_mapping
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -78,15 +80,15 @@ def test_visual_evidence_contract_is_documented() -> None:
 
 def test_architecture_manifest_enum_matches_supported_formats() -> None:
     schema = json.loads(_read("data/ento_manifest_schema.json"))
-    assert (
-        tuple(schema["properties"]["format_version"]["enum"])
-        == crypto.SUPPORTED_FORMAT_VERSIONS
-    )
+    assert schema["properties"]["format_version"]["enum"] == ["0.5.0"]
+    assert "manifest_binding" in schema["required"]
+    assert "allOf" not in schema
 
-    architecture = _read("docs/architecture.md")
-    for version in crypto.SUPPORTED_FORMAT_VERSIONS:
-        assert f"`{version}`" in architecture
-    assert "`format_version` enum: `0.2.0`." not in architecture
+    architecture = " ".join(_read("docs/architecture.md").split())
+    assert "enum contains only `0.5.0`" in architecture
+    assert "`manifest_binding` is a required top-level field" in architecture
+    for version in ("0.2.0", "0.3.0", "0.3.1", "0.4.0"):
+        assert f"`{version}`" not in architecture
 
 
 def test_threat_model_inventory_includes_length_disclosure_id() -> None:
@@ -129,7 +131,7 @@ def test_public_repository_language_is_published() -> None:
     assert "projects/working/entofile" in surfaces["README.md"]
 
 
-def test_public_docs_do_not_describe_0_2_0_as_current_default() -> None:
+def test_public_docs_do_not_claim_legacy_support() -> None:
     surfaces = {
         "SECURITY.md": _read("SECURITY.md"),
         "CONTRIBUTING.md": _read("CONTRIBUTING.md"),
@@ -137,9 +139,9 @@ def test_public_docs_do_not_describe_0_2_0_as_current_default() -> None:
             ".github/ISSUE_TEMPLATE/bug_report.yml"
         ),
         "ISA.md": _read("ISA.md"),
+        "tasks.yaml": _read("tasks.yaml"),
         "docs/operator_checklist.md": _read("docs/operator_checklist.md"),
         "docs/entofile-threat-model.md": _read("docs/entofile-threat-model.md"),
-        "tests/test_format_0_3_0.py": _read("tests/test_format_0_3_0.py"),
     }
     forbidden = (
         "`0.2.0` as the default",
@@ -164,6 +166,10 @@ def test_public_docs_do_not_describe_0_2_0_as_current_default() -> None:
     ):
         assert crypto.FORMAT_VERSION in surfaces[path], path
 
+    for path in ("SECURITY.md", "CONTRIBUTING.md", "docs/operator_checklist.md"):
+        for phrase in ("remain compatibility", "remain readable", "remain supported", "pack --format"):
+            assert phrase not in surfaces[path].lower(), (path, phrase)
+
 
 def test_todo_batch_docs_are_indexed_and_todo_updated() -> None:
     docs_readme = _read("docs/README.md")
@@ -172,7 +178,6 @@ def test_todo_batch_docs_are_indexed_and_todo_updated() -> None:
     for rel in (
         "operator_checklist.md",
         "glossary.md",
-        "format_migration.md",
         "provenance_signing.md",
         "release_notes_template.md",
         "public_release_checklist.md",
@@ -248,6 +253,43 @@ def test_publication_docs_mark_test_results_as_non_certifying() -> None:
     assert "not use it to certify" in publication
 
 
+def test_ci_uses_declared_python_only() -> None:
+    project = read_toml_mapping(ROOT / "pyproject.toml")
+    lock = read_toml_mapping(ROOT / "uv.lock")
+    python_version = _read(".python-version").strip()
+    assert python_version == "3.15"
+    requires_python = project["project"]["requires-python"]
+    assert requires_python == ">=3.15,<3.16"
+    assert lock["requires-python"] == "==3.15.*"
+
+    workflow = yaml.safe_load(_read(".github/workflows/ci.yml"))
+    assert workflow["env"]["PYTHON_VERSION"] == python_version
+    gates = workflow["jobs"]["gates"]
+    assert "strategy" not in gates
+    setup_uv = next(
+        step for step in gates["steps"] if step.get("uses", "").startswith("astral-sh/setup-uv@")
+    )
+    assert setup_uv["with"]["python-version"] == "${{ env.PYTHON_VERSION }}"
+
+    for relative in ("README.md", "docs/quickstart.md", "docs/rendering_pipeline.md"):
+        assert f"Python {python_version}" in _read(relative), relative
+    ci_doc = _read("docs/public_ci_dry_run.md")
+    assert f"single Python {python_version} consumer cell" in ci_doc
+    assert "--python 3.14" not in _read(".github/workflows/ci.yml")
+
+
+def test_ci_actions_are_commit_pinned() -> None:
+    workflow_paths = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
+    assert workflow_paths
+    for workflow_path in workflow_paths:
+        workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+        for job in workflow["jobs"].values():
+            for step in job["steps"]:
+                uses = step.get("uses", "")
+                if uses and not uses.startswith(("./", "docker://")):
+                    assert re.search(r"@[0-9a-f]{40}$", uses), uses
+
+
 def test_ci_finalizes_real_rendered_inventory_after_tests() -> None:
     workflow = yaml.safe_load(_read(".github/workflows/ci.yml"))
     steps = workflow["jobs"]["gates"]["steps"]
@@ -293,13 +335,12 @@ def test_public_metadata_matches_manuscript_config() -> None:
     assert f'doi: "{config["publication"]["doi"]}"' in cff
     assert config["authors"][0]["name"] in pyproject
     assert config["authors"][0]["email"] in pyproject
-    assert 'license = { file = "LICENSE" }' in pyproject
+    assert 'license = "MIT"' in pyproject
 
 
-def test_pack_help_mentions_every_supported_format() -> None:
+def test_pack_help_has_no_format_selector() -> None:
     help_text = _pack_help()
-    for version in crypto.SUPPORTED_FORMAT_VERSIONS:
-        assert version in help_text
-    assert "0.3.1" in help_text
-    assert "length" in help_text
-    assert "padding" in help_text
+    assert "--format" not in help_text
+    assert "0.5.0" in help_text
+    for version in ("0.2.0", "0.3.0", "0.3.1", "0.4.0"):
+        assert version not in help_text

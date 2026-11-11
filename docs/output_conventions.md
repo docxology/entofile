@@ -47,7 +47,7 @@ Use `uv run python scripts/check_public_promotion_metadata.py --check
 promotion check; local release-candidate regeneration is allowed to pass the
 deterministic metadata gate while public endpoints are still pending.
 
-The optional expanded benchmark profile is separate from the 0.4 release matrix:
+The optional expanded benchmark profile is separate from the 0.5 release matrix:
 
 ```bash
 uv run python scripts/run_benchmark_profile.py \

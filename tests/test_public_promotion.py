@@ -33,39 +33,38 @@ def _write_public_promotion_surfaces(
         "write format.\n"
         if stale_security
         else (
-            "The 0.5 release documents ENTO format `0.5.0` as the "
-            "default wire format. Formats `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0` remain "
-            "compatibility formats.\n"
+            "The supported release runs on Python 3.15 and accepts ENTO format "
+            "`0.5.0` only. Every other wire version is rejected.\n"
         )
     )
     (root / "SECURITY.md").write_text(security_scope, encoding="utf-8")
     (root / "docs" / "operator_checklist.md").write_text(
-        "Pack with the current default wire format `0.5.0`; use `0.4.0` or older versions only for compatibility.\n",
+        "Pack ENTO `0.5.0` only; reject every other wire version.\n",
         encoding="utf-8",
     )
     (root / "docs" / "entofile-threat-model.md").write_text(
-        "Default writes use `0.5.0`; `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0` are compatibility formats.\n",
+        "Only ENTO `0.5.0` is accepted; every other wire version is rejected.\n",
         encoding="utf-8",
     )
-    (root / "tests" / "test_format_0_3_0.py").write_text(
-        '"""0.5.0 is the current default write format; 0.2.0 is compatibility."""\n',
+    (root / "tests" / "test_format_0_5_0.py").write_text(
+        '"""ENTO 0.5.0 is the only accepted wire format."""\n',
         encoding="utf-8",
     )
-    for rel in ("docs/security.md", "docs/architecture.md", "docs/format_migration.md"):
+    for rel in ("docs/security.md", "docs/architecture.md", "docs/format_0_5_0.md"):
         (root / rel).write_text(
-            "Default ENTO wire format `0.5.0`; compatibility `0.2.0`, `0.3.0`, `0.3.1`, `0.4.0`.\n",
+            "ENTO wire format `0.5.0` only; every other version is rejected.\n",
             encoding="utf-8",
         )
     (root / "ISA.md").write_text(
-        "Historical note: current release guidance uses default wire format `0.5.0`.\n",
+        "Historical note: active guidance requires Python 3.15 and ENTO `0.5.0` only.\n",
         encoding="utf-8",
     )
     (root / "CONTRIBUTING.md").write_text(
-        "Default writes use format `0.5.0`; prior formats remain compatibility formats.\n",
+        "Python 3.15 and ENTO `0.5.0` only; reject every other wire version.\n",
         encoding="utf-8",
     )
     (root / ".github" / "ISSUE_TEMPLATE" / "bug_report.yml").write_text(
-        'options:\n  - "0.5.0"\n  - "0.4.0"\n',
+        'options:\n  - "0.5.0"\n',
         encoding="utf-8",
     )
     (root / "output" / "data" / "transmission_manifest.json").write_text(
@@ -76,7 +75,7 @@ def _write_public_promotion_surfaces(
 
 def _write_complete_public_promotion_fixture(root: Path) -> None:
     (root / "docs" / "manuscript").mkdir(parents=True, exist_ok=True)
-    (root / "output" / "release").mkdir(parents=True, exist_ok=True)
+    (root / "release").mkdir(parents=True, exist_ok=True)
     _write_public_promotion_surfaces(root)
     (root / "docs" / "manuscript" / "config.yaml").write_text(
         """
@@ -96,7 +95,7 @@ publication:
 [project]
 name = "entofile"
 authors = [{ name = "Daniel Ari Friedman", email = "daniel@activeinference.institute" }]
-license = { file = "LICENSE" }
+license = "MIT"
 """.lstrip(),
         encoding="utf-8",
     )
@@ -105,10 +104,10 @@ license = { file = "LICENSE" }
         encoding="utf-8",
     )
     (root / "README.md").write_text(
-        "Planned public home: https://github.com/docxology/entofile; projects/working/entofile. Default `0.5.0`.\n",
+        "Planned public home: https://github.com/docxology/entofile; projects/working/entofile. Python 3.15 and ENTO `0.5.0` only.\n",
         encoding="utf-8",
     )
-    (root / "output" / "release" / "release_manifest.json").write_text(
+    (root / "release" / "release_manifest.json").write_text(
         json.dumps(
             {
                 "ok": True,
@@ -166,7 +165,7 @@ def test_public_promotion_metadata_current_tree() -> None:
 
 def test_public_promotion_metadata_reports_mismatch(tmp_path: Path) -> None:
     (tmp_path / "docs" / "manuscript").mkdir(parents=True)
-    (tmp_path / "output" / "release").mkdir(parents=True)
+    (tmp_path / "release").mkdir(parents=True)
     _write_public_promotion_surfaces(tmp_path)
     (tmp_path / "docs" / "manuscript" / "config.yaml").write_text(
         """
@@ -186,7 +185,7 @@ publication:
 [project]
 name = "entofile"
 authors = [{ name = "Wrong", email = "wrong@example.invalid" }]
-license = { file = "LICENSE" }
+license = "MIT"
 """.lstrip(),
         encoding="utf-8",
     )
@@ -198,7 +197,7 @@ license = { file = "LICENSE" }
         "Planned public home: https://github.com/docxology/entofile; projects/working/entofile\n",
         encoding="utf-8",
     )
-    (tmp_path / "output" / "release" / "release_manifest.json").write_text(
+    (tmp_path / "release" / "release_manifest.json").write_text(
         json.dumps(
             {
                 "ok": True,
@@ -239,7 +238,7 @@ def test_public_promotion_metadata_reports_stale_security_default(
     tmp_path: Path,
 ) -> None:
     (tmp_path / "docs" / "manuscript").mkdir(parents=True)
-    (tmp_path / "output" / "release").mkdir(parents=True)
+    (tmp_path / "release").mkdir(parents=True)
     _write_public_promotion_surfaces(tmp_path, stale_security=True)
     (tmp_path / "docs" / "manuscript" / "config.yaml").write_text(
         """
@@ -259,7 +258,7 @@ publication:
 [project]
 name = "entofile"
 authors = [{ name = "Daniel Ari Friedman", email = "daniel@activeinference.institute" }]
-license = { file = "LICENSE" }
+license = "MIT"
 """.lstrip(),
         encoding="utf-8",
     )
@@ -268,10 +267,10 @@ license = { file = "LICENSE" }
         encoding="utf-8",
     )
     (tmp_path / "README.md").write_text(
-        "Planned public home: https://github.com/docxology/entofile; projects/working/entofile. Default `0.5.0`.\n",
+        "Planned public home: https://github.com/docxology/entofile; projects/working/entofile. Python 3.15 and ENTO `0.5.0` only.\n",
         encoding="utf-8",
     )
-    (tmp_path / "output" / "release" / "release_manifest.json").write_text(
+    (tmp_path / "release" / "release_manifest.json").write_text(
         json.dumps(
             {
                 "ok": True,
@@ -315,7 +314,7 @@ def test_public_promotion_metadata_reports_stale_contributing_default(
 
 def test_public_promotion_metadata_reports_stale_draft_pdf_hash(tmp_path: Path) -> None:
     (tmp_path / "docs" / "manuscript").mkdir(parents=True)
-    (tmp_path / "output" / "release").mkdir(parents=True)
+    (tmp_path / "release").mkdir(parents=True)
     (tmp_path / "output" / "data").mkdir(parents=True)
     _write_public_promotion_surfaces(tmp_path)
     (tmp_path / "output" / "data" / "transmission_manifest.json").write_text(

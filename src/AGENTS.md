@@ -12,7 +12,7 @@ Technical reference for ENTO domain modules. Security: [`../docs/security.md`](.
 | `structured_data.py` | Duplicate-key-safe structured readers and atomic JSON/text writers |
 | `test_results.py` | Fail-closed JUnit XML and coverage summary parser |
 | `test_runner.py` | `run_test_gate`, `validate_gate_options` — pytest process gate (artifact preflight, process-tree cleanup, structured summary) |
-| `crypto_gcm.py` | AES-256-GCM encrypt/decrypt (default `0.5.0`; compatibility `0.2.0`/`0.3.0`/`0.3.1`/`0.4.0`) |
+| `crypto_gcm.py` | AES-256-GCM encrypt/decrypt for ENTO `0.5.0` |
 | `container.py` | `pack_container`, `unpack_container`, `inspect_container`, `verify_container`, `_with_verified_container` |
 | `security.py` | `validate_track_id`, `validate_zip_archive`, `safe_output_path` |
 | `verification_report.py` | `build_container_verification_report`, `write_container_verification_report` |
@@ -36,7 +36,7 @@ Technical reference for ENTO domain modules. Security: [`../docs/security.md`](.
 ## Security invariants
 
 1. **Track IDs** — `validate_track_id()` before pack/unpack/CLI output.
-2. **Format dispatch** — `decrypt_payload(..., format_version=...)` from manifest.
+2. **Exact format validation** — only manifest `format_version=0.5.0` reaches decryption.
 3. **Container prelude** — shared `_with_verified_container`; `inspect` uses `manifest_only` integrity.
 4. **Analysis gate** — `validate_all_outputs` reads on-disk reports only.
 

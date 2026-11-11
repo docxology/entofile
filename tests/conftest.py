@@ -49,5 +49,8 @@ def fast_benchmark_project(
         project_root / "docs" / "manuscript" / "config.yaml",
         root / "docs" / "manuscript" / "config.yaml",
     )
+    (root / "docs" / "manuscript" / "01_introduction.md").write_text(
+        "# Introduction\n\nENTO 0.5.0 validates real containers.\n", encoding="utf-8"
+    )
     cfg = replace(load_experiment_config(project_root), benchmark_repetitions=3)
     return root, cfg

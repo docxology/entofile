@@ -2,11 +2,11 @@
 
 This roadmap tracks remaining research and engineering work for the 0.5.0
 release line. It is intentionally scoped as a backlog, not a promise: each
-item should become a test-backed issue or PR before implementation. Preserve
-the current interface unless an item explicitly calls for a breaking release.
+item should become a test-backed issue or PR before implementation.
 
-- Default write format is `0.5.0`, with authenticated exported-manifest context.
-- Compatibility formats `0.2.0`, `0.3.0`, `0.3.1`, and `0.4.0` remain readable/writable.
+- Python 3.15 is the only supported interpreter.
+- ENTO `0.5.0` is the only accepted wire format, with mandatory padding and authenticated exported-manifest context.
+- Every other wire version is rejected; `pack` has no format selector.
 - Paper/manuscript release label `0.5` is distinct from ENTO wire-format string `0.5.0`.
 
 ## Live-tree artifact state (2026-07-31)
@@ -44,9 +44,9 @@ ensure these pass.
 
 ## Medium Improvements
 
-- [x] Enhanced conformance fixtures: expand deterministic test cases for malformed manifest JSON, duplicate track headers, uncanonical padding, and cross-version key derivation.
+- [x] Enhanced conformance fixtures: expand deterministic test cases for malformed manifest JSON, duplicate track headers, uncanonical padding, and non-current-version rejection.
 - [x] Container verification report generation: enrich structured verification diagnostics, negative control assertions, and timing telemetry in container verification reports.
-- [x] Legacy format compatibility tests: comprehensive multi-format (0.2.0, 0.3.0, 0.3.1, 0.4.0, 0.5.0) matrix testing covering cross-format decrypt, downgrade resistance, and format conversions.
+- [x] Strict wire-version tests: ENTO 0.5.0 round trips plus explicit rejection of every older and unknown version.
 - [x] Visual diffing: refine figure pixel digest comparisons with configurable tolerance windows for intentional theme updates.
 
 ## Major Initiatives
@@ -70,12 +70,12 @@ explained in `docs/research/agenda.md`. Its current questions are:
 
 - RQ-1: independent-language vectors and schema negotiation.
 - RQ-2: bounded-memory streaming pack/unpack with verify-before-release.
-- RQ-3: observability and metadata leakage across formats and levels.
-- RQ-4: cryptographic interoperability, nonce discipline, and canonical padding.
+- RQ-3: observability and metadata leakage across ENTO 0.5.0 export levels.
+- RQ-4: cryptographic interoperability, nonce discipline, strict version rejection, and canonical padding.
 - RQ-5: KMS/HSM custody, rotation, recovery, and audit boundaries.
 - RQ-6: signed release manifests, SBOMs, provenance, and reproducible builds.
 - RQ-7: exports to related research-container ecosystems without equivalence claims.
-- RQ-8: default-migration validation for the `0.5.0` authenticated context profile.
+- RQ-8: clean-break validation for the `0.5.0`-only authenticated context profile.
 
 Every question requires three competing hypotheses, a control or baseline, exact
 metrics, a repetition rationale, falsification criteria, and a stopping rule.
@@ -150,7 +150,3 @@ All actionable items completed:
 
 Before each release-candidate render, review this file and either close,
 promote, rewrite, or explicitly defer each item that has become stale.
-
-## Workflowz review — 2026-11-10
-
-Coverage note: reviewed the supplied guidance, README, TODO/tasks board, package/runtime pins, and bounded source excerpts. No actionable finding is added because the packet does not expose enough complete implementation context to ground a non-speculative change with an observable acceptance probe. Re-review on a concrete failure or when relevant source changes/additional complete source context become available.

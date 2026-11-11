@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from src.benchmarks import manifest_size_for_level
+from src.crypto import FORMAT_VERSION
+from src.manifest_binding import compute_manifest_binding
 from src.models import Manifest, ObservabilityLevel, TrackDescriptor
 
 
 def test_manifest_size_for_level() -> None:
-    manifest = Manifest(
-        format_version="0.2.0",
+    template = Manifest(
+        format_version=FORMAT_VERSION,
         created="2026-01-01T00:00:00Z",
         creator="test",
         observability_level=ObservabilityLevel.AUDITABLE,
@@ -21,6 +25,9 @@ def test_manifest_size_for_level() -> None:
                 byte_length=1,
             ),
         ),
+    )
+    manifest = replace(
+        template, manifest_binding=compute_manifest_binding(template)
     )
     size = manifest_size_for_level(manifest, ObservabilityLevel.SEALED)
     assert size > 0

@@ -31,15 +31,14 @@ def test_project_paths_support_independent_root_and_output(tmp_path: Path) -> No
     assert paths.conformance.is_dir()
 
 
-def test_release_manifest_prefers_outer_envelope_without_legacy_fallback(tmp_path: Path) -> None:
+def test_release_manifest_path_is_always_outer_envelope(tmp_path: Path) -> None:
     legacy = tmp_path / "output" / "release" / "release_manifest.json"
     legacy.parent.mkdir(parents=True)
     legacy.write_text('{"ok": true}', encoding="utf-8")
-    assert release_manifest_path(tmp_path) == legacy
-    current = tmp_path / "release" / "release_manifest.json"
-    current.parent.mkdir()
-    current.write_text("malformed", encoding="utf-8")
-    assert release_manifest_path(tmp_path) == current
+    assert (
+        release_manifest_path(tmp_path)
+        == tmp_path / "release" / "release_manifest.json"
+    )
 
 
 def test_project_paths_reject_nested_or_non_json_report_names(tmp_path: Path) -> None:

@@ -43,10 +43,12 @@ def test_uv_build_produces_wheel_and_sdist(tmp_path: Path) -> None:
 
     with zipfile.ZipFile(wheels[0]) as archive:
         names = set(archive.namelist())
+        schema_bytes = archive.read("src/resources/ento_manifest_schema.json")
     assert "src/__init__.py" in names
     assert "src/py.typed" in names
     assert "src/resources/ento_manifest_schema.json" in names
     assert "src/resources/fixtures/eeg.csv" in names
+    assert schema_bytes == (_PROJECT_ROOT / "data/ento_manifest_schema.json").read_bytes()
     assert not any(name.startswith(("build/", "tests/")) for name in names)
 
 
@@ -89,17 +91,36 @@ def test_wheel_installs_and_imports(tmp_path: Path) -> None:
         [
             str(python),
             "-c",
-            "from src.crypto import FORMAT_VERSION, generate_master_key; "
-            "from pathlib import Path; "
-            "from src.container import pack_container_bytes, unpack_container; "
-            "from src.fixtures import load_fixture_tracks; "
-            "assert FORMAT_VERSION == '0.5.0'; "
-            "key = generate_master_key(); tracks = load_fixture_tracks(); "
-            "blob = pack_container_bytes(key, tracks); "
-            "path = Path('installed.ento.zip'); path.write_bytes(blob); "
-            "manifest, payloads = unpack_container(path, key); "
-            "assert payloads == {track.track_id: track.payload for track in tracks}; "
-            "print('import ok')",
+            "from src.crypto import FORMAT_VERSION, generate_master_key\n"
+            "from pathlib import Path\n"
+            "import json\n"
+            "import zipfile\n"
+            "from src.container import pack_container_bytes, unpack_container\n"
+            "from src.errors import ManifestError\n"
+            "from src.fixtures import load_fixture_tracks\n"
+            "assert FORMAT_VERSION == '0.5.0'\n"
+            "key = generate_master_key()\n"
+            "tracks = load_fixture_tracks()\n"
+            "blob = pack_container_bytes(key, tracks)\n"
+            "path = Path('installed.ento.zip')\n"
+            "path.write_bytes(blob)\n"
+            "manifest, payloads = unpack_container(path, key)\n"
+            "assert payloads == {track.track_id: track.payload for track in tracks}\n"
+            "with zipfile.ZipFile(path) as archive:\n"
+            "    members = {name: archive.read(name) for name in archive.namelist()}\n"
+            "manifest_dict = json.loads(members['manifest.json'])\n"
+            "manifest_dict.pop('manifest_binding')\n"
+            "members['manifest.json'] = json.dumps(manifest_dict).encode('utf-8')\n"
+            "with zipfile.ZipFile(path, 'w') as archive:\n"
+            "    for name, data in members.items():\n"
+            "        archive.writestr(name, data)\n"
+            "try:\n"
+            "    unpack_container(path, key)\n"
+            "except ManifestError:\n"
+            "    pass\n"
+            "else:\n"
+            "    raise AssertionError('installed reader accepted a manifest without manifest_binding')\n"
+            "print('import ok')\n",
         ],
         capture_output=True,
         text=True,

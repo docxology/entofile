@@ -1,6 +1,6 @@
 # Manuscript directory
 
-ENTO default format **0.5.0** paper source for the manuscript release, including compatibility notes for formats **0.2.0**, **0.3.0**, **0.3.1**, and **0.4.0**. Sections `00_abstract` through `08_limitations_and_threat_model`, plus `99_references`.
+ENTO wire format **0.5.0**-only paper source for the manuscript release. The implementation requires Python 3.15 and rejects every other wire version. Sections `00_abstract` through `08_limitations_and_threat_model`, plus `99_references`.
 
 ## Render order
 

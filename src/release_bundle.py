@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +43,7 @@ RELEASE_FILES: tuple[ReleaseFile, ...] = (
     ReleaseFile(
         "output/data/manuscript_variables.json", "hydrated manuscript variables"
     ),
+    ReleaseFile("output/data/transmission_manifest.json", "transmission manifest"),
     ReleaseFile("output/conformance/conformance_manifest.json", "conformance manifest"),
     ReleaseFile("docs/manuscript/config.yaml", "manuscript configuration"),
     ReleaseFile("docs/manuscript/references.bib", "bibliography"),
@@ -52,7 +53,7 @@ RELEASE_FILES: tuple[ReleaseFile, ...] = (
     ReleaseFile("docs/public_ci_dry_run.md", "public CI dry-run map"),
     ReleaseFile("docs/provenance_signing.md", "provenance and signing recipe"),
     ReleaseFile("docs/methods.md", "methods and visualization contract"),
-    ReleaseFile("docs/format_0_5_0.md", "opt-in authenticated-manifest format profile"),
+    ReleaseFile("docs/format_0_5_0.md", "current authenticated-manifest format profile"),
     ReleaseFile("docs/research/agenda.md", "preregistered research agenda"),
     ReleaseFile("experiment_plan.yaml", "machine-readable research protocol"),
     ReleaseFile("docs/figure_registry.md", "code-derived figure registry"),
@@ -62,7 +63,7 @@ RELEASE_FILES: tuple[ReleaseFile, ...] = (
         "figure and crypto verification research notes",
     ),
     ReleaseFile("docs/redteam_publish_0.4.md", "Historical RedTeam release ledger"),
-    ReleaseFile("docs/redteam_publish_0.5.md", "Current RedTeam migration ledger"),
+    ReleaseFile("docs/redteam_publish_0.5.md", "Historical RedTeam migration ledger"),
     ReleaseFile(
         "docs/redteam_claim_scholarship_audit_0.4.md",
         "RedTeam claim and scholarship audit",
@@ -123,7 +124,7 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
     payload: dict[str, Any] = {
         "ok": not missing,
         "schema_version": "1",
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "project": "entofile",
         "planned_public_home": "https://github.com/docxology/entofile",
         "release_label": str(config.get("paper", {}).get("version", "")),
@@ -132,7 +133,6 @@ def build_release_bundle(project_root: Path, *, output_dir: Path | None = None) 
         "wire_format_default": crypto.FORMAT_VERSION,
         "supported_wire_formats": list(crypto.SUPPORTED_FORMAT_VERSIONS),
         "source_revision": _git_text(root, "rev-parse", "HEAD"),
-        "source_dirty": source_dirty_project,
         "source_dirty_project": source_dirty_project,
         "source_dirty_repository": source_dirty_repository,
         "checksum_file": checksums_path.relative_to(root).as_posix(),

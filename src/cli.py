@@ -19,6 +19,7 @@ from .container import (
     unpack_container,
     verify_container,
 )
+from .errors import EntofileError
 from .fixtures import fixtures_dir, load_fixture_tracks
 from .manifest import manifest_to_json
 from .models import ObservabilityLevel
@@ -192,7 +193,6 @@ def cmd_pack(args: argparse.Namespace) -> int:
         creator=args.creator,
         observability_level=ObservabilityLevel.AUDITABLE,
         export_level=level,
-        format_version=args.format,
     )
     print(str(args.output))
     _set_result(
@@ -301,7 +301,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="entofile",
-        description="ENTO format 0.5.0 container tool with 0.2.0-0.4.0 compatibility",
+        description="ENTO format 0.5.0 container tool",
     )
     parser.add_argument(
         "--version",
@@ -320,7 +320,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     genkey.set_defaults(func=cmd_genkey)
 
-    pack = sub.add_parser("pack", help="Pack fixture tracks into an ENTO container")
+    pack = sub.add_parser(
+        "pack",
+        help="Pack fixture tracks into an ENTO 0.5.0 container",
+        description="Pack fixture tracks into an ENTO 0.5.0 container",
+    )
     _add_common_output_args(pack)
     pack.add_argument("-k", "--key", type=Path, required=True)
     pack.add_argument("-o", "--output", type=Path, required=True)
@@ -331,16 +335,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pack.add_argument("--creator", default="entofile")
     pack.add_argument("--observability", type=int, default=3, choices=[0, 1, 2, 3])
-    pack.add_argument(
-        "--format",
-        default=crypto.FORMAT_VERSION,
-        choices=list(crypto.SUPPORTED_FORMAT_VERSIONS),
-        help=(
-            "ENTO format version: 0.5.0 (default: 12-byte nonce + AAD + PADME length padding "
-            "+ manifest-context AAD), or compatibility formats "
-            "0.2.0, 0.3.0, 0.3.1, 0.4.0"
-        ),
-    )
     pack.set_defaults(func=cmd_pack)
 
     unpack = sub.add_parser("unpack", help="Decrypt tracks from an ENTO container")
@@ -414,6 +408,7 @@ def main(argv: list[str] | None = None) -> int:
         _write_sidecars(args, ok=code == 0, exit_code=code)
         return code
     except (
+        EntofileError,
         ValueError,
         KeyError,
         FileNotFoundError,

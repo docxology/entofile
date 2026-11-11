@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import json
+import zipfile
 from pathlib import Path
 
 from src.cli import main
 from src.conformance import (
     CONFORMANCE_KEY,
+    CONFORMANCE_TRACK,
     generate_conformance_fixtures,
     verify_conformance_fixtures,
 )
-from src.crypto import SUPPORTED_FORMAT_VERSIONS
+from src.crypto import FORMAT_VERSION
+from src.manifest_binding import validate_manifest_binding
+from src.models import Manifest
+from src.padding import padme
 
 
 def test_conformance_generator_is_deterministic(tmp_path: Path) -> None:
@@ -24,6 +29,25 @@ def test_conformance_generator_is_deterministic(tmp_path: Path) -> None:
     )
 
 
+def test_good_conformance_fixture_is_current_padded_and_bound(tmp_path: Path) -> None:
+    manifest_path = generate_conformance_fixtures(tmp_path)
+    entries = json.loads(manifest_path.read_text(encoding="utf-8"))["cases"]
+    assert {entry["case_id"] for entry in entries} == {
+        "good-0.5.0",
+        "bad-tamper",
+        "bad-duplicate-member",
+        "bad-path-escape",
+    }
+    assert all(entry["format_version"] == FORMAT_VERSION for entry in entries)
+
+    with zipfile.ZipFile(tmp_path / "good-0.5.0.ento.zip") as archive:
+        manifest = Manifest.from_dict(json.loads(archive.read("manifest.json")))
+        encrypted = archive.read("tracks/alpha.ento")
+    validate_manifest_binding(manifest)
+    assert encrypted[:12] == bytes(range(1, 13))
+    assert len(encrypted) == 28 + padme(len(CONFORMANCE_TRACK.payload) + 8)
+
+
 def test_conformance_cases_have_expected_cli_behavior(tmp_path: Path) -> None:
     out = tmp_path / "conformance"
     manifest_path = generate_conformance_fixtures(out)
@@ -31,8 +55,12 @@ def test_conformance_cases_have_expected_cli_behavior(tmp_path: Path) -> None:
     key_path = tmp_path / "conformance.key"
     key_path.write_bytes(CONFORMANCE_KEY)
     cases = {case["case_id"]: case for case in manifest["cases"]}
-    for version in SUPPORTED_FORMAT_VERSIONS:
-        assert f"good-{version}" in cases
+    assert set(cases) == {
+        "good-0.5.0",
+        "bad-tamper",
+        "bad-duplicate-member",
+        "bad-path-escape",
+    }
 
     for case in manifest["cases"]:
         container = out / case["path"]
@@ -59,7 +87,7 @@ def test_conformance_verifier_writes_report(tmp_path: Path) -> None:
     generate_conformance_fixtures(out)
     report_path = tmp_path / "reports" / "conformance_report.json"
     report = verify_conformance_fixtures(out, report_path=report_path)
-    expected_count = len(SUPPORTED_FORMAT_VERSIONS) + 3
+    expected_count = 4
     assert report["ok"] is True
     assert report["case_count"] == expected_count
     assert report["failed_cases"] == []
@@ -76,7 +104,7 @@ def test_run_live_conformance_derives_verdict_without_side_file(tmp_path: Path) 
     from src.conformance import run_live_conformance
 
     result = run_live_conformance(tmp_path / "scratch")
-    expected_count = len(SUPPORTED_FORMAT_VERSIONS) + 3
+    expected_count = 4
     assert result["ok"] is True
     assert result["case_count"] == expected_count
     assert result["failed_cases"] == []
@@ -116,7 +144,7 @@ def test_ok_or_error_rejects_nondict_verifier_result() -> None:
     assert "expected dict" in error
 
     # unpack-style success (tuple) is still valid when a dict is not required.
-    assert _ok_or_error(lambda: ("payload", {"format_version": "0.4.0"}))[0] is True
+    assert _ok_or_error(lambda: ("payload", {"format_version": "0.5.0"}))[0] is True
 
     # Exceptions remain failures on both axes.
     def _raise() -> object:

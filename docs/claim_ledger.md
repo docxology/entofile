@@ -7,7 +7,6 @@ Machine-readable claims live in [`../data/claim_ledger.yaml`](../data/claim_ledg
 | claim_id | Kind | Bound value | Artifact / source | Test module |
 | --- | --- | --- | --- | --- |
 | `format-version` | text | `0.5.0` | `src/crypto.py`, schema enum | `test_claim_ledger.py` |
-| `format-version-next` | text | `0.5.0` | `src/crypto.py`, `src/manifest_binding.py`, schema enum | `test_format_0_5_0.py` |
 | `tamper-detection-rate` | number | `1.0` | `output/reports/benchmark_validation.json` | `test_claim_ledger_security.py` |
 | `container-verify-gate` | text | `verify_container` | benchmark ZIP under `output/data/_bench_tmp/` | `test_claim_ledger_security.py` |
 | `figure-export-dpi` | number | `300` | `output/figures/` | `test_claim_ledger.py` |
@@ -18,7 +17,7 @@ Machine-readable claims live in [`../data/claim_ledger.yaml`](../data/claim_ledg
 | `crypto-backend-gcm` | text | `aes-256-gcm` | default write path `src/crypto.py` | `test_claim_ledger.py`, `test_crypto_gcm.py` |
 | `container-verification-report` | text | `container_verification.json` | `output/reports/` | `test_claim_ledger_security.py`, `test_verification_report.py` |
 | `figure-caption-registry` | text | `FIG_CAPTION_` | `src/figure_registry.py` | `test_figure_captions.py` |
-| `figure-count` | number | `21` | `FIGURE_SPECS` / `output/figures/` | `test_figures.py`, `test_claim_ledger.py` |
+| `figure-count` | number | `19` | `FIGURE_SPECS` / `output/figures/` | `test_figures.py`, `test_claim_ledger.py` |
 | `evidence-provenance-boundary` | text | zero mocks, documented fixtures/vectors | `docs/evidence_provenance.md` | `test_evidence_provenance.py` |
 
 ## Adding a claim
@@ -39,7 +38,7 @@ that boundary.
 | `tamper-detection-rate` | `benchmark_validation.json` → `tamper_detection_rate == 1.0` after `ento_analysis.py`. **Adversarial:** corrupts ciphertext and unpacks **with the key**, so it exercises real GCM authentication. |
 | `container-verify-gate` | `container_verification.json` → all samples `ok: true` from `build_container_verification_report()`, run with `require_integrity=True`. **Keyless → `digest-only` integrity (accidental-corruption detection); NOT adversarial.** Adversarial integrity is the `tamper-detection-rate` (key-based) gate above. |
 | `crypto-backend-gcm` | New packs use `format_version: 0.5.0` and GCM AEAD on write |
-| `format-version-next` | Compatibility alias retained for older consumers; current `0.5.0` requires a canonical exported-manifest binding in every track's GCM AAD |
+| `format-version` | ENTO `0.5.0` is the only accepted version and requires a canonical exported-manifest binding in every track's GCM AAD |
 
 > **Integrity caveat.** The unkeyed manifest digests and proof chain detect corruption, not a
 > motivated attacker (who recomputes them). `verify_container`'s `integrity` field reports the

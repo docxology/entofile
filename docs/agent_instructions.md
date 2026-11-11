@@ -14,6 +14,7 @@ Read this before modifying `src/`, `tests/`, or `docs/manuscript/`.
 8. **Verify hostile archives** — run `verify -i container.ento.zip` before `unpack` on third-party inputs; never skip ZIP/member/digest checks.
 9. **Security module** — path policy lives in `src/security.py`; do not duplicate track-id regex elsewhere.
 10. **Proof export** — call `export_proof` on the **exported** manifest view, not the internal auditable manifest.
+11. **Clean break** — run only Python 3.15, accept only ENTO 0.5.0, reject every other wire version, and do not add format selectors or fallbacks.
 
 ## Current release-evidence contract
 
@@ -27,7 +28,7 @@ Read this before modifying `src/`, `tests/`, or `docs/manuscript/`.
 
 ```bash
 uv run python scripts/run_tests.py
-grep -r "unittest.mock\|MagicMock\|@patch" tests/ || echo "Clean"
+./run.sh no-mocks
 uv run python scripts/ento_analysis.py
 uv run python scripts/z_generate_manuscript_variables.py
 uv run python scripts/audit_publication_readiness.py --check

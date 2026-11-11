@@ -1,4 +1,4 @@
-"""PADMÉ length-padding for ENTO formats 0.3.1, 0.4.0, and 0.5.0.
+"""Mandatory PADMÉ length-padding for ENTO 0.5.0.
 
 Hides exact plaintext length from a container-bytes observer by padding each track's
 plaintext up to a coarse bucket before AES-GCM encryption, so the on-disk ciphertext
@@ -9,10 +9,7 @@ power-of-two bucketing.
 
 Wire layout of the padded plaintext (before GCM):
     pad_len(8 bytes, big-endian original length) || payload || zero-fill to padme(8 + len)
-Decrypt recovers the original length from the prefix and slices it back out. The padding
-scheme is selected by ``format_version`` (0.3.1, 0.4.0, or 0.5.0), which is bound into the
-AEAD associated data, so a downgrade to an unpadded format fails authentication rather
-than mis-stripping.
+Decryption recovers the original length from the prefix and slices it back out.
 """
 
 from __future__ import annotations
@@ -48,7 +45,7 @@ def pad_payload(payload: bytes) -> bytes:
 def unpad_payload(padded: bytes) -> bytes:
     """Recover the original payload from a padded plaintext.
 
-    Raises ValueError if the prefix is missing, claims more bytes than present, or
+    Raises IntegrityError if the prefix is missing, claims more bytes than present, or
     the block is not the canonical zero-filled PADMÉ encoding. Authentication prevents
     an outsider from changing these bytes, but canonical decoding keeps malformed
     authenticated inputs from becoming alternate representations of the format.

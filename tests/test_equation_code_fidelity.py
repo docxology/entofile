@@ -24,7 +24,7 @@ from src.crypto import (
     generate_master_key,
 )
 from src.fixtures import load_fixture_tracks
-from src.manifest import manifest_to_json
+from src.manifest import build_track_descriptor, manifest_to_json
 from src.manifest_binding import canonical_manifest_binding_bytes, compute_manifest_binding
 from src.models import Manifest, ObservabilityLevel, PlainTrack, TrackDescriptor
 from src.observability import filter_manifest
@@ -46,18 +46,28 @@ def test_eq_track_key_derivation_matches_formula() -> None:
     assert k_eeg == crypto.hkdf_sha256(master, MASTER_KEY_SIZE, info=b"ento:track:eeg")
 
 
+def _binding_for(plain: PlainTrack) -> str:
+    manifest = Manifest(
+        format_version=FORMAT_VERSION,
+        created="2026-01-01T00:00:00Z",
+        creator="equation-test",
+        observability_level=ObservabilityLevel.AUDITABLE,
+        tracks=(build_track_descriptor(plain, b"", observability=3),),
+    )
+    return compute_manifest_binding(manifest)
+
+
 # ---- eq:track_member — member = nonce || tag || ciphertext -----------------------
 
 
 def test_eq_track_member_byte_layout_matches() -> None:
-    """eq:track_member: the compatibility 0.4.0 profile parses as nonce(12) || tag(16) ||
-    ciphertext, where ciphertext length is the PADME-padded plaintext length."""
+    """eq:track_member: nonce(12) || tag(16) || PADME-padded ciphertext."""
     master = generate_master_key()
     plain = PlainTrack(
         track_id="t", track_type="ento:timeseries.eeg", payload=b"x" * 200
     )
-    enc = encrypt_track(master, plain, format_version="0.4.0")
-    assert len(enc.nonce) == crypto.nonce_size_for("0.4.0") == 12
+    enc = encrypt_track(master, plain, manifest_binding=_binding_for(plain))
+    assert len(enc.nonce) == crypto.nonce_size_for(FORMAT_VERSION) == 12
     assert len(enc.tag) == TAG_SIZE == 16
     assert len(enc.ciphertext) == padding.padme(len(plain.payload) + 8)
     # Round-trip through the concatenated wire layout in eq:track_member order.
@@ -125,19 +135,19 @@ def test_eq_manifest_aad_matches_track_aad_contract() -> None:
 
 
 def test_eq_expansion_law_total_bytes_equals_model() -> None:
-    """eq:expansion_law: the 0.4.0 compatibility stored member size is header plus PADME
-    padded plaintext, and the ratio equals expansion_ratio_model(n)."""
+    """eq:expansion_law: stored size is the header plus PADME-padded plaintext."""
     assert TRACK_HEADER_BYTES == crypto.nonce_size_for(FORMAT_VERSION) + TAG_SIZE == 28
     master = generate_master_key()
     for n in (1, 42, 64, 1000):
-        enc = encrypt_track(
-            master,
-            PlainTrack(track_id="t", track_type="ento:spectrogram", payload=b"z" * n),
-            format_version="0.4.0",
+        plain = PlainTrack(
+            track_id="t", track_type="ento:spectrogram", payload=b"z" * n
         )
+        enc = encrypt_track(master, plain, manifest_binding=_binding_for(plain))
         total = len(enc.nonce) + len(enc.tag) + len(enc.ciphertext)
         assert total == TRACK_HEADER_BYTES + padding.padme(n + 8)
-        assert (total / n) == pytest.approx(expansion_ratio_model(n, format_version="0.4.0"))
+        assert (total / n) == pytest.approx(
+            expansion_ratio_model(n, format_version=FORMAT_VERSION)
+        )
 
 
 # ---- eq:integrity_levels — the three-way integrity function -----------------------

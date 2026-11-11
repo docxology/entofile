@@ -82,5 +82,5 @@ def test_expansion_law_figure_is_data_derived() -> None:
 
 def test_security_figures_are_data_derived() -> None:
     """Release/security diagrams are registry-driven and do not depend on timings."""
-    assert spec_by_label("fig:format_ladder").data_derived is True
+    assert spec_by_label("fig:length_leakage_profile").data_derived is True
     assert spec_by_label("fig:security_control_matrix").data_derived is True

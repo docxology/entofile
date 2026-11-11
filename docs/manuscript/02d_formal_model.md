@@ -139,10 +139,9 @@ Let mu_l(C) be the exported manifest at observability level
 l in {0,...,{{CONFIG_OBSERVABILITY_LEVEL_MAX}}}, and |mu_l(C)| its byte size.
 Redaction is subtractive on field content: lowering l only removes or shortens
 field classes (digests, then resolution descriptors, then type URIs - the sealed
-level replaces each type URI with the shorter sentinel ento:opaque), and does not
-re-encrypt the payload for the compatibility profiles. The default
-authenticated-context profile binds the selected view into AEAD context, so
-changing the view requires repacking. Under the implementation's URI registry -
+level replaces each type URI with the shorter sentinel ento:opaque). ENTO
+{{FORMAT_VERSION}} binds the selected view into AEAD context, so changing the
+view requires repacking. Under the implementation's URI registry -
 where every ontology URI is at least as long as that sentinel - the exported
 manifest size is therefore observed to be monotone non-decreasing in the level,
 
