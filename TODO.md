@@ -150,3 +150,7 @@ All actionable items completed:
 
 Before each release-candidate render, review this file and either close,
 promote, rewrite, or explicitly defer each item that has become stale.
+
+## Workflowz review — 2026-11-10
+
+Coverage note: reviewed the supplied guidance, README, TODO/tasks board, package/runtime pins, and bounded source excerpts. No actionable finding is added because the packet does not expose enough complete implementation context to ground a non-speculative change with an observable acceptance probe. Re-review on a concrete failure or when relevant source changes/additional complete source context become available.
