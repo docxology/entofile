@@ -51,12 +51,14 @@ do not use an abbreviated example that tests before generating its prerequisites
 Pull-request updates cancel only superseded runs for the same pull request.
 Maintainers can also dispatch the workflow manually. A weekly Monday 09:17 UTC run
 checks the locked source against fresh hosted-image, Python-patch, and native-package state.
-On failure, explicitly listed public reports, rendered deliverables, and release metadata
-are retained from both the project and pinned SDK clone as temporary CI diagnostics
-for seven days; they are not release assets.
+On success, the minimal generated release evidence is retained for seven days for
+endpoint verification. On failure, explicitly listed public reports, rendered
+deliverables, and release metadata are retained from both the project and pinned SDK
+clone as temporary CI diagnostics for the same period; neither is a release asset.
 
 The live endpoint command runs only through the separately dispatched
 [`public-endpoints` workflow](../.github/workflows/public-endpoints.yml); it never
-runs on push or pull request. Run it before publishing to confirm the promoted
-public home, DOI, and Zenodo record resolve. Artifact signing also stays outside
-this dry run; see [`provenance_signing.md`](provenance_signing.md).
+runs on push or pull request. Dispatch it with the numeric ID of a successful CI run
+so it can download that run's release evidence, then confirm the promoted public home,
+DOI, and Zenodo record resolve. Artifact signing also stays outside this dry run; see
+[`provenance_signing.md`](provenance_signing.md).

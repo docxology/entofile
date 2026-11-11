@@ -119,6 +119,28 @@ jobs:
           uv venv --python "${{ env.PYTHON_VERSION }}" "$venv"
           uv pip install --python "$venv/bin/python" "$dist"/*.whl
           "$venv/bin/entofile" --version
+      - name: Retain successful release evidence
+        if: success()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-evidence-${{ env.PYTHON_VERSION }}
+          path: |
+            output/pdf/entofile_combined.pdf
+            output/web/index.html
+            output/reports/sbom.cyclonedx.json
+            output/reports/artifact_manifest.json
+            output/reports/validation_report.json
+            output/reports/benchmark_validation.json
+            output/reports/container_verification.json
+            output/reports/conformance_report.json
+            output/reports/figure_layout_report.json
+            output/data/ento_benchmark_results.csv
+            output/data/manuscript_variables.json
+            output/data/transmission_manifest.json
+            output/conformance/conformance_manifest.json
+            release/SHA256SUMS
+            release/release_manifest.json
+          retention-days: 7
       - name: Retain failure diagnostics
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
