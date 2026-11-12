@@ -28,7 +28,7 @@ independently.
 | `test_proof.py` | Chain + manifest_sha256 export |
 | `test_observability.py` | Levels 0–3 redaction |
 | `test_manifest.py` | JSON Schema validation |
-| `test_benchmarks.py` | Benchmark row shape |
+| `test_benchmark_io.py` | Benchmark CSV row shape and path resolution |
 | `test_analysis_integration.py` | Pipeline + validation gate |
 | `test_figures.py` | Figure registry + PNG DPI contract |
 | `test_crypto_vectors.py` | Pinned HKDF/AES regression vectors |
