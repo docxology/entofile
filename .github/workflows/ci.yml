@@ -63,7 +63,7 @@ jobs:
         run: uv sync --project .ci-template-sdk --python "$PYTHON_VERSION" --locked
       - name: Prepare pinned document converters
         # The render SDK uses 3.15; converter setup uses the reviewed action without the newer APT guard.
-        uses: docxology/template/.github/actions/setup-acceptance-documents@4670c48cc490636455f2eac09ba4396baed9ffd7 # docxology/template@4670c48
+        uses: docxology/template/.github/actions/setup-acceptance-documents@d6c5b314495dade86492d16db154a5a91282165a # docxology/template@4670c48
         with:
           mode: converter
       - name: Prepare real TeX, fonts and PDF readers
