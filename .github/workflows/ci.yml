@@ -21,7 +21,8 @@ concurrency:
 
 jobs:
   gates:
-    runs-on: ubuntu-latest
+    # The pinned converter action admits Ubuntu Noble's signed APT sources.
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -62,8 +63,8 @@ jobs:
       - name: Prepare the SDK locked Python 3.15 environment
         run: uv sync --project .ci-template-sdk --python "$PYTHON_VERSION" --locked
       - name: Prepare pinned document converters
-        # The render SDK uses 3.15; converter setup uses the reviewed action without the newer APT guard.
-        uses: docxology/template/.github/actions/setup-acceptance-documents@d6c5b314495dade86492d16db154a5a91282165a # docxology/template@4670c48
+        # Preserve the action's Noble APT guard in converter mode.
+        uses: docxology/template/.github/actions/setup-acceptance-documents@d6c5b314495dade86492d16db154a5a91282165a # docxology/template@d6c5b31
         with:
           mode: converter
       - name: Prepare real TeX, fonts and PDF readers

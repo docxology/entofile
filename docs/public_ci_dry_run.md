@@ -40,7 +40,10 @@ artifacts, or mutate Zenodo.
 ## Executable workflow
 
 `.github/workflows/ci.yml` is the executable source of truth, with immutable action
-and SDK pins and a single Python 3.15 consumer cell. It renders genuine PDF/HTML,
+and SDK pins and a single Python 3.15 consumer cell on Ubuntu 24.04. The pinned
+converter action admits Noble's signed APT source suites; do not use a newer
+`ubuntu-latest` image without qualifying that action's host contract.
+It renders genuine PDF/HTML,
 runs the complete test suite, then rehydrates measured values and certifies live
 tests in the SDK environment. The complete current-output snapshot and stage 04
 validation precede the final outer `release/` envelope and checksum verification.
