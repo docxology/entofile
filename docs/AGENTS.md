@@ -35,7 +35,7 @@ Operational documentation for the ENTO project. Pipeline gates do not parse thes
 2. `architecture.md`
 3. `testing_philosophy.md`
 4. `rendering_pipeline.md`
-5. `../manuscript/AGENTS.md`
+5. `manuscript/AGENTS.md`
 
 ## Verification
 
@@ -49,4 +49,4 @@ uv run python scripts/z_generate_manuscript_variables.py
 
 - [`../manuscript/AGENTS.md`](manuscript/AGENTS.md)
 - [`../src/AGENTS.md`](../src/AGENTS.md)
-- [`../../../AGENTS.md`](../../../AGENTS.md) — template root
+- [Template agent guide](https://github.com/docxology/template/blob/87704feae0a4490ef7dad9c931d268e8c30273c2/AGENTS.md)

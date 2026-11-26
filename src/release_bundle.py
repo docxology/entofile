@@ -74,6 +74,7 @@ RELEASE_FILES: tuple[ReleaseFile, ...] = (
     ),
     ReleaseFile("README.md", "project README"),
     ReleaseFile("TODO.md", "roadmap"),
+    ReleaseFile("docs/TODO.md", "maintained roadmap"),
     ReleaseFile("LICENSE", "license"),
     ReleaseFile("SECURITY.md", "security disclosure policy"),
     ReleaseFile("CITATION.cff", "citation metadata"),

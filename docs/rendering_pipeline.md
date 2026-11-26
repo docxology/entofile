@@ -7,27 +7,31 @@ See [publication validation](publication_validation_2026_10_18.md) for dated evi
 
 ## Pinned template SDK
 
-Use the template commit pinned in `.github/workflows/ci.yml`:
-`0b19f0e40f817a88c9b8d870b695687058a17d53`. The SDK and entofile require
-Python 3.15 only. Install Pandoc and compatible
-pandoc-crossref, XeLaTeX, BibTeX, fonts, and Poppler as in CI. CI pins its
-converters separately; a different local converter version is not identical CI parity.
+Use Python 3.15, uv, Pandoc 3.14 with its matching pandoc-crossref release,
+XeLaTeX, BibTeX, Latin Modern and DejaVu fonts, and Poppler. This walkthrough
+uses the [documentation reference revision](https://github.com/docxology/template/tree/87704feae0a4490ef7dad9c931d268e8c30273c2).
+The [CI workflow](../.github/workflows/ci.yml) records its own SDK and
+converter pins for release verification.
 
-Prepare a **physical clone**, not a symlink, at
-`<template-checkout>/projects/working/entofile`. Hydration discovers the SDK from
-the project's physical parents. Keep its origin set to the public entofile repository
-so immutable source-document links name the consumer rather than the SDK pool.
-Synchronize the exact source revision and all relevant changes before generation.
+Set `ENTO_CHECKOUT` to the absolute path of a clean entofile checkout, then
+register a physical clone inside the runner so hydration can discover the SDK
+from its parent directories. Keep the public entofile origin so source links
+identify the right repository.
 
-```bash
-cd <template-checkout>
+```sh
+git clone https://github.com/docxology/template.git ento-template-runner
+cd ento-template-runner
+git checkout --detach 87704feae0a4490ef7dad9c931d268e8c30273c2
 uv sync --locked --python 3.15
+mkdir -p projects/working
+git clone --no-hardlinks "$ENTO_CHECKOUT" projects/working/entofile
+git -C projects/working/entofile checkout --detach "$(git -C "$ENTO_CHECKOUT" rev-parse HEAD)"
+git -C projects/working/entofile remote set-url origin https://github.com/docxology/entofile.git
+cd projects/working/entofile
+uv sync --locked --extra dev
 ```
 
-Use a real Git-backed SDK checkout with the exact pinned source indexed. An
-archive export can render when `SOURCE_DATE_EPOCH` is set to the SDK commit's
-timestamp (`1794273105` here), but cannot certify stage-source provenance without
-the genuine Git index. Do not invent timestamps or bypass provenance checks.
+The SDK uses its Git index to attest the renderer source.
 
 ## 1. Generate independent evidence
 
