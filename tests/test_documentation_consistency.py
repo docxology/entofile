@@ -174,7 +174,7 @@ def test_public_docs_do_not_claim_legacy_support() -> None:
 def test_todo_batch_docs_are_indexed_and_todo_updated() -> None:
     docs_readme = _read("docs/README.md")
     readme = _read("README.md")
-    todo = _read("TODO.md")
+    todo = _read("docs/TODO.md")
     for rel in (
         "operator_checklist.md",
         "glossary.md",
@@ -205,7 +205,7 @@ def test_todo_batch_docs_are_indexed_and_todo_updated() -> None:
 def test_public_cutover_scaffolding_is_indexed() -> None:
     docs_readme = _read("docs/README.md")
     readme = _read("README.md")
-    todo = _read("TODO.md")
+    todo = _read("docs/TODO.md")
     for rel in ("SECURITY.md", "CITATION.cff", "CONTRIBUTING.md", "LICENSE"):
         assert (ROOT / rel).is_file(), rel
         assert rel in docs_readme

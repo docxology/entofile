@@ -46,6 +46,7 @@ EXPECTED_RELEASE_PATHS = {
     "docs/redteam_repo_visual_audit_0.4.md",
     "README.md",
     "TODO.md",
+    "docs/TODO.md",
     "LICENSE",
     "SECURITY.md",
     "CITATION.cff",

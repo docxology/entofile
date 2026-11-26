@@ -1,60 +1,53 @@
-# Quick Start — entofile
+# Quickstart
 
-Run ENTO wire format **0.5.0** benchmarks and render the 0.5 release candidate.
-Only ENTO 0.5.0 containers are accepted; all other wire versions are rejected.
+Use Python 3.15 and uv from an entofile checkout. The CLI reads and writes ENTO
+wire format 0.5.0. The paper release label and the wire version have different
+roles.
 
-## Prerequisites
-
-- Python 3.15 only
-- `uv sync --locked --extra dev` at repo root for development and validation
-
-## Tests
-
-The complete test gate requires generated analysis and real rendered publication
-artifacts. First follow [`rendering_pipeline.md`](rendering_pipeline.md); missing
-products intentionally leave the publication tests red rather than skipped.
-
-```bash
-uv run python scripts/run_tests.py
+```sh
+uv sync --locked --extra dev
+uv run entofile genkey -o master.key
+uv run entofile pack -k master.key -o example.ento.zip
+uv run entofile verify -i example.ento.zip -k master.key
+uv run entofile unpack -i example.ento.zip -k master.key -o decrypted
 ```
 
-## Analysis
+The default pack uses the bundled deterministic example tracks. Use a private
+working directory for the key and keep it separate from the archive. Verify
+before extracting input from a third party. See the [operator
+checklist](operator_checklist.md) for input handling and sidecar restrictions,
+and the [wire format profile](format_0_5_0.md) for the manifest and track
+contracts.
 
-```bash
+## Reproduce benchmark data
+
+```sh
 uv run python scripts/ento_analysis.py
+uv run python scripts/check_figure_layout.py
 ```
 
-`z_generate_manuscript_variables.py` injects manuscript variables and is
-template-integrated — it requires a template repository checkout and exits with
-a clear message on a standalone clone:
+The default benchmark configuration lives in
+[the manuscript config](manuscript/config.yaml). The CSV under
+`output/data/ento_benchmark_results.csv` records raw measurements, including
+wall-clock timings. The benchmark fingerprint binds the deterministic fields.
+The [methods](methods.md#determinism-contract) and [output
+inventory](output_inventory.md) explain which measurements are repeatable and
+which files supply manuscript claims. Use [benchmark
+profiles](benchmark_profiles.md) for the separate expanded run.
 
-```bash
-uv run python scripts/z_generate_manuscript_variables.py
+## Render and verify
+
+The [rendering pipeline](rendering_pipeline.md) registers a clean entofile
+checkout inside the pinned Template SDK and builds the analysis, manuscript,
+and release evidence. The complete suite exercises publication metadata and
+expects real generated artifacts. After the initial render and bundle, run
+`uv run python scripts/run_tests.py` in the staged entofile checkout. Re-render
+to incorporate the test results before taking the final artifact snapshot.
+
+Once analysis has created the benchmark CSV and figures, check local
+navigation from the entofile checkout with Lychee:
+
+```sh
+git diff --check
+lychee --offline README.md AGENTS.md TODO.md CONTRIBUTING.md SECURITY.md 'docs/**/*.md'
 ```
-
-Outputs under `output/`:
-
-- `figures/` — benchmark plots
-- `data/ento_benchmark_results.csv` — primary metrics
-- `reports/benchmark_validation.json` — tamper gate (analysis stage)
-- `reports/validation_report.json` — Stage 6 pipeline validation (after full pipeline)
-
-## PDF
-
-```bash
-cd <template-checkout>
-uv run --no-sync --locked --python 3.15 python scripts/pipeline/stage_03_render.py --project working/entofile
-```
-
-## CLI
-
-From this project root:
-
-```bash
-uv run python -m src.cli genkey -o /tmp/ento.key
-uv run python -m src.cli pack -k /tmp/ento.key -o /tmp/demo.ento.zip
-uv run python -m src.cli verify -i /tmp/demo.ento.zip -k /tmp/ento.key
-```
-
-See [`architecture.md`](architecture.md) and [`agent_instructions.md`](agent_instructions.md).
-The `pack` command always writes ENTO 0.5.0 and has no format selector.

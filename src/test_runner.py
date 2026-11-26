@@ -81,7 +81,7 @@ def _notify_missing_artifacts(root: Path) -> None:
         "[entofile] additionally require a template repository checkout (see\n"
         "[entofile] docs/rendering_pipeline.md); on a standalone clone the promotion\n"
         "[entofile] tests stay red until that render exists.\n"
-        "[entofile] (see TODO.md 'Live-tree artifact state (2026-07-31)')\n\n"
+        "[entofile] (see docs/TODO.md 'Live-tree artifact state (2026-07-31)')\n\n"
     )
 
 

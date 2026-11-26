@@ -14,6 +14,7 @@ maintainer's build and render path remains `projects/working/entofile`.
 | AI agents | [`agent_instructions.md`](agent_instructions.md) |
 | Architecture | [`architecture.md`](architecture.md) |
 | Format 0.5.0 | [`format_0_5_0.md`](format_0_5_0.md) |
+| Paper | [Manuscript sources and section index](manuscript/README.md) |
 | Manuscript tokens | [`syntax_guide.md`](syntax_guide.md) + [`../manuscript/AGENTS.md`](manuscript/AGENTS.md) |
 | Glossary | [`glossary.md`](glossary.md) |
 
@@ -73,3 +74,6 @@ maintainer's build and render path remains `projects/working/entofile`.
 - [`../SECURITY.md`](../SECURITY.md) — coordinated vulnerability reporting
 - [`../CITATION.cff`](../CITATION.cff) — citation metadata for public promotion
 - [`../LICENSE`](../LICENSE) — MIT license text
+
+- [Roadmap](TODO.md) — maintained backlog and local artifact state
+- [Historical hardening record](../ISA.md) and [0.4 release review](../REVIEW.md) — dated records
