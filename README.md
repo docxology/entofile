@@ -13,14 +13,14 @@ Author: Daniel Ari Friedman (Active Inference Institute). DOI: [10.5281/zenodo.2
 
 ## Quick start
 
-Install from a checkout with Python 3.15 and [uv](https://docs.astral.sh/uv/).
+From a checkout, use Python 3.15 and [uv](https://docs.astral.sh/uv/) to run the bundled deterministic example.
 
 ```sh
-uv tool install .
-entofile genkey -o master.key
-entofile pack -k master.key -o example.ento.zip
-entofile verify -i example.ento.zip -k master.key
-entofile unpack -i example.ento.zip -k master.key -o decrypted
+uv sync --locked --extra dev
+uv run entofile genkey -o master.key
+uv run entofile pack -k master.key -o example.ento.zip
+uv run entofile verify -i example.ento.zip -k master.key
+uv run entofile unpack -i example.ento.zip -k master.key -o decrypted
 ```
 
 The [documentation index](docs/README.md) links to the [quickstart](docs/quickstart.md),
