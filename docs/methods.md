@@ -1,6 +1,6 @@
 # Methods reference — entofile
 
-Normative algorithms and configurable parameters for ENTO wire format **0.5.0** only (AES-256-GCM with associated-data binding, mandatory PADMÉ length padding, and authenticated exported-manifest context). Implementation lives under [`../src/`](../src/); figures are code-derived from [`output/data/ento_benchmark_results.csv`](../output/data/ento_benchmark_results.csv).
+Normative algorithms and configurable parameters for ENTO wire format **0.5.0** only (AES-256-GCM with associated-data binding, mandatory PADMÉ length padding, and authenticated exported-manifest context). Implementation lives under [`../src/`](../src/); the figures use the locally generated benchmark CSV at `output/data/ento_benchmark_results.csv`. See the [figure registry guide](figure_registry.md) for how the figures use their inputs.
 
 ## First-principles boundary
 
