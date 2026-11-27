@@ -64,7 +64,7 @@ jobs:
         run: uv sync --project .ci-template-sdk --python "$PYTHON_VERSION" --locked
       - name: Prepare pinned document converters
         # Preserve the action's Noble APT guard in converter mode.
-        uses: docxology/template/.github/actions/setup-acceptance-documents@b0bb1b2f8e8b97d2e4b05315b8682e25fe4df0f4 # same Template commit as the rendering SDK
+        uses: docxology/template/.github/actions/setup-acceptance-documents@8b2af45ba858e8419e1d9452610c261344ee8e6c # same Template commit as the rendering SDK
         with:
           mode: converter
           source-root: .ci-template-sdk
